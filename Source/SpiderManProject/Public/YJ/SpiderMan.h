@@ -13,8 +13,6 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
-
 UCLASS()
 class SPIDERMANPROJECT_API ASpiderMan : public ACharacter
 {
@@ -74,6 +72,9 @@ public:
 	bool canHook;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
+	bool Hooked;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
 	class UCableComponent* ropeComp;
 	
 	UFUNCTION(BlueprintCallable)
@@ -81,5 +82,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
 	UInputAction* LMouseAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float MaxTraceDistance = 1000.0f;
 	
 };

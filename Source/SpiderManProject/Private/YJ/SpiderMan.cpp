@@ -2,13 +2,15 @@
 
 
 #include "YJ/SpiderMan.h"
-
+#include "InputActionValue.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/Controller.h"
 #include "CableComponent.h"
 
 // Sets default values
@@ -69,6 +71,8 @@ void ASpiderMan::Tick(float DeltaTime)
 
 }
 
+#pragma region BasicMove
+
 // Called to bind functionality to input
 void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -94,10 +98,12 @@ void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpiderMan::Look);
+
+		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Triggered, this, &ASpiderMan::ThrowRopeAndSwing);
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		//UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
 
@@ -105,7 +111,6 @@ void ASpiderMan::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
-
 	if (Controller != nullptr)
 	{
 		// find out which way is forward
@@ -137,8 +142,73 @@ void ASpiderMan::Look(const FInputActionValue& Value)
 	}
 }
 
+#pragma endregion BasicMove 
+
 void ASpiderMan::ThrowRopeAndSwing()
 {
+	// 버튼을 누르면 내 시야로 ray를 발사하여 hit지점을 구하고 ,
+	// hit지점을 endlocation 으로 정하기
 	
+	//ropeComp->CableLength
+
+	//ropeComp->EndLocation
+	//FVector 
+	//ropeComp->EndLocation(FVector)
+
+
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController)
+	{
+		// Get camera location and rotation
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+		// Calculate end location
+		FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxTraceDistance);
+
+		// Perform line trace
+		FHitResult HitResult;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this); // Ignore self in trace
+
+		bool bHit = GetWorld()->
+			LineTraceSingleByChannel(HitResult, CameraLocation, EndLocation, ECC_Visibility, Params);
+
+		if (bHit)
+		{
+			// Draw a debug line
+			DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Green, false, 1.0f, 0, 1.0f);
+			// Draw a debug point at the hit location
+			DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, FColor::Red, false, 1.0f);
+
+			// Log the hit location
+			UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
+
+			//ropeComp->AttachEndTo(HitResult.Location,)
+			//ropeComp->AttachEndTo = HitResult.Location;
+
+			//ropeComp->SetAttachEndTo()
+			//액터,컴포넌트 이름 , 소켓이름 
+			//ropeComp->EndLocation = HitResult.Location; //=> 되는데 끌려가는 플레이어야함
+			
+			FTransform temp = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
+			ropeComp->EndLocation = temp.GetLocation();
+			ropeComp->SetWorldLocation(HitResult.Location);
+
+			//길이구하기
+			float length = (GetActorLocation() - HitResult.Location).Size();
+			ropeComp->CableLength = length-300;
+			
+		}
+		else
+		{
+			// Draw a debug line
+			DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
+		}
+	}
+	
+	
+
 }
 
