@@ -12,6 +12,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "CableComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
@@ -177,10 +178,21 @@ void ASpiderMan::FindHookPint()
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(this); // Ignore self in trace
 
-		bool bHit = GetWorld()->
-			LineTraceSingleByChannel(HitResult, CameraLocation, EndLocation, ECC_Visibility, Params);
+		//bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, EndLocation, ECC_Visibility, Params);
 
-		if (bHit)
+		
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
+
+		bool bHitSphere = UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),CameraLocation,EndLocation,Radius,
+		ObjectTypes,
+		false,   // bTraceComplex
+		TArray<AActor*>(), // Actors to ignore
+		EDrawDebugTrace::ForDuration, // Draw debug
+		HitResult,
+		true);
+		
+		if (bHitSphere)
 		{
 			// Draw a debug line
 			DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Green, false, 1.0f, 0, 1.0f);
@@ -203,7 +215,7 @@ void ASpiderMan::FindHookPint()
 			FTransform temp = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
 			ropeComp->EndLocation = temp.GetLocation();
 			ropeComp->SetWorldLocation(HitResult.Location);
-
+			
 			//길이구하기
 			/*float length = (GetActorLocation() - HitResult.Location).Size();
 			ropeComp->CableLength = length-300;*/

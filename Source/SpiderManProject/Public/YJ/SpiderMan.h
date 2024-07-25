@@ -90,5 +90,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CalculateSwing();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float Radius = 100.0f;
+
+	
 	
 };
