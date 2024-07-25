@@ -72,18 +72,23 @@ public:
 	bool canHook;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
-	bool Hooked;
+	bool hooked;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
+	FVector hookPoint;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
 	class UCableComponent* ropeComp;
 	
 	UFUNCTION(BlueprintCallable)
-	void ThrowRopeAndSwing();
+	void FindHookPint();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
 	UInputAction* LMouseAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	float MaxTraceDistance = 1000.0f;
+
+	UFUNCTION(BlueprintCallable)
+	void CalculateSwing();
 	
 };

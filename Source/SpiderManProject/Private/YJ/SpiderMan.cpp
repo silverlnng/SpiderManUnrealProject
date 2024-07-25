@@ -12,6 +12,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "CableComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ASpiderMan::ASpiderMan()
@@ -68,6 +69,10 @@ void ASpiderMan::BeginPlay()
 void ASpiderMan::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if(hooked)
+	{
+		CalculateSwing();
+	}
 
 }
 
@@ -99,7 +104,7 @@ void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpiderMan::Look);
 
-		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Triggered, this, &ASpiderMan::ThrowRopeAndSwing);
+		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Triggered, this, &ASpiderMan::FindHookPint);
 	}
 	else
 	{
@@ -144,7 +149,7 @@ void ASpiderMan::Look(const FInputActionValue& Value)
 
 #pragma endregion BasicMove 
 
-void ASpiderMan::ThrowRopeAndSwing()
+void ASpiderMan::FindHookPint()
 {
 	// 버튼을 누르면 내 시야로 ray를 발사하여 hit지점을 구하고 ,
 	// hit지점을 endlocation 으로 정하기
@@ -185,6 +190,9 @@ void ASpiderMan::ThrowRopeAndSwing()
 			// Log the hit location
 			UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
 
+			hooked =true;
+			hookPoint = HitResult.Location;
+			
 			//ropeComp->AttachEndTo(HitResult.Location,)
 			//ropeComp->AttachEndTo = HitResult.Location;
 
@@ -197,8 +205,8 @@ void ASpiderMan::ThrowRopeAndSwing()
 			ropeComp->SetWorldLocation(HitResult.Location);
 
 			//길이구하기
-			float length = (GetActorLocation() - HitResult.Location).Size();
-			ropeComp->CableLength = length-300;
+			/*float length = (GetActorLocation() - HitResult.Location).Size();
+			ropeComp->CableLength = length-300;*/
 			
 		}
 		else
@@ -208,7 +216,20 @@ void ASpiderMan::ThrowRopeAndSwing()
 		}
 	}
 	
-	
+}
 
+void ASpiderMan::CalculateSwing() //틱에서 작동
+{
+
+	float length = (GetActorLocation() - hookPoint).Size();
+	ropeComp->CableLength = length-300;
+	
+	FVector temp = GetActorLocation()-hookPoint;
+	FVector veloc  =GetVelocity();
+	auto dot = UKismetMathLibrary::Dot_VectorVector(veloc, temp);
+	FVector force = temp.GetSafeNormal()*veloc*-2.f;
+	GetCharacterMovement()->AddForce(force);
+	//addForce
+	 
 }
 
