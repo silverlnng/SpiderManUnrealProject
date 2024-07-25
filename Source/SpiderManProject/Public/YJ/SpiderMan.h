@@ -85,5 +85,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	float MaxTraceDistance = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float Radius = 100.0f;
+
+	
 	
 };
