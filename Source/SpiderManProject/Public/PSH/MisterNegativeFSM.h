@@ -19,17 +19,15 @@ enum class EMisterNegativeState : uint8
 	evasion, 
 	Die,
 	LightningAttack,
-	StepAttack,
-	SpinAttack,
-	ChargingAttack
+	LightningstepAttack,
+	LightningstepAttack_Idle,
+	LightningstepAttack_Attack,
+	SpinAttack_idle,
+	SpinAttack_Attack,
+	ChargingAttack_idle,
+	ChargingAttack_Attack,
 };
 
-UENUM(BlueprintType)
-enum class EMisterNegativeChargingAttackState : uint8
-{
-	Idle,
-	Attack,
-};
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPIDERMANPROJECT_API UMisterNegativeFSM : public UActorComponent
 {
@@ -50,8 +48,10 @@ public:
 	UPROPERTY()
 	EMisterNegativeState State = EMisterNegativeState::Idle;
 
+// 	UPROPERTY()
+// 	class ASpiderMan* Target;
 	UPROPERTY()
-	EMisterNegativeChargingAttackState chargingAttackState = EMisterNegativeChargingAttackState::Idle;
+	class ASpiderManProjectCharacter* Target;
 
 	UPROPERTY()
 	class UMisterNegativeAnim* MisterAnim;
@@ -64,6 +64,20 @@ private:
 
 	float AttackDelayTime =2;
 
+	int curPage = 0;
+
+	FVector Dir;
+	FVector TargetLoc;
+	FVector StartLoc;
+	FVector CurLoc;
+	FVector EndLoc;
+	FVector MeLoc;
+	
+	FRotator MeRotation;
+	
+	float dist;
+	float Alpha = 0;
+
 	void idleState();
 	void MoveState();
 	void DamageState();
@@ -72,10 +86,22 @@ private:
 	void evasionState();// È¸ÇÇ
 	void DieState();
 
-	void RandomAttackCheak();
+	void RandomAttackCheak1();
+	void RandomAttackCheak2();
 
 	void LightningAttackState();
-	void StepAttackState();
-	void SpinAttackState();
-	void ChargingAttackState();
+
+	void LightningStepAttackState();
+	void LightningstepAttack_IdleState();
+	void LightningStepAttackState_stepAttackState();
+
+	void SpinAttackState_IdleState();
+	void SpinAttackState_AttackState();
+	void ChargingAttack_IdleState();
+	void ChargingAttack_AttackState();
+
+	void SetState(EMisterNegativeState NewState);
+
+public:
+	void EndState(EMisterNegativeState endState);
 };

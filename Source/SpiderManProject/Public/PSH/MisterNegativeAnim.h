@@ -21,20 +21,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = AttackFSM)
 	class UMisterNegativeFSM * MisterFSM;
 
-	class AMisterNegative * AmisterNegative;
+	class AMisterNegative * misterNegative;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = AttackFSM)
 	EMisterNegativeState AnimState;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = AttackFSM)
-	EMisterNegativeChargingAttackState chargingAttackAnimState;
 
 	UFUNCTION()
 	void AnimNotify_MisterAnimEnd();
 
 	UFUNCTION()
 	void AnimNotify_MisterNextAnim();
-
-	UPROPERTY()
-	bool bisNextAnim = false;
 };

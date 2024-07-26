@@ -11,21 +11,15 @@ void UMisterNegativeAnim::NativeUpdateAnimation(float DeltaSeconds)
 
 	auto ownerPawn = TryGetPawnOwner();
 
-	AmisterNegative = Cast<AMisterNegative>(ownerPawn);
+	misterNegative = Cast<AMisterNegative>(ownerPawn);
 }
 
 void UMisterNegativeAnim::AnimNotify_MisterAnimEnd()
 {
-	AnimState = EMisterNegativeState::Idle;
-	AmisterNegative->MisterFSM->State = AnimState;
-
-	UE_LOG(LogTemp, Warning, TEXT("End - ganonDorfFSM->gState : %s"), *UEnum::GetValueAsString(AnimState));
-	UE_LOG(LogTemp, Warning, TEXT("End - ganonDorfFSM->gState : %s"), *UEnum::GetValueAsString(AmisterNegative->MisterFSM->State));
-	UE_LOG(LogTemp, Warning, TEXT("Notify"));
+	misterNegative->MisterFSM->EndState(AnimState);
 }
 
 void UMisterNegativeAnim::AnimNotify_MisterNextAnim()
 {
-	bisNextAnim = true;
-	UE_LOG(LogTemp, Warning, TEXT("MisterNextAnim"));
+	
 }
