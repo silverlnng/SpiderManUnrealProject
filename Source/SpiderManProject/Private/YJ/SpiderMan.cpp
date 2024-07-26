@@ -14,6 +14,7 @@
 #include "CableComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "YJ/Cable.h"
 
 // Sets default values
 ASpiderMan::ASpiderMan()
@@ -63,18 +64,22 @@ ASpiderMan::ASpiderMan()
 void ASpiderMan::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	CableActor =GetWorld()->SpawnActor<ACable>(BP_CableActor);
 }
 
 // Called every frame
 void ASpiderMan::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if(hooked)
+	FVector Forward = GetActorForwardVector();
+	FVector Right = GetActorRightVector();
+	DetectWall(Forward);
+	//DetectWall(Right);
+	if(hooked&& !DetctedWall)
 	{
 		CalculateSwing();
 	}
-
 }
 
 #pragma region BasicMove
@@ -155,13 +160,6 @@ void ASpiderMan::FindHookPint()
 	// 버튼을 누르면 내 시야로 ray를 발사하여 hit지점을 구하고 ,
 	// hit지점을 endlocation 으로 정하기
 	
-	//ropeComp->CableLength
-
-	//ropeComp->EndLocation
-	//FVector 
-	//ropeComp->EndLocation(FVector)
-
-
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
 	{
@@ -182,9 +180,10 @@ void ASpiderMan::FindHookPint()
 
 		
 		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel2));
 
-		bool bHitSphere = UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),CameraLocation,EndLocation,Radius,
+		bool bHitSphere = UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),GetActorLocation(),EndLocation,Radius,
 		ObjectTypes,
 		false,   // bTraceComplex
 		TArray<AActor*>(), // Actors to ignore
@@ -195,16 +194,17 @@ void ASpiderMan::FindHookPint()
 		if (bHitSphere)
 		{
 			// Draw a debug line
-			DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Green, false, 1.0f, 0, 1.0f);
+			DrawDebugLine(GetWorld(), GetActorLocation(), EndLocation, FColor::Green, false, 1.0f, 0, 1.0f);
 			// Draw a debug point at the hit location
 			DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, FColor::Red, false, 1.0f);
 
 			// Log the hit location
 			UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
 
+			//
+
 			hooked =true;
-			hookPoint = HitResult.Location;
-			
+			hookPoint = HitResult.ImpactPoint;
 			//ropeComp->AttachEndTo(HitResult.Location,)
 			//ropeComp->AttachEndTo = HitResult.Location;
 
@@ -213,12 +213,13 @@ void ASpiderMan::FindHookPint()
 			//ropeComp->EndLocation = HitResult.Location; //=> 되는데 끌려가는 플레이어야함
 			
 			FTransform temp = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
-			ropeComp->EndLocation = temp.GetLocation();
-			ropeComp->SetWorldLocation(HitResult.Location);
-			
-			//길이구하기
-			/*float length = (GetActorLocation() - HitResult.Location).Size();
-			ropeComp->CableLength = length-300;*/
+			//ropeComp->EndLocation = temp.GetLocation();
+			ropeComp->EndLocation = hookPoint;
+			ropeComp->SetWorldLocation(temp.GetLocation());
+			//CableActor->SetActorLocation(hookPoint);
+			CableActor->CableComp->SetWorldLocation(HitResult.Location);
+			CableActor->CableComp->EndLocation = temp.GetLocation();
+			//CableActor->CableComp->AttachEndToSocketName(this,TEXT("SkeletalMEsh"),TEXT("hand_rSocket"))
 			
 		}
 		else
@@ -234,14 +235,47 @@ void ASpiderMan::CalculateSwing() //틱에서 작동
 {
 
 	float length = (GetActorLocation() - hookPoint).Size();
-	ropeComp->CableLength = length-300;
+	ropeComp->CableLength = length;
+	CableActor->CableComp->CableLength = length;
 	
 	FVector temp = GetActorLocation()-hookPoint;
-	FVector veloc  =GetVelocity();
+	FVector veloc  =GetVelocity()*0.5;
 	auto dot = UKismetMathLibrary::Dot_VectorVector(veloc, temp);
-	FVector force = temp.GetSafeNormal()*veloc*-2.f;
+	force = temp.GetSafeNormal()*dot;
 	GetCharacterMovement()->AddForce(force);
-	//addForce
+	GetCharacterMovement()->AirControl=1;
 	 
 }
 
+void ASpiderMan::DetectWall(FVector Direction)
+{
+	//벽을 감지하기 위해서 네방향으로 ray 발사해보기 
+	FHitResult OutHit;
+	FVector Start = GetActorLocation();
+	FVector End = Start + Direction * DetectTraceLength;
+
+	ECollisionChannel TraceChannel = ECC_GameTraceChannel1;
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, TraceChannel, Params);
+	if (bHit)
+	{
+		DrawDebugLine(GetWorld(), Start, OutHit.ImpactPoint, FColor::Red, false, 1);
+		DetctedWall=true;
+		hooked =false;
+		//ImpactPoint 겉면의 지점
+		//벽을 감지한다면 힘을 그만받도록 만들기
+	}
+	else
+	{
+		DetctedWall = false;
+	}
+
+	//허공
+	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Red : FColor::Green, false, 1);
+	
+}
+
+//DetctedWall=true 하면 그 벽에 딱 달라붙기

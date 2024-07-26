@@ -86,13 +86,28 @@ public:
 	UInputAction* LMouseAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	float MaxTraceDistance = 1000.0f;
+	float MaxTraceDistance = 2000.0f;
 
 	UFUNCTION(BlueprintCallable)
 	void CalculateSwing();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	float Radius = 100.0f;
+	float Radius = 10.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	TSubclassOf<class ACable> BP_CableActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	class ACable* CableActor;
 	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	FVector force;
+
+	UFUNCTION(BlueprintCallable)
+	void DetectWall(FVector Direction);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float DetectTraceLength =50;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	bool DetctedWall;
 };
