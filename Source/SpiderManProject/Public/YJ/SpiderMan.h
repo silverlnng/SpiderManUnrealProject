@@ -110,4 +110,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	bool DetctedWall;
+
+	UFUNCTION(BlueprintCallable)
+	void ClimbingMode();
 };

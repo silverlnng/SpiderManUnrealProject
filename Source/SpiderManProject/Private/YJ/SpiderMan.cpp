@@ -205,21 +205,12 @@ void ASpiderMan::FindHookPint()
 
 			hooked =true;
 			hookPoint = HitResult.ImpactPoint;
-			//ropeComp->AttachEndTo(HitResult.Location,)
-			//ropeComp->AttachEndTo = HitResult.Location;
-
-			//ropeComp->SetAttachEndTo()
-			//액터,컴포넌트 이름 , 소켓이름 
-			//ropeComp->EndLocation = HitResult.Location; //=> 되는데 끌려가는 플레이어야함
 			
 			FTransform temp = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
-			//ropeComp->EndLocation = temp.GetLocation();
-			ropeComp->EndLocation = hookPoint;
-			ropeComp->SetWorldLocation(temp.GetLocation());
-			//CableActor->SetActorLocation(hookPoint);
-			CableActor->CableComp->SetWorldLocation(HitResult.Location);
-			CableActor->CableComp->EndLocation = temp.GetLocation();
-			//CableActor->CableComp->AttachEndToSocketName(this,TEXT("SkeletalMEsh"),TEXT("hand_rSocket"))
+			
+			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint);
+			CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
+			
 			
 		}
 		else
@@ -233,11 +224,11 @@ void ASpiderMan::FindHookPint()
 
 void ASpiderMan::CalculateSwing() //틱에서 작동
 {
-
+	//케이블의 길이 설정
 	float length = (GetActorLocation() - hookPoint).Size();
-	ropeComp->CableLength = length;
 	CableActor->CableComp->CableLength = length;
-	
+
+	// addforce를 하는 크기 
 	FVector temp = GetActorLocation()-hookPoint;
 	FVector veloc  =GetVelocity()*0.5;
 	auto dot = UKismetMathLibrary::Dot_VectorVector(veloc, temp);
@@ -267,6 +258,8 @@ void ASpiderMan::DetectWall(FVector Direction)
 		hooked =false;
 		//ImpactPoint 겉면의 지점
 		//벽을 감지한다면 힘을 그만받도록 만들기
+		    // 속도도 느리게
+			// 클라이밍 되도록 만들기
 	}
 	else
 	{
@@ -275,6 +268,11 @@ void ASpiderMan::DetectWall(FVector Direction)
 
 	//허공
 	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Red : FColor::Green, false, 1);
+	
+}
+
+void ASpiderMan::ClimbingMode()
+{
 	
 }
 
