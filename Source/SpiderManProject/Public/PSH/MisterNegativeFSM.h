@@ -8,13 +8,13 @@
 
 
 UENUM(BlueprintType)
-
 enum class EMisterNegativeState : uint8
 {
 	Idle,
 	Move,
 	Damage,
 	Groggy, 
+	Groggy_loop, 
 	Attack,
 	evasion, 
 	Die,
@@ -64,7 +64,8 @@ private:
 
 	float AttackDelayTime =2;
 
-	int curPage = 0;
+	UPROPERTY(EditAnywhere)
+	int curPage = 1;
 
 	FVector Dir;
 	FVector TargetLoc;
@@ -72,8 +73,9 @@ private:
 	FVector CurLoc;
 	FVector EndLoc;
 	FVector MeLoc;
-	
 	FRotator MeRotation;
+
+	int stamina = 0;
 	
 	float dist;
 	float Alpha = 0;
@@ -82,6 +84,7 @@ private:
 	void MoveState();
 	void DamageState();
 	void GroggyState();// 
+	void Groggy_loopState();// 
 	void AttackState();
 	void evasionState();// È¸ÇÇ
 	void DieState();

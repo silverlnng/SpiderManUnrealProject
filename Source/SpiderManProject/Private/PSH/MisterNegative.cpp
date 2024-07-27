@@ -52,3 +52,26 @@ void AMisterNegative::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
+void AMisterNegative::SpawnLightning()
+{
+	FActorSpawnParameters parm;
+	parm.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	GetWorld()->SpawnActor<AActor>(Lightning,GetActorLocation(),GetActorRotation(),parm);
+}
+
+void AMisterNegative::SpawnSpin()
+{
+	FTransform f = GetActorTransform();
+	FActorSpawnParameters parm;
+	parm.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	GetWorld()->SpawnActor<AActor>(Spin, GetActorLocation(), GetActorRotation(), parm);
+}
+
+void AMisterNegative::SpawnCharging()
+{
+	FTransform f = GetActorTransform();
+	FActorSpawnParameters parm;
+	parm.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	GetWorld()->SpawnActor<AActor>(Charging, GetActorLocation(), GetActorRotation(), parm);
+}
+

@@ -26,6 +26,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = AttackFSM)
 	EMisterNegativeState AnimState;
 
+
+	UFUNCTION()
+	void AnimNotify_SpawnLightning();
+	UFUNCTION()
+	void AnimNotify_SpawnCharging();
+	UFUNCTION()
+	void AnimNotify_SpawnSpin();
+
 	UFUNCTION()
 	void AnimNotify_MisterAnimEnd();
 

@@ -27,8 +27,19 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
+	
+	void SpawnLightning(); // LightningAttack Spawn
+	void SpawnSpin(); // SpinAttack Spawn
+	void SpawnCharging(); // ChargingAttack Spawn
 
 	UPROPERTY()
 	class UMisterNegativeFSM * MisterFSM;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AActor>  Lightning;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AActor> Spin;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AActor> Charging;
 private:
 };

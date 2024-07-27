@@ -14,8 +14,24 @@ void UMisterNegativeAnim::NativeUpdateAnimation(float DeltaSeconds)
 	misterNegative = Cast<AMisterNegative>(ownerPawn);
 }
 
+void UMisterNegativeAnim::AnimNotify_SpawnLightning()
+{
+	misterNegative->SpawnLightning();
+}
+
+void UMisterNegativeAnim::AnimNotify_SpawnCharging()
+{
+	misterNegative->SpawnCharging();
+}
+
+void UMisterNegativeAnim::AnimNotify_SpawnSpin()
+{
+	misterNegative->SpawnSpin();
+}
+
 void UMisterNegativeAnim::AnimNotify_MisterAnimEnd()
 {
+	if(misterNegative != nullptr)
 	misterNegative->MisterFSM->EndState(AnimState);
 }
 
