@@ -62,7 +62,7 @@ private:
 
 	float curTime =0;
 
-	float AttackDelayTime =2;
+	float AttackDelayTime =1;
 
 	UPROPERTY(EditAnywhere)
 	int curPage = 1;

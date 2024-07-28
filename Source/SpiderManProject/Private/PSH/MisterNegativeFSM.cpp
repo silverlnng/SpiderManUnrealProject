@@ -32,7 +32,7 @@ void UMisterNegativeFSM::BeginPlay()
 	}
 
 	// 현재 페이지
-	curPage = 2;
+	curPage = 0;
 	stamina = 100;
 }
 
@@ -148,7 +148,8 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 
 void UMisterNegativeFSM::GroggyState() // 스턴
 {
-	stamina = 100;
+	
+	
 }
 
 void UMisterNegativeFSM::Groggy_loopState()
@@ -339,6 +340,9 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::Damage:
 		break;
 	case EMisterNegativeState::Groggy:
+		stamina = 100;
+		curPage++;
+		UE_LOG(LogTemp, Warning, TEXT("GroggyState"));
 		SetState(EMisterNegativeState::Groggy_loop);
 		break;
 	case EMisterNegativeState::Groggy_loop:
