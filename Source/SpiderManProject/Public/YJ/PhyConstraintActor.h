@@ -24,6 +24,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class USceneComponent* SceneComp;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UPhysicsConstraintComponent* PhysicsConstraintComponent;
 
 };

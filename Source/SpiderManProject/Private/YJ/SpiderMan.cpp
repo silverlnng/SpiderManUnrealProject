@@ -58,9 +58,9 @@ ASpiderMan::ASpiderMan()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	ropeComp = CreateDefaultSubobject<UCableComponent>(TEXT("ropeComp"));
+	/*ropeComp = CreateDefaultSubobject<UCableComponent>(TEXT("ropeComp"));
 
-	ropeComp->SetupAttachment(RootComponent);
+	ropeComp->SetupAttachment(RootComponent);*/
 
 
 }
@@ -222,15 +222,15 @@ void ASpiderMan::FindHookPint()
 			CableActor->StaticComp->SetWorldLocation(GetActorLocation());
 			
 			//끝점을 케이블의 static으로 하고 
-			CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
-			//CableActor->CableComp->SetAttachEndToComponent(CableActor->StaticComp,NAME_None);
+			//CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
+			CableActor->CableComp->SetAttachEndToComponent(CableActor->StaticComp,NAME_None);
 			
 			//Physics Constraint 위치시키고 연결 시켜주기 
 			PConstraintActor->SetActorLocation(HitResult.ImpactPoint);
 			
-			PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(CableActor->CableComp,NAME_None,this->GetMesh(),TEXT("hand_r"));
+			//PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(CableActor->CableComp,NAME_None,this->GetCapsuleComponent(),NAME_None);
 
-			//PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(CableActor->CableComp,NAME_None,CableActor->StaticComp,NAME_None);
+			PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(CableActor->CableComp,NAME_None,CableActor->StaticComp,NAME_None);
 
 			//CableActor->StaticComp->SetSimulatePhysics(true);
 

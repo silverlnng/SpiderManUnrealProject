@@ -136,5 +136,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void MyDrawDebugLine();
+
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	FPhysicsConstraintHandle*/
 	
 };
