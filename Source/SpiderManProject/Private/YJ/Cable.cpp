@@ -4,6 +4,7 @@
 #include "YJ/Cable.h"
 
 #include "CableComponent.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
 
 // Sets default values
 ACable::ACable()
@@ -17,15 +18,22 @@ ACable::ACable()
 
 	CableComp =CreateDefaultSubobject<UCableComponent>(TEXT("CableComponent"));
 
-	CableComp->SetupAttachment(SceneComp);
+	CableComp->SetupAttachment(RootComponent);
 
+	//PhysicsConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("PhysicsConstraint"));
+	//PhysicsConstraint->SetupAttachment(RootComponent);
+
+	StaticComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticComp"));
+
+	StaticComp->SetupAttachment(RootComponent);
+	
 }
 
 // Called when the game starts or when spawned
 void ACable::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame

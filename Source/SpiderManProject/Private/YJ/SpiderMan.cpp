@@ -12,9 +12,14 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "CableComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "PhysicsEngine/PhysicsConstraintActor.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "YJ/Cable.h"
+#include "YJ/PhyConstraintActor.h"
+
 
 // Sets default values
 ASpiderMan::ASpiderMan()
@@ -66,6 +71,8 @@ void ASpiderMan::BeginPlay()
 	Super::BeginPlay();
 
 	CableActor =GetWorld()->SpawnActor<ACable>(BP_CableActor);
+	PConstraintActor = GetWorld()->SpawnActor<APhyConstraintActor>(BP_PhysicsConstraint);
+	pc = GetWorld()->GetFirstPlayerController();
 }
 
 // Called every frame
@@ -80,6 +87,7 @@ void ASpiderMan::Tick(float DeltaTime)
 	{
 		CalculateSwing();
 	}
+	
 }
 
 #pragma region BasicMove
@@ -160,13 +168,12 @@ void ASpiderMan::FindHookPint()
 	// 버튼을 누르면 내 시야로 ray를 발사하여 hit지점을 구하고 ,
 	// hit지점을 endlocation 으로 정하기
 	
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (PlayerController)
+	if (pc)
 	{
 		// Get camera location and rotation
 		FVector CameraLocation;
 		FRotator CameraRotation;
-		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+		pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
 		// Calculate end location
 		FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxTraceDistance);
@@ -180,8 +187,8 @@ void ASpiderMan::FindHookPint()
 
 		
 		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
-		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel2));
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1)); //Wall
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel2)); //Catchable
 
 		bool bHitSphere = UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),GetActorLocation(),EndLocation,Radius,
 		ObjectTypes,
@@ -206,10 +213,43 @@ void ASpiderMan::FindHookPint()
 			hooked =true;
 			hookPoint = HitResult.ImpactPoint;
 			
-			FTransform temp = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
+			FTransform CharaSocketTranform = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
 			
-			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint);
+			//CableActor->CableComp->EndLocation = GetActorLocation();
+			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //시작점을
+			//CableActor->PhysicsConstraint->SetWorldLocation(HitResult.ImpactPoint);
+
+			CableActor->StaticComp->SetWorldLocation(GetActorLocation());
+			
+			//끝점을 케이블의 static으로 하고 
 			CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
+			//CableActor->CableComp->SetAttachEndToComponent(CableActor->StaticComp,NAME_None);
+			
+			//Physics Constraint 위치시키고 연결 시켜주기 
+			PConstraintActor->SetActorLocation(HitResult.ImpactPoint);
+			
+			PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(CableActor->CableComp,NAME_None,this->GetMesh(),TEXT("hand_r"));
+
+			//PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(CableActor->CableComp,NAME_None,CableActor->StaticComp,NAME_None);
+
+			//CableActor->StaticComp->SetSimulatePhysics(true);
+
+			//=> 문제점 물리로 연결지어주는 순간 (0,0,0) 으로 이동 => 왜 ?? 
+			
+			//auto end =CableActor->CableComp->GetAttachedComponent();
+
+			//end->SetWorldLocation(GetActorLocation());
+			
+			//end->AttachToComponent(GetMesh(),FAttachmentTransformRules::KeepRelativeTransform,TEXT("hand_rSocket"));
+			
+			//FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules
+			
+			//CableActor->PhysicsConstraint->SetConstrainedComponents(CableActor->CableComp,NAME_None,CableActor->StaticComp,NAME_None);
+
+			
+			//this->AttachToComponent(end,FAttachmentTransformRules::SnapToTargetIncludingScale,TEXT("hand_rSocket"));
+			
+			//PConstraintActor->PhysicsConstraintComponent->ConstraintActor1 = CableActor;
 			
 			
 		}
@@ -226,15 +266,26 @@ void ASpiderMan::CalculateSwing() //틱에서 작동
 {
 	//케이블의 길이 설정
 	float length = (GetActorLocation() - hookPoint).Size();
-	CableActor->CableComp->CableLength = length;
+	CableActor->CableComp->CableLength = length-500;
 
 	// addforce를 하는 크기 
-	FVector temp = GetActorLocation()-hookPoint;
-	FVector veloc  =GetVelocity()*0.5;
-	auto dot = UKismetMathLibrary::Dot_VectorVector(veloc, temp);
-	force = temp.GetSafeNormal()*dot;
+	/*FVector Dir = (GetActorLocation()-hookPoint);
+	auto dot = UKismetMathLibrary::Dot_VectorVector(GetVelocity(), Dir);
+	force = Dir.GetSafeNormal()*dot;
 	GetCharacterMovement()->AddForce(force);
-	GetCharacterMovement()->AirControl=1;
+	GetCharacterMovement()->AirControl=1;*/
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	
+	// 카메라의 앞 방향 (Forward Vector)을 얻어옴
+	FVector CameraForward = CameraRotation.Vector();
+
+	// 캐릭터의 위치를 기준으로 힘을 가할 방향 설정
+	FVector ForceDirection = CameraForward.GetSafeNormal();
+	FVector Force = ForceDirection * 100;
+	//GetCharacterMovement()->AddForce(Force);
 	 
 }
 
@@ -273,7 +324,56 @@ void ASpiderMan::DetectWall(FVector Direction)
 
 void ASpiderMan::ClimbingMode()
 {
-	
+	//DetctedWall=true 하면 그 벽에 딱 달라붙기
 }
 
-//DetctedWall=true 하면 그 벽에 딱 달라붙기
+void ASpiderMan::CatchActor()
+{
+
+}
+
+TArray<AActor*> ASpiderMan::DetectEnemy()
+{
+	TArray<AActor*> DetectedActors;
+	FVector MyLocation = GetActorLocation();
+	FVector ForwardVector = GetActorForwardVector();
+
+	TArray<AActor*> AllActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), AllActors);
+
+	for (AActor* Actor : AllActors)
+	{
+		if (Actor == this) continue;
+
+		FVector DirectionToActor = Actor->GetActorLocation() - MyLocation;
+		float DistanceToActor = DirectionToActor.Size();
+
+		if (DistanceToActor <= DetectionRadius)
+		{
+			DirectionToActor.Normalize();
+			float DotProduct = FVector::DotProduct(ForwardVector, DirectionToActor);
+			float AngleToActor = FMath::Acos(DotProduct) * (180.0f / PI);
+
+			if (AngleToActor <= DetectionAngle)
+			{
+				DetectedActors.Add(Actor);
+			}
+		}
+	}
+
+	return TArray<AActor*>();
+}
+
+void ASpiderMan::MyDrawDebugLine()
+{
+	FVector ForwardVector = GetActorForwardVector();
+	FVector LeftBoundary = ForwardVector.RotateAngleAxis(-DetectionAngle, FVector::UpVector);
+	FVector RightBoundary = ForwardVector.RotateAngleAxis(DetectionAngle, FVector::UpVector);
+
+	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + LeftBoundary * DetectionRadius, FColor::Blue, false, 1.0f);
+	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + RightBoundary * DetectionRadius, FColor::Blue, false, 1.0f);
+}
+
+
+
+

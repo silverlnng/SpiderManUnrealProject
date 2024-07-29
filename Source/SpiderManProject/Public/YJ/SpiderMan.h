@@ -113,4 +113,28 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ClimbingMode();
+
+	UPROPERTY()
+	class APlayerController* pc;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	class APhyConstraintActor* PConstraintActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	TSubclassOf<class APhyConstraintActor> BP_PhysicsConstraint;
+
+	UFUNCTION(BlueprintCallable)
+	void CatchActor();
+
+	UFUNCTION(BlueprintCallable)
+	TArray<AActor*> DetectEnemy();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float DetectionRadius = 1000.0f; // ���� �ݰ� ����
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float DetectionAngle = 45.0f; // ���� ���� ���� (90���� ��)
+
+	UFUNCTION(BlueprintCallable)
+	void MyDrawDebugLine();
+	
 };
