@@ -26,6 +26,12 @@ enum class EMisterNegativeState : uint8
 	SpinAttack_Attack,
 	ChargingAttack_idle,
 	ChargingAttack_Attack,
+	DemonAttack1_idle,
+	DemonAttack1_Move,
+	DemonAttack1_Attack,
+	DemonAttack2_idle,
+	DemonAttack2_Move,
+	DemonAttack2_Attack,
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -55,6 +61,8 @@ public:
 
 	UPROPERTY()
 	class UMisterNegativeAnim* MisterAnim;
+	UPROPERTY()
+	class UMisterNegativeAnim* DemonAnim;
 
 	UPROPERTY()
 	class AMisterNegative* me;
@@ -102,16 +110,25 @@ private:
 	void ChargingAttack_IdleState();
 	void ChargingAttack_AttackState();
 
-	void SetState(EMisterNegativeState NewState);
+	void DemonAttack1_idleState();
+	void DemonAttack1_MoveState();
+	void DemonAttack1_AttackState();
 
-	UPROPERTY(EditAnywhere, Category = State)
-	int maxPage = 0;
+	void DemonAttack2_idleState();
+	void DemonAttack2_MoveState();
+	void DemonAttack2_AttackState();
+		
+
+	void SetState(EMisterNegativeState NewState);
 
 	UPROPERTY(EditAnywhere, Category = State)
 	float maxHp = 100;
 
 	UPROPERTY(EditAnywhere, Category = State)
 	int stamina = 0;
+
+	UPROPERTY(EditAnywhere, Category = State)
+	bool bisNextStage = false;
 public:
 
 	void Dameged(float damge);

@@ -33,6 +33,9 @@ public:
 	void SpawnCharging(); // ChargingAttack Spawn
 
 	UPROPERTY(EditAnywhere)
+	class USkeletalMeshComponent * Demon;
+
+	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent * Sword;
 	UPROPERTY(EditAnywhere)
 	class UMisterNegativeFSM * MisterFSM;
@@ -43,5 +46,7 @@ public:
 	TSubclassOf<class AActor> Spin;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AActor> Charging;
+
+	void SetMeshVisible(bool chek);
 private:
 };
