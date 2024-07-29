@@ -64,8 +64,7 @@ private:
 
 	float AttackDelayTime =1;
 
-	UPROPERTY(EditAnywhere)
-	int curPage = 1;
+	int curPage = 0;
 
 	FVector Dir;
 	FVector TargetLoc;
@@ -74,8 +73,8 @@ private:
 	FVector EndLoc;
 	FVector MeLoc;
 	FRotator MeRotation;
-
-	int stamina = 0;
+	
+	float curHp = maxHp;
 	
 	float dist;
 	float Alpha = 0;
@@ -105,6 +104,16 @@ private:
 
 	void SetState(EMisterNegativeState NewState);
 
+	UPROPERTY(EditAnywhere, Category = State)
+	int maxPage = 0;
+
+	UPROPERTY(EditAnywhere, Category = State)
+	float maxHp = 100;
+
+	UPROPERTY(EditAnywhere, Category = State)
+	int stamina = 0;
 public:
+
+	void Dameged(float damge);
 	void EndState(EMisterNegativeState endState);
 };

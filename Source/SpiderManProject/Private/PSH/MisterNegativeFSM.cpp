@@ -32,8 +32,8 @@ void UMisterNegativeFSM::BeginPlay()
 	}
 
 	// 현재 페이지
-	curPage = 0;
-	stamina = 100;
+	curPage = maxPage;
+	/*stamina = 100;*/
 }
 
 
@@ -129,10 +129,14 @@ void UMisterNegativeFSM::AttackState()
 		RandomAttackCheak1();	
 		UE_LOG(LogTemp, Warning, TEXT("curPage1"));
 		break;
-		case 2 :
-		RandomAttackCheak2();	
-		UE_LOG(LogTemp, Warning, TEXT("curPage2"));
+		default:
+		RandomAttackCheak1();
+		UE_LOG(LogTemp, Warning, TEXT("curPage : Defualt"));
 		break;
+// 		case 2 :
+// 		RandomAttackCheak2();	
+// 		UE_LOG(LogTemp, Warning, TEXT("curPage2"));
+// 		break;
 	}
 }
 
@@ -328,6 +332,24 @@ void UMisterNegativeFSM::SetState(EMisterNegativeState NewState)
 	MisterAnim->AnimState = State;
 }
 
+void UMisterNegativeFSM::Dameged(float damge)
+{
+	curHp -= damge;
+	if (curHp <= maxHp / 2) 
+	{
+		curPage=1;
+	}
+
+	if (curHp <= 0)
+	{
+		SetState(EMisterNegativeState::Die);
+	}
+	else
+	{
+		SetState(EMisterNegativeState::Damage);
+	}
+}
+
 void UMisterNegativeFSM::EndState(EMisterNegativeState endState) 
 {
 	UE_LOG(LogTemp, Warning, TEXT("AnimEnd"));
@@ -341,7 +363,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 		break;
 	case EMisterNegativeState::Groggy:
 		stamina = 100;
-		curPage++;
+		curPage++; // 임시 
 		UE_LOG(LogTemp, Warning, TEXT("GroggyState"));
 		SetState(EMisterNegativeState::Groggy_loop);
 		break;

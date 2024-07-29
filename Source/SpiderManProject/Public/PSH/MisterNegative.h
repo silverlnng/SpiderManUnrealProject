@@ -32,7 +32,9 @@ public:
 	void SpawnSpin(); // SpinAttack Spawn
 	void SpawnCharging(); // ChargingAttack Spawn
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
+	class USkeletalMeshComponent * Sword;
+	UPROPERTY(EditAnywhere)
 	class UMisterNegativeFSM * MisterFSM;
 
 	UPROPERTY(EditDefaultsOnly)
