@@ -16,6 +16,7 @@ AMisterNegative::AMisterNegative()
 	{
 		GetMesh()->SetSkeletalMesh(tempMesh.Object);
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->SetRelativeLocationAndRotation(FVector(0,0,-90),FRotator(0,-90,0));
 	}
 
 	MisterFSM = CreateDefaultSubobject<UMisterNegativeFSM>(TEXT("MisterFSM"));
@@ -25,6 +26,15 @@ AMisterNegative::AMisterNegative()
 	if (animClass.Succeeded())
 	{
 		GetMesh()->SetAnimInstanceClass(animClass.Class);
+	}
+
+	Sword = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Sword"));
+	Sword->SetupAttachment(GetMesh(),TEXT("Weapon_R"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SwrodMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/NiagaraMagicalSlashes/Model/Mesh/SK_Sword2.SK_Sword2'"));
+
+	if (SwrodMesh.Succeeded())
+	{
+		Sword->SetSkeletalMesh(SwrodMesh.Object);
 	}
 
 }
@@ -50,5 +60,28 @@ void AMisterNegative::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void AMisterNegative::SpawnLightning()
+{
+	FActorSpawnParameters parm;
+	parm.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	GetWorld()->SpawnActor<AActor>(Lightning,GetActorLocation(),GetActorRotation(),parm);
+}
+
+void AMisterNegative::SpawnSpin()
+{
+	FTransform f = GetActorTransform();
+	FActorSpawnParameters parm;
+	parm.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	GetWorld()->SpawnActor<AActor>(Spin, GetActorLocation(), GetActorRotation(), parm);
+}
+
+void AMisterNegative::SpawnCharging()
+{
+	FTransform f = GetActorTransform();
+	FActorSpawnParameters parm;
+	parm.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	GetWorld()->SpawnActor<AActor>(Charging, GetActorLocation(), GetActorRotation(), parm);
 }
 
