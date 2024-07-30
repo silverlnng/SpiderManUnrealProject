@@ -19,13 +19,6 @@ ACable::ACable()
 	CableComp =CreateDefaultSubobject<UCableComponent>(TEXT("CableComponent"));
 
 	CableComp->SetupAttachment(RootComponent);
-
-	//PhysicsConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("PhysicsConstraint"));
-	//PhysicsConstraint->SetupAttachment(RootComponent);
-
-	StaticComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticComp"));
-
-	StaticComp->SetupAttachment(RootComponent);
 	
 }
 

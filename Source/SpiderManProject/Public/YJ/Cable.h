@@ -27,11 +27,5 @@ public:
 	class USceneComponent* SceneComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UCableComponent* CableComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UPhysicsConstraintComponent* PhysicsConstraint;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UStaticMeshComponent* StaticComp;
-
+	
 };

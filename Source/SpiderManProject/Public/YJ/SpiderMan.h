@@ -44,6 +44,7 @@ public:
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -76,15 +77,19 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
 	FVector hookPoint;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
-	class UCableComponent* ropeComp;
 	
 	UFUNCTION(BlueprintCallable)
 	void FindHookPint();
 
+	UFUNCTION(BlueprintCallable)
+	void CompletedHook();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
 	UInputAction* LMouseAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
+	UInputAction* HookAction; //L - Shift
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	float MaxTraceDistance = 2000.0f;
 
@@ -152,5 +157,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	class APointActor* EndPointActor;
 
+	virtual void Jump() override;
+	virtual void StopJumping() override;
+
+	UFUNCTION(BlueprintCallable)
+	void DoubleJump();
+	
+	UPROPERTY(EditDefaultsOnly)
+	class USpiderFSMComponent* FSMComp;
+
+	FVector DoubleTargetVector;
 	
 };
