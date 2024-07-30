@@ -19,6 +19,7 @@
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "YJ/Cable.h"
 #include "YJ/PhyConstraintActor.h"
+#include "YJ/PointActor.h"
 
 
 // Sets default values
@@ -73,6 +74,12 @@ void ASpiderMan::BeginPlay()
 	CableActor =GetWorld()->SpawnActor<ACable>(BP_CableActor);
 	PConstraintActor = GetWorld()->SpawnActor<APhyConstraintActor>(BP_PhysicsConstraint);
 	pc = GetWorld()->GetFirstPlayerController();
+
+	StartPointActor =GetWorld()->SpawnActor<APointActor>(BP_StartPoint);
+
+	EndPointActor =GetWorld()->SpawnActor<APointActor>(BP_EndPoint);
+
+	//
 }
 
 // Called every frame
@@ -215,22 +222,30 @@ void ASpiderMan::FindHookPint()
 			
 			FTransform CharaSocketTranform = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
 			
-			//CableActor->CableComp->EndLocation = GetActorLocation();
-			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //시작점을
-			//CableActor->PhysicsConstraint->SetWorldLocation(HitResult.ImpactPoint);
+			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
+			EndPointActor->SetActorLocation(GetActorLocation());
 
-			CableActor->StaticComp->SetWorldLocation(GetActorLocation());
+			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을
+			
+			//CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
+			//CableActor->CableComp->SetAttachEndToComponent(CableActor->StaticComp,NAME_None);
 			
 			//끝점을 케이블의 static으로 하고 
-			//CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
-			CableActor->CableComp->SetAttachEndToComponent(CableActor->StaticComp,NAME_None);
-			
+			CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
+
 			//Physics Constraint 위치시키고 연결 시켜주기 
 			PConstraintActor->SetActorLocation(HitResult.ImpactPoint);
 			
-			//PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(CableActor->CableComp,NAME_None,this->GetCapsuleComponent(),NAME_None);
+			
+			PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(StartPointActor->meshComp,NAME_None,EndPointActor->meshComp,NAME_None);
 
-			PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(CableActor->CableComp,NAME_None,CableActor->StaticComp,NAME_None);
+			this->AttachToComponent(EndPointActor->meshComp,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
+			
+			FTimerHandle physicsTimer; 
+			GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()->void
+			{
+				EndPointActor->meshComp->SetSimulatePhysics(true);
+			}), 1.0f, false);
 
 			//CableActor->StaticComp->SetSimulatePhysics(true);
 
@@ -240,14 +255,14 @@ void ASpiderMan::FindHookPint()
 
 			//end->SetWorldLocation(GetActorLocation());
 			
-			//end->AttachToComponent(GetMesh(),FAttachmentTransformRules::KeepRelativeTransform,TEXT("hand_rSocket"));
+			//EndPointActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::KeepRelativeTransform,TEXT("hand_rSocket"));
 			
 			//FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules
 			
 			//CableActor->PhysicsConstraint->SetConstrainedComponents(CableActor->CableComp,NAME_None,CableActor->StaticComp,NAME_None);
 
 			
-			//this->AttachToComponent(end,FAttachmentTransformRules::SnapToTargetIncludingScale,TEXT("hand_rSocket"));
+			
 			
 			//PConstraintActor->PhysicsConstraintComponent->ConstraintActor1 = CableActor;
 			

@@ -139,5 +139,18 @@ public:
 
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	FPhysicsConstraintHandle*/
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	TSubclassOf<class APointActor> BP_StartPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	class APointActor* StartPointActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	TSubclassOf<class APointActor> BP_EndPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	class APointActor* EndPointActor;
+
 	
 };
