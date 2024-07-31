@@ -36,7 +36,25 @@ AMisterNegative::AMisterNegative()
 	{
 		Sword->SetSkeletalMesh(SwrodMesh.Object);
 	}
+	
+	Demon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DemonMesh"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempDemonMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/SH/Asset/saw-demon/saw-demon.saw-demon'"));
 
+	if (tempDemonMesh.Succeeded())
+	{
+		Demon->SetSkeletalMesh(tempDemonMesh.Object);
+		Demon->SetupAttachment(GetMesh());
+		Demon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Demon->SetRelativeLocation(FVector(-100, -190, -560));
+		Demon->SetRelativeScale3D(FVector(150));
+	}
+
+	ConstructorHelpers::FClassFinder<UAnimInstance> DemonAnimClass(TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Demon.ABP_Demon_C'"));
+
+	if (DemonAnimClass.Succeeded())
+	{
+		Demon->SetAnimInstanceClass(DemonAnimClass.Class);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -44,7 +62,7 @@ void AMisterNegative::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	
+	Demon->SetVisibility(false);
 
 }
 
@@ -83,5 +101,11 @@ void AMisterNegative::SpawnCharging()
 	FActorSpawnParameters parm;
 	parm.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	GetWorld()->SpawnActor<AActor>(Charging, GetActorLocation(), GetActorRotation(), parm);
+}
+
+void AMisterNegative::SetMeshVisible(bool chek)
+{
+	Sword->SetVisibility(!chek);
+	Demon->SetVisibility(chek);
 }
 

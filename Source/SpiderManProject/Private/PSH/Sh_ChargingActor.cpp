@@ -12,13 +12,15 @@ ASh_ChargingActor::ASh_ChargingActor()
 
 	col = CreateDefaultSubobject<UBoxComponent>(TEXT("Col"));
 	SetRootComponent(col);
-	col->SetBoxExtent(FVector(30, 150, 40));
+	col->SetBoxExtent(FVector(30, 300
+	, 40));
 	col->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	mesh->SetupAttachment(RootComponent);
-	mesh->SetRelativeLocation(FVector(-230, 0, 0));
+	mesh->SetRelativeLocation(FVector(-460.0, 0, 0));
 	mesh->SetRelativeRotation(FRotator(0,-90,0));
+	mesh->SetRelativeScale3D(FVector(2,2,1));
 	mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ConstructorHelpers::FObjectFinder<UStaticMesh>tempMesh(TEXT("/Script/Engine.StaticMesh'/Game/NiagaraMagicalSlashes/Model/SM_Slash_02.SM_Slash_02'"));
 
