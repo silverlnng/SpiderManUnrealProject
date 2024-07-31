@@ -6,7 +6,8 @@
 void USpiderManAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-	
+
+	SpiderMan = Cast<ASpiderMan>(TryGetPawnOwner());
 }
 
 void USpiderManAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -18,4 +19,10 @@ void USpiderManAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 void USpiderManAnimInstance::SetAnimState(EAnimState nextState)
 {
 	AnimState = nextState;
+}
+
+void USpiderManAnimInstance::AnimNotify_SpiderAnimEnd()
+{
+	//AnimState = EAnimState::IDLEAnim;
+	SetAnimState(EAnimState::IDLEAnim);
 }

@@ -491,7 +491,10 @@ void ASpiderMan::DoubleJump()
 
 void ASpiderMan::Attack()
 {
-	SpiderManAnim->SetAnimState(EAnimState::ATTACKAnim);
+	if(SpiderManAnim)
+	{
+		SpiderManAnim->SetAnimState(EAnimState::ATTACKAnim);
+	}
 	//fsm 에서  attack 중 tick으로 작동해야할것 처리하기
 }
 

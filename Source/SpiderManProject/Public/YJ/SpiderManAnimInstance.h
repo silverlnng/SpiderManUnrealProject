@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SpiderMan.h"
 #include "Animation/AnimInstance.h"
 #include "SpiderManAnimInstance.generated.h"
 
@@ -33,5 +34,11 @@ public:
 
 	UFUNCTION()
 	void SetAnimState(EAnimState nextState);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	class ASpiderMan* SpiderMan;
+
+	UFUNCTION()
+	void AnimNotify_SpiderAnimEnd();
 	
 };
