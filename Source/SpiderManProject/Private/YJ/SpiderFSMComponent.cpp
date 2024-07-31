@@ -31,12 +31,15 @@ void USpiderFSMComponent::BeginPlay()
 void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	FString mystate = UEnum::GetValueAsString(State);
 
+	//위치에 문자 띄우기
+	DrawDebugString(GetWorld(),GetOwner()->GetActorLocation(),mystate, nullptr,FColor::Yellow,0,true);
 	// ...
 	switch ( State )
 	{
 	case EState::IDLE:		TickIdle(DeltaTime);		break;
-	case EState::DoubleJump:		TickDoubleJump(DeltaTime);		break;
+	case EState::DoubleJump:TickDoubleJump(DeltaTime);	break;
 	case EState::ATTACK:	TickAttack(DeltaTime);		break;
 	case EState::DAMAGE:	TickDamage(DeltaTime);		break;
 	case EState::DIE:		TickDie(DeltaTime);			break;
@@ -45,12 +48,13 @@ void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void USpiderFSMComponent::TickIdle(const float& DeltaTime)
 {
+	Me->GetCharacterMovement()->GravityScale=1.75f;
 }
 
 void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 {
 	//Me 를 타겟점으로 lerp하게 이동 => 이렇게 하는동안 은 중력영향안받게
-	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime);
+	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime*2.f);
 	Me->GetCharacterMovement()->GravityScale =0.1f;
 	Me->SetActorLocation(CurrentLocation);
 	float dist = FVector::Dist(Me->GetActorLocation(),Me->DoubleTargetVector);
@@ -75,5 +79,13 @@ void USpiderFSMComponent::TickDamage(const float& DeltaTime)
 
 void USpiderFSMComponent::TickDie(const float& DeltaTime)
 {
+}
+
+void USpiderFSMComponent::SetState(EState NextState)
+{
+	//EState prevState = State; //기존의 값을 저장해두기
+	FString mystate = UEnum::GetValueAsString(NextState);
+	UE_LOG(LogTemp, Warning, TEXT("SetState : %s"), *mystate);
+	State=NextState;
 }
 

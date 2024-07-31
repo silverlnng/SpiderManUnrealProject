@@ -13,7 +13,7 @@ enum class EState : uint8
 	DoubleJump  UMETA(DisplayName = "이동") ,
 	ATTACK  UMETA(DisplayName = "공격") ,
 	DAMAGE UMETA(DisplayName = "데미지") ,
-	DIE UMETA(DisplayName = "죽음") ,
+	DIE UMETA(DisplayName = "죽음")
 };
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPIDERMANPROJECT_API USpiderFSMComponent : public UActorComponent
@@ -32,6 +32,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EState State = EState::IDLE;
 
 	void TickIdle(const float& DeltaTime);
@@ -40,6 +41,8 @@ public:
 	void TickDamage(const float& DeltaTime);
 	void TickDie(const float& DeltaTime); 
 
+	void SetState(EState NextState);
+	
 	UPROPERTY()
 	class ASpiderMan* Me;
 };

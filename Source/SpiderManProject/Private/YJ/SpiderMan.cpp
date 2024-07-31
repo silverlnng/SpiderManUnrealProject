@@ -22,6 +22,7 @@
 #include "YJ/PhyConstraintActor.h"
 #include "YJ/PointActor.h"
 #include "YJ/SpiderFSMComponent.h"
+#include "YJ/SpiderManAnimInstance.h"
 
 
 // Sets default values
@@ -76,6 +77,10 @@ void ASpiderMan::BeginPlay()
 	StartPointActor =GetWorld()->SpawnActor<APointActor>(BP_StartPoint);
 
 	EndPointActor =GetWorld()->SpawnActor<APointActor>(BP_EndPoint);
+
+	FSMComp->SetState(EState::IDLE);
+
+	SpiderManAnim = Cast<USpiderManAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 // Called every frame
@@ -121,8 +126,9 @@ void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpiderMan::Look);
 
-		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Started, this, &ASpiderMan::FindHookPint);
-		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Completed, this, &ASpiderMan::CompletedHook);
+		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASpiderMan::FindHookPint);
+		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Completed, this, &ASpiderMan::CompletedHook);
+		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Started, this, &ASpiderMan::Attack);
 	}
 	else
 	{
@@ -311,11 +317,15 @@ void ASpiderMan::DetectWall(FVector Direction)
 	Params.AddIgnoredActor(this);
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, TraceChannel, Params);
+	//허공
+	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Red : FColor::Green, false, 1);
+	
 	if (bHit)
 	{
 		DrawDebugLine(GetWorld(), Start, OutHit.ImpactPoint, FColor::Red, false, 1);
 		DetctedWall=true;
 		hooked =false;
+		FSMComp->SetState(EState::IDLE);
 		//ImpactPoint 겉면의 지점
 		//벽을 감지한다면 힘을 그만받도록 만들기
 		    // 속도도 느리게
@@ -326,8 +336,6 @@ void ASpiderMan::DetectWall(FVector Direction)
 		DetctedWall = false;
 	}
 
-	//허공
-	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Red : FColor::Green, false, 1);
 	
 }
 
@@ -453,9 +461,21 @@ void ASpiderMan::DoubleJump()
 		//벽이라면
 		if(HitResult.GetActor()->ActorHasTag(TEXT("Wall")))
 		{
-			DoubleTargetVector=HitResult.ImpactPoint;
+			FSMComp->State=EState::DoubleJump;
+            FSMComp->SetState(EState::DoubleJump);
+			
+   			DoubleTargetVector=HitResult.ImpactPoint;
+
+			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정
+
+			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
+			
+			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
+			//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
+			//CableActor->CableComp->SetAttachEndTo(EndPointActor, TEXT("meshComp"), NAME_None);
+			CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
 			UE_LOG(LogTemp, Log, TEXT("Hit ImpactPoint: %s"), *HitResult.ImpactPoint.ToString());
-			FSMComp->State =EState::DoubleJump; //lerp이동 처리를 여기서 하기 
+			 //lerp이동 처리를 여기서 하기
 			
 		}
 		
@@ -469,7 +489,8 @@ void ASpiderMan::DoubleJump()
 
 void ASpiderMan::Attack()
 {
-	
+	SpiderManAnim->SetAnimState(EAnimState::ATTACKAnim);
+	//fsm 에서  attack 중 tick으로 작동해야할것 처리하기
 }
 
 

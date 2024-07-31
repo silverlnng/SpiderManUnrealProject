@@ -111,7 +111,7 @@ public:
 	void DetectWall(FVector Direction);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	float DetectTraceLength =50;
+	float DetectTraceLength =70;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	bool DetctedWall;
@@ -170,5 +170,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void Attack();
+
+	UPROPERTY(EditDefaultsOnly)
+	class USpiderManAnimInstance* SpiderManAnim;
 	
 };
