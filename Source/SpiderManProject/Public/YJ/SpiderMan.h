@@ -85,7 +85,7 @@ public:
 	void CompletedHook();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
-	UInputAction* LMouseAction;
+	UInputAction* LMouseAction; // 어택 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
 	UInputAction* HookAction; //L - Shift
@@ -167,5 +167,8 @@ public:
 	class USpiderFSMComponent* FSMComp;
 
 	FVector DoubleTargetVector;
+
+	UFUNCTION(BlueprintCallable)
+	void Attack();
 	
 };

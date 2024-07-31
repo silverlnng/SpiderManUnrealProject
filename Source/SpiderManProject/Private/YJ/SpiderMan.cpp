@@ -172,7 +172,7 @@ void ASpiderMan::FindHookPint()
 	// 버튼을 누르면 내 시야로 ray를 발사하여 hit지점을 구하고 ,
 		// 내 시야가 꼭 카메라의  ViewPoint는 아님
 	// hit지점을 endlocation 으로 정하기
-	if (pc && GetCharacterMovement()->IsFalling())
+	if (pc )
 	{
 		// Get camera location and rotation
 		FVector CameraLocation;
@@ -217,58 +217,48 @@ void ASpiderMan::FindHookPint()
 			
 			FTransform CharaSocketTranform = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
 			
+
+			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정
+			
 			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
 			EndPointActor->SetActorLocation(GetActorLocation());
-
-			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을
+			EndPointActor->meshComp->SetWorldLocation(GetActorLocation());
+			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
 			
-			
-			//끝점을 케이블의 static으로 하고 
+			//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
 			CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
 
-			//Physics Constraint 위치시키고 연결 시켜주기 
+			//Physics Constraint도 위치시키고 연결 시켜주기 
 			PConstraintActor->SetActorLocation(HitResult.ImpactPoint);
 			
 			
 			PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(StartPointActor->meshComp,NAME_None,EndPointActor->meshComp,NAME_None);
 
 			//나자신 (캐릭터를) 끝점에 부착
-			//this->AttachToComponent(EndPointActor->meshComp,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
+			this->AttachToComponent(EndPointActor->meshComp,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
 
-			this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
+			//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
+			//=> AttachToActor 이거 왜안됌..??
+
+			FVector Dir = (GetActorLocation()-hookPoint);
+			auto dot = UKismetMathLibrary::Dot_VectorVector(GetVelocity(), Dir);
+			force = Dir.GetSafeNormal()*dot*-2.f;
+			
 			
 			FTimerHandle physicsTimer; 
 			GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()->void
 			{
 				EndPointActor->meshComp->SetSimulatePhysics(true);
-				EndPointActor->meshComp->AddImpulse(GetActorUpVector()*1000.f);
-				EndPointActor->meshComp->AddImpulse(GetActorForwardVector()*1000.f);
-			}), 0.2f, false);
-			
-
-			//=> 문제점 물리로 연결지어주는 순간 (0,0,0) 으로 이동 => 왜 ?? 
-			
-			//auto end =CableActor->CableComp->GetAttachedComponent();
-
-			//end->SetWorldLocation(GetActorLocation());
-			
-			//EndPointActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::KeepRelativeTransform,TEXT("hand_rSocket"));
-			
-			//FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules
-			
-			//CableActor->PhysicsConstraint->SetConstrainedComponents(CableActor->CableComp,NAME_None,CableActor->StaticComp,NAME_None);
-
-			
-			
-			
-			//PConstraintActor->PhysicsConstraintComponent->ConstraintActor1 = CableActor;
-			
+				GetCharacterMovement()->AddForce(force);
+				GetCharacterMovement()->AirControl=1;
+			}), 0.1f, false);
 			
 		}
 		else
 		{
 			// Draw a debug line
 			DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
+			
 		}
 	}
 	
@@ -278,13 +268,14 @@ void ASpiderMan::CompletedHook()
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EndPointActor->meshComp->SetSimulatePhysics(false);
+	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
 }
 
 void ASpiderMan::CalculateSwing() //틱에서 작동
 {
 	//케이블의 길이 설정
 	float length = (GetActorLocation() - hookPoint).Size();
-	CableActor->CableComp->CableLength = length-500;
+	CableActor->CableComp->CableLength = length;
 
 	// addforce를 하는 크기 
 	/*FVector Dir = (GetActorLocation()-hookPoint);
@@ -474,6 +465,11 @@ void ASpiderMan::DoubleJump()
 		// Draw a debug line
 		DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
 	}
+}
+
+void ASpiderMan::Attack()
+{
+	
 }
 
 
