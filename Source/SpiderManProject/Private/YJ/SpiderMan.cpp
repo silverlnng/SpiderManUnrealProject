@@ -461,8 +461,7 @@ void ASpiderMan::DoubleJump()
 		//벽이라면
 		if(HitResult.GetActor()->ActorHasTag(TEXT("Wall")))
 		{
-			FSMComp->State=EState::DoubleJump;
-            FSMComp->SetState(EState::DoubleJump);
+			
 			
    			DoubleTargetVector=HitResult.ImpactPoint;
 
@@ -470,12 +469,15 @@ void ASpiderMan::DoubleJump()
 
 			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
 			
-			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
-			//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
-			//CableActor->CableComp->SetAttachEndTo(EndPointActor, TEXT("meshComp"), NAME_None);
+		
+			//끝점(EndPointActor)의 component를 메쉬의 끝점
 			CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
+
+			//lerp이동 처리를 여기서 하기
+			FSMComp->SetState(EState::DoubleJump);
+
 			UE_LOG(LogTemp, Log, TEXT("Hit ImpactPoint: %s"), *HitResult.ImpactPoint.ToString());
-			 //lerp이동 처리를 여기서 하기
+			 
 			
 		}
 		
