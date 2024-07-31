@@ -38,18 +38,18 @@ AMisterNegative::AMisterNegative()
 	}
 	
 	Demon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DemonMesh"));
-	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempDemonMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempDemonMesh(TEXT("/Script/Engine.SkeletalMesh'/Game/SH/Asset/saw-demon/saw-demon.saw-demon'"));
 
 	if (tempDemonMesh.Succeeded())
 	{
 		Demon->SetSkeletalMesh(tempDemonMesh.Object);
 		Demon->SetupAttachment(GetMesh());
 		Demon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Demon->SetRelativeLocation(FVector(0, -300, -650));
-		Demon->SetRelativeScale3D(FVector(8));
+		Demon->SetRelativeLocation(FVector(-100, -190, -560));
+		Demon->SetRelativeScale3D(FVector(150));
 	}
 
-	ConstructorHelpers::FClassFinder<UAnimInstance> DemonAnimClass(TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_MisterNegative.ABP_MisterNegative_C'"));
+	ConstructorHelpers::FClassFinder<UAnimInstance> DemonAnimClass(TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Demon.ABP_Demon_C'"));
 
 	if (DemonAnimClass.Succeeded())
 	{

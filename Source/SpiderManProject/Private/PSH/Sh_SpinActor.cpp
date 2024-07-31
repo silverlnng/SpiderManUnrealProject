@@ -17,7 +17,8 @@ ASh_SpinActor::ASh_SpinActor()
 
 	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	mesh->SetupAttachment(RootComponent);
-	mesh->SetRelativeLocation(FVector(-200,0,0));
+	mesh->SetRelativeLocation(FVector(-350.0,0,0));
+	mesh->SetRelativeScale3D(FVector(1.5f, 1.5f, 1));
 	mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 

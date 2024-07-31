@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "../SpiderManProjectCharacter.h"
+#include "PSH/DemonAnim.h"
 
 // Sets default values for this component's properties
 UMisterNegativeFSM::UMisterNegativeFSM()
@@ -24,12 +25,12 @@ UMisterNegativeFSM::UMisterNegativeFSM()
 void UMisterNegativeFSM::BeginPlay()
 {
 	Super::BeginPlay();
-	Target = Cast<ASpiderManProjectCharacter>(UGameplayStatics::GetActorOfClass(GetWorld(), ASpiderManProjectCharacter::StaticClass()));
+	Target = Cast<ASpiderMan>(UGameplayStatics::GetActorOfClass(GetWorld(), ASpiderMan::StaticClass()));
 	me = Cast<AMisterNegative>(GetOwner());
 	if (me)
 	{
 		MisterAnim = Cast<UMisterNegativeAnim>(me->GetMesh()->GetAnimInstance());
-		DemonAnim = Cast<UMisterNegativeAnim>(me->Demon->GetAnimInstance());
+		DemonAnim = Cast<UDemonAnim>(me->Demon->GetAnimInstance());
 	}
 
 	// 현재 페이지
@@ -134,7 +135,7 @@ void UMisterNegativeFSM::idleState()
 	Dir = TargetLoc - me->GetActorLocation();
 	Dir.Normalize();
 
-	MeRotation = FRotationMatrix::MakeFromXZ(Dir, Dir).Rotator();
+	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
 	me->SetActorRotation(MeRotation);
 	if (curTime >= AttackDelayTime)
 	{
@@ -193,7 +194,7 @@ void UMisterNegativeFSM::Groggy_loopState()
 		Dir = TargetLoc - StartLoc; // 타겟에 방향
 		Dir.Normalize();
 
-		MeRotation = FRotationMatrix::MakeFromXZ(Dir, Dir).Rotator();
+		MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
 		me->SetActorRotation(MeRotation);
 
 		dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
@@ -292,7 +293,7 @@ void UMisterNegativeFSM::LightningstepAttack_IdleState()
 	Dir = TargetLoc - StartLoc; // 타겟에 방향
 	Dir.Normalize();
 
-	MeRotation = FRotationMatrix::MakeFromXZ(Dir, Dir).Rotator();
+	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
 	me->SetActorRotation(MeRotation);
 
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
@@ -323,7 +324,7 @@ void UMisterNegativeFSM::SpinAttackState_IdleState()
 	Dir = TargetLoc - StartLoc;
 	Dir.Normalize();
 
-	MeRotation = FRotationMatrix::MakeFromXZ(Dir, Dir).Rotator();
+	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
 	me->SetActorRotation(MeRotation);
 
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
@@ -368,7 +369,7 @@ void UMisterNegativeFSM::DemonAttack1_idleState()
 	Dir = TargetLoc - StartLoc; // 타겟에 방향
 	Dir.Normalize();
 
-	MeRotation = FRotationMatrix::MakeFromXZ(Dir, Dir).Rotator();
+	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
 	me->SetActorRotation(MeRotation);
 
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
@@ -413,6 +414,9 @@ void UMisterNegativeFSM::DemonAttack2_idleState()
 		TargetLoc = FVector(0, 0, 0);
 		Dir = TargetLoc - StartLoc; // 타겟에 방향
 		Dir.Normalize();
+
+		MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
+		me->SetActorRotation(MeRotation);
 
 		dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
 		EndLoc = StartLoc + Dir * dist;
@@ -536,6 +540,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 		break;
 	case EMisterNegativeState::DemonAttack1_Attack:
 		stamina -= 40;
+		DemonAnim->AnimState = EMisterNegativeState::Idle;
 		me->SetMeshVisible(false);
 		SetState(EMisterNegativeState::Idle);
 		break;
@@ -546,6 +551,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::DemonAttack2_Attack:
 		stamina -= 40;
 		me->SetMeshVisible(false);
+		DemonAnim->AnimState = EMisterNegativeState::Idle;
 		SetState(EMisterNegativeState::Idle);
 		break;
 	}

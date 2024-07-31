@@ -57,12 +57,12 @@ public:
 // 	UPROPERTY()
 // 	class ASpiderMan* Target;
 	UPROPERTY()
-	class ASpiderManProjectCharacter* Target;
+	class ASpiderMan* Target;
 
 	UPROPERTY()
 	class UMisterNegativeAnim* MisterAnim;
 	UPROPERTY()
-	class UMisterNegativeAnim* DemonAnim;
+	class UDemonAnim* DemonAnim;
 
 	UPROPERTY()
 	class AMisterNegative* me;
