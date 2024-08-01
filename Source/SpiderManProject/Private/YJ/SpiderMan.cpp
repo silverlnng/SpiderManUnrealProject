@@ -227,6 +227,9 @@ void ASpiderMan::FindHookPint()
 			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정
 			
 			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
+
+			//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
+		
 			EndPointActor->SetActorLocation(GetActorLocation());
 			EndPointActor->meshComp->SetWorldLocation(GetActorLocation());
 			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
@@ -249,13 +252,20 @@ void ASpiderMan::FindHookPint()
 			FVector Dir = (GetActorLocation()-hookPoint);
 			auto dot = UKismetMathLibrary::Dot_VectorVector(GetVelocity(), Dir);
 			force = Dir.GetSafeNormal()*dot*-2.f;
-			
+
+			//만약 force크기가 작다면 증폭시켜야함 => 조금 위로 올라가야함...
+			/*if(force.Size()<=100.f)
+			{
+				force*=10.f;
+			}*/
 			
 			FTimerHandle physicsTimer; 
 			GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()->void
 			{
 				EndPointActor->meshComp->SetSimulatePhysics(true);
 				GetCharacterMovement()->AddForce(force);
+				//EndPointActor->meshComp->AddForce(force*0.01f);
+				//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
 				GetCharacterMovement()->AirControl=1;
 			}), 0.1f, false);
 			
@@ -491,6 +501,11 @@ void ASpiderMan::DoubleJump()
 
 void ASpiderMan::Attack()
 {
+	if(FSMComp)
+	{
+		FSMComp->SetState(EState::ATTACK);
+	}
+	
 	if(SpiderManAnim)
 	{
 		SpiderManAnim->SetAnimState(EAnimState::ATTACKAnim);

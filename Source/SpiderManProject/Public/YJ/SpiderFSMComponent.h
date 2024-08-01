@@ -45,4 +45,10 @@ public:
 	
 	UPROPERTY()
 	class ASpiderMan* Me;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
+	float AttackRange =200.f ;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
+	float AttackRadius = 50.f;
 };

@@ -70,7 +70,44 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 
 void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 {
-	
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
+	bool bResult = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		Me->GetActorLocation(),
+		Me->GetActorLocation() + Me->GetActorForwardVector() * AttackRange,
+		FQuat::Identity,
+		ECollisionChannel::ECC_Visibility,
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params);
+
+#if ENABLE_DRAW_DEBUG
+	FVector TraceVec =Me-> GetActorForwardVector() * AttackRange;
+	FVector Center = Me->GetActorLocation() + TraceVec * 0.5f;
+	float HalfHeight = AttackRange * 0.5f + AttackRadius;
+	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
+	float DebugLifeTime = 5.0f;
+
+	DrawDebugCapsule(GetWorld(),
+		Center,
+		HalfHeight,
+		AttackRadius,
+		CapsuleRot,
+		DrawColor,
+		false,
+		DebugLifeTime);
+
+#endif
+	if (bResult) {
+		if (::IsValid(HitResult.GetActor()))
+		{
+			//HUNT_LOG(Warning, TEXT("Hit Actor Name : %s"), *HitResult.GetActor()->GetName());
+
+			//FDamageEvent DamageEvent;
+			//HitResult.GetActor()->TakeDamage(50.0f, DamageEvent, GetController(), this);
+		}
+	}
 }
 
 void USpiderFSMComponent::TickDamage(const float& DeltaTime)
