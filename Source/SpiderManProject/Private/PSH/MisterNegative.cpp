@@ -109,3 +109,8 @@ void AMisterNegative::SetMeshVisible(bool chek)
 	Demon->SetVisibility(chek);
 }
 
+void AMisterNegative::CameraShake()
+{
+	GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(Cs_DemonAttack, 0.5f);
+}
+
