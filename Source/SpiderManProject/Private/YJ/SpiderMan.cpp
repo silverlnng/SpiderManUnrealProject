@@ -249,10 +249,9 @@ void ASpiderMan::FindHookPint()
 			//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
 			//=> AttachToActor 이거 왜안됌..??
 
-			FVector Dir = (GetActorLocation()-hookPoint);
-			auto dot = UKismetMathLibrary::Dot_VectorVector(GetVelocity(), Dir);
-			force = Dir.GetSafeNormal()*dot*-2.f;
 
+			newforce = GetVelocity()*1000.f + GetActorLocation();
+			
 			//만약 force크기가 작다면 증폭시켜야함 => 조금 위로 올라가야함...
 			/*if(force.Size()<=100.f)
 			{
@@ -263,8 +262,7 @@ void ASpiderMan::FindHookPint()
 			GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()->void
 			{
 				EndPointActor->meshComp->SetSimulatePhysics(true);
-				GetCharacterMovement()->AddForce(force);
-				//EndPointActor->meshComp->AddForce(force*0.01f);
+				LaunchCharacter(newforce,false,false);
 				//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
 				GetCharacterMovement()->AirControl=1;
 			}), 0.1f, false);

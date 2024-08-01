@@ -182,4 +182,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Damaged(float value);
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	FVector newforce;
+	
 };
