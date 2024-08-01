@@ -3,6 +3,8 @@
 
 #include "PSH/Sh_LightningActor.h"
 #include "Components/BoxComponent.h"
+#include "YJ/SpiderMan.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ASh_LightningActor::ASh_LightningActor()
@@ -27,14 +29,16 @@ ASh_LightningActor::ASh_LightningActor()
 	{
 		mesh->SetStaticMesh(tempMesh.Object);
 	}
+
+	col->SetCollisionProfileName(TEXT("NegativeWeapon"));
 }
 
 // Called when the game starts or when spawned
 void ASh_LightningActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	SetLifeSpan(5);
+	col->OnComponentBeginOverlap.AddDynamic(this, &ASh_LightningActor::OnComponentBeginOverlap);
+	SetLifeSpan(3);
 }
 
 // Called every frame
@@ -42,5 +46,17 @@ void ASh_LightningActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	SetActorLocation(GetActorLocation() + GetActorForwardVector() * speed * DeltaTime);
+}
+
+void ASh_LightningActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ASpiderMan* player = Cast<ASpiderMan>(OtherActor);
+
+	if (player != nullptr)
+	{
+		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		Destroy();
+		player->Damaged(1);
+	}
 }
 

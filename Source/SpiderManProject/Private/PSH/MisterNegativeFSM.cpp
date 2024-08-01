@@ -42,7 +42,7 @@ void UMisterNegativeFSM::BeginPlay()
 	{
 		curPage = 0;
 	}
-	
+	stamina = 100;
 }
 
 
@@ -268,7 +268,7 @@ void UMisterNegativeFSM::RandomAttackCheak2() // 데몬 페이즈 때 사용
 		break;
 	case 4:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
-		me->Demon->SetRelativeLocation(FVector(-100, -190, -760));
+		me->Demon->SetRelativeLocation(FVector(-100, -190, -560));
 		break;
 	case 5:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
@@ -316,6 +316,7 @@ void UMisterNegativeFSM::LightningStepAttackState_stepAttackState()
 	if (Alpha >= 1.25f)
 	{
 		stamina -= 20;
+		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		SetState(EMisterNegativeState::Idle);
 		Alpha = 0;
 	}
@@ -347,6 +348,7 @@ void UMisterNegativeFSM::SpinAttackState_AttackState()
 	if (Alpha >= 1)
 	{
 		stamina -= 20;
+		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		SetState(EMisterNegativeState::Idle);
 		Alpha = 0;
 	}
@@ -515,6 +517,8 @@ void UMisterNegativeFSM::Dameged(float damge)
 
 void UMisterNegativeFSM::EndState(EMisterNegativeState endState) 
 {
+	me->SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	me->demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	UE_LOG(LogTemp, Warning, TEXT("AnimEnd"));
 	switch (endState)
 	{
@@ -588,5 +592,73 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	}
 	// 끝난 상태를 알 수 있으니
 	// 끝난 상태에서 다음 상태로 넘긴다.
+}
+
+void UMisterNegativeFSM::StaertState(EMisterNegativeState StaertState)
+{
+	
+	me->demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// 시작 시점 반환
+	switch (State)
+	{
+	case EMisterNegativeState::Idle:
+		break;
+	case EMisterNegativeState::Move:
+		break;
+	case EMisterNegativeState::Damage:
+		break;
+	case EMisterNegativeState::Groggy:
+		break;
+	case EMisterNegativeState::Groggy_loop:
+		break;
+	case EMisterNegativeState::Attack:
+		break;
+	case EMisterNegativeState::evasion:
+		break;
+	case EMisterNegativeState::Die:
+		break;
+	case EMisterNegativeState::LightningAttack:
+		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EMisterNegativeState::LightningstepAttack:
+		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EMisterNegativeState::LightningstepAttack_Idle:
+		break;
+	case EMisterNegativeState::LightningstepAttack_Attack:
+		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EMisterNegativeState::SpinAttack_idle:
+		break;
+	case EMisterNegativeState::SpinAttack_Attack:
+		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EMisterNegativeState::ChargingAttack_idle:
+		break;
+	case EMisterNegativeState::ChargingAttack_Attack:
+		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EMisterNegativeState::DemonAttack1_idle:
+		break;
+	case EMisterNegativeState::DemonAttack1_Move:
+		break;
+	case EMisterNegativeState::DemonAttack1_Attack:
+		me->demonCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EMisterNegativeState::DemonAttack2_idle:
+		break;
+	case EMisterNegativeState::DemonAttack2_Move:
+		break;
+	case EMisterNegativeState::DemonAttack2_Attack:
+		me->demonCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	default:
+		break;
+	}
+}
+
+void UMisterNegativeFSM::beforebeforeState(EMisterNegativeState curState)
+{
+	// 정보 저장용 스테이트
 }
 
