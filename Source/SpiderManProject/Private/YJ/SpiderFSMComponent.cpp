@@ -75,13 +75,15 @@ void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 	// ECC_GameTraceChannel4 : 네거티브 채널
 	
 	FHitResult HitResult;
-	FCollisionQueryParams Params(NAME_None, false, this);
+	
+	FCollisionQueryParams Params;
+	
 	bool bResult = GetWorld()->SweepSingleByChannel(
 		HitResult,
 		Me->GetActorLocation(),
 		Me->GetActorLocation() + Me->GetActorForwardVector() * AttackRange,
 		FQuat::Identity,
-		ECC_GameTraceChannel4,
+		ECollisionChannel::ECC_GameTraceChannel4,
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params);
 
