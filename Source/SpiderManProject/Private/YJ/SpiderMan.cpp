@@ -269,7 +269,7 @@ void ASpiderMan::FindHookPint()
 			//=> AttachToActor 이거 왜안됌..??
 
 
-			newforce = GetVelocity()*5000.f + GetActorLocation();
+			newforce = GetVelocity()*10000.f + GetActorLocation();
 			
 			if (FSMComp)
 			{
@@ -281,7 +281,7 @@ void ASpiderMan::FindHookPint()
 				EndPointActor->meshComp->SetSimulatePhysics(true);
 				LaunchCharacter(newforce,false,false);
 				//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
-				GetCharacterMovement()->AirControl=1;
+				GetCharacterMovement()->AirControl=0.01f;
 			}), 0.1f, false);
 		}
 		else
