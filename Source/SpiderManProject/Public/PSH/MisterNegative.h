@@ -50,10 +50,22 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UCameraShakeBase> Cs_DemonAttack;
 
+	UPROPERTY(EditAnywhere)
+	class UCapsuleComponent * demonCol;
+	UPROPERTY(EditAnywhere)
+	class UCapsuleComponent * SwordCol;
+
 	void SetMeshVisible(bool chek);
 
 	void CameraShake();
 
 	bool bisDemonAttack;
 private:
+	
+	UFUNCTION()
+	void SwordComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void DemonComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
+
 };
