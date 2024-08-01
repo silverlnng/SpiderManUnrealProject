@@ -41,6 +41,7 @@ void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	switch ( State )
 	{
 	case EState::IDLE:		TickIdle(DeltaTime);		break;
+	case EState::Swing:		TickSwing(DeltaTime);		break;
 	case EState::DoubleJump:TickDoubleJump(DeltaTime);	break;
 	case EState::ATTACK:	TickAttack(DeltaTime);		break;
 	case EState::DAMAGE:	TickDamage(DeltaTime);		break;
@@ -56,7 +57,7 @@ void USpiderFSMComponent::TickIdle(const float& DeltaTime)
 void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 {
 	//Me 를 타겟점으로 lerp하게 이동 => 이렇게 하는동안 은 중력영향안받게
-	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime*2.f);
+	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime*5.f);
 	Me->GetCharacterMovement()->GravityScale =0.1f;
 	Me->SetActorLocation(CurrentLocation);
 	float dist = FVector::Dist(Me->GetActorLocation(),Me->DoubleTargetVector);
@@ -77,6 +78,7 @@ void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 	FHitResult HitResult;
 	
 	FCollisionQueryParams Params;
+	//Params.AddIgnoredActor(Me);
 	
 	bool bResult = GetWorld()->SweepSingleByChannel(
 		HitResult,
@@ -117,6 +119,11 @@ void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 			}
 		}
 	}
+}
+
+void USpiderFSMComponent::TickSwing(const float& DeltaTime)
+{
+	
 }
 
 void USpiderFSMComponent::TickDamage(const float& DeltaTime)

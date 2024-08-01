@@ -91,7 +91,7 @@ public:
 	UInputAction* HookAction; //L - Shift
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	float MaxTraceDistance = 2000.0f;
+	float MaxSwingTraceDistance = 10000.0f;
 
 	UFUNCTION(BlueprintCallable)
 	void CalculateSwing();
@@ -128,8 +128,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	TSubclassOf<class APhyConstraintActor> BP_PhysicsConstraint;
 
-	UFUNCTION(BlueprintCallable)
-	void CatchActor();
+	
 
 	UFUNCTION(BlueprintCallable)
 	TArray<AActor*> DetectEnemy();
@@ -141,10 +140,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void MyDrawDebugLine();
-
-	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	FPhysicsConstraintHandle*/
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	TSubclassOf<class APointActor> BP_StartPoint;
 
@@ -162,8 +158,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DoubleJump();
-	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY()
 	class USpiderFSMComponent* FSMComp;
 
 	FVector DoubleTargetVector;
@@ -184,5 +179,27 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	FVector newforce;
+
+	// 잡을 물건 detect 하기 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float DetectRadius = 70.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "detect")
+	float ConeAngle = 90.f; // 부채꼴의 전체 각도
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "detect")
+	float RayDetectObjDistance = 5000.f; // 레이의 길이
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "detect")
+	int RayCount = 30;
+	UPROPERTY()
+	class AActor* CatchableObj;
+
+	UFUNCTION(BlueprintCallable)
+	void DetectCatchActor();
+	UFUNCTION(BlueprintCallable)
+	void CatchActor();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
+	UInputAction* IA_CatchAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
+	bool bPressedCatchObj=false;
 	
 };
