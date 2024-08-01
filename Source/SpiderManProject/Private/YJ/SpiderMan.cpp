@@ -18,6 +18,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "PhysicsEngine/PhysicsConstraintActor.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "YJ/Cable.h"
 #include "YJ/PhyConstraintActor.h"
 #include "YJ/PointActor.h"
@@ -63,6 +64,8 @@ ASpiderMan::ASpiderMan()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	FSMComp = CreateDefaultSubobject<USpiderFSMComponent>(TEXT("FSMComp"));
+
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 }
 
 // Called when the game starts or when spawned
@@ -83,6 +86,9 @@ void ASpiderMan::BeginPlay()
 	}
 
 	SpiderManAnim = Cast<USpiderManAnimInstance>(GetMesh()->GetAnimInstance());
+
+	//피직스 핸들을 만들고 항상 나의 위치에 오도록 만든다
+	PhysicsHandle->SetTargetLocation(GetActorLocation());
 }
 
 // Called every frame
@@ -264,24 +270,29 @@ void ASpiderMan::FindHookPint()
 
 			//나자신 (캐릭터를) 끝점에 부착
 			this->AttachToComponent(EndPointActor->meshComp,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
-
+			
+			//PhysicsHandle->GrabComponentAtLocation(EndPointActor->meshComp,NAME_None,EndPointActor->GetActorLocation());
+			//피직스 핸들 아직 모르는점 많아서 보류
+			
+			//PhysicsHandle->GrabComponent()
+			
 			//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
 			//=> AttachToActor 이거 왜안됌..??
 
-
-			newforce = GetVelocity()*10000.f + GetActorLocation();
 			
-			if (FSMComp)
-			{
-				FSMComp->SetState(EState::Swing);
-			}
+			newforce = GetVelocity()*100.f + GetActorLocation();
+			
+			
+			FSMComp->SetState(EState::Swing);
+			
 			FTimerHandle physicsTimer; 
 			GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()->void
 			{
 				EndPointActor->meshComp->SetSimulatePhysics(true);
 				LaunchCharacter(newforce,false,false);
 				//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
-				GetCharacterMovement()->AirControl=0.01f;
+				GetCharacterMovement()->AirControl=1.f;
+				GetCharacterMovement()->GravityScale=0.5f;
 			}), 0.1f, false);
 		}
 		else
@@ -299,10 +310,9 @@ void ASpiderMan::CompletedHook()
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EndPointActor->meshComp->SetSimulatePhysics(false);
 	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
-	if(FSMComp)
-	{
-		FSMComp->SetState(EState::IDLE);
-	}
+	
+		//FSMComp->SetState(EState::IDLE);
+	
 }
 
 void ASpiderMan::CalculateSwing() //틱에서 작동

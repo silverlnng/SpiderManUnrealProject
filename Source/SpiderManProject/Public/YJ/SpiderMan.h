@@ -128,7 +128,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	TSubclassOf<class APhyConstraintActor> BP_PhysicsConstraint;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	class UPhysicsHandleComponent* PhysicsHandle;
 
 	UFUNCTION(BlueprintCallable)
 	TArray<AActor*> DetectEnemy();

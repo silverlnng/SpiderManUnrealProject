@@ -35,14 +35,14 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EState State = EState::IDLE;
-
+	
 	void TickIdle(const float& DeltaTime);
 	void TickDoubleJump(const float& DeltaTime);
 	void TickAttack(const float& DeltaTime);
 	void TickSwing(const float& DeltaTime);
 	void TickDamage(const float& DeltaTime);
 	void TickDie(const float& DeltaTime); 
-
+	UFUNCTION()
 	void SetState(EState NextState);
 	
 	UPROPERTY()
