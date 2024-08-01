@@ -118,6 +118,7 @@ private:
 	void DemonAttack2_MoveState();
 	void DemonAttack2_AttackState();
 		
+	
 
 	void SetState(EMisterNegativeState NewState);
 
@@ -129,6 +130,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = State)
 	bool bisNextStage = false;
+
+	FVector demonMeshLocation;
 public:
 
 	void Dameged(float damge);

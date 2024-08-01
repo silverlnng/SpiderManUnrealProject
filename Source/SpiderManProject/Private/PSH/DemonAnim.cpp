@@ -17,3 +17,10 @@ void UDemonAnim::AnimNotify_MisterAnimEnd()
 {
 
 }
+
+void UDemonAnim::AnimNotify_BossCameraShake()
+{
+	misterNegative->CameraShake();
+	UE_LOG(LogTemp, Warning, TEXT("CameraShake"));
+
+}

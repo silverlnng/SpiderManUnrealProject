@@ -47,6 +47,13 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AActor> Charging;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UCameraShakeBase> Cs_DemonAttack;
+
 	void SetMeshVisible(bool chek);
+
+	void CameraShake();
+
+	bool bisDemonAttack;
 private:
 };

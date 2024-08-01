@@ -3,6 +3,9 @@
 
 #include "PSH/Sh_ChargingActor.h"
 #include "Components/BoxComponent.h"
+#include "YJ/SpiderMan.h"
+#include "Components/PrimitiveComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 ASh_ChargingActor::ASh_ChargingActor()
@@ -35,7 +38,8 @@ void ASh_ChargingActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SetLifeSpan(5);
+	SetLifeSpan(3);
+	col->OnComponentBeginOverlap.AddDynamic(this,&ASh_ChargingActor::OnComponentBeginOverlap);
 }
 
 // Called every frame
@@ -46,5 +50,14 @@ void ASh_ChargingActor::Tick(float DeltaTime)
 	SetActorLocation(GetActorLocation() + GetActorForwardVector() * speed * DeltaTime);
 }
 
+void ASh_ChargingActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ASpiderMan * player = Cast<ASpiderMan>(OtherActor);
+
+	if (player != nullptr)
+	{
+		/*player->GetCapsuleComponent()->UPrimitiveComponent::AddForce((player->GetActorForwardVector()*-1));*/
+	}
+}
 
 

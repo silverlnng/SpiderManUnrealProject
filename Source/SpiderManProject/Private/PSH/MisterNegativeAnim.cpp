@@ -35,7 +35,14 @@ void UMisterNegativeAnim::AnimNotify_MisterAnimEnd()
 	misterNegative->MisterFSM->EndState(AnimState);
 }
 
+void UMisterNegativeAnim::AnimNotify_BossCameraShake()
+{
+	misterNegative->CameraShake();
+	UE_LOG(LogTemp, Warning, TEXT("CameraShake"));
+
+}
+
 void UMisterNegativeAnim::AnimNotify_MisterNextAnim()
 {
-	
+	misterNegative->bisDemonAttack = false;
 }

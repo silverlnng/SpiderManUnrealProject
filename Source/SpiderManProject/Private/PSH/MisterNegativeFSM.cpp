@@ -56,6 +56,9 @@ void UMisterNegativeFSM::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 		SetState(EMisterNegativeState::Groggy);
 	}
 
+	
+
+
 	switch (State)
 	{
 	case EMisterNegativeState::Idle:
@@ -265,9 +268,11 @@ void UMisterNegativeFSM::RandomAttackCheak2() // 데몬 페이즈 때 사용
 		break;
 	case 4:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
+		me->Demon->SetRelativeLocation(FVector(-100, -190, -760));
 		break;
 	case 5:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
+		me->Demon->SetRelativeLocation(FVector(-100, -190, -200));
 		break;
 	default:
 		break;
@@ -396,12 +401,27 @@ void UMisterNegativeFSM::DemonAttack1_MoveState()
 		SetState(EMisterNegativeState::DemonAttack1_Attack);
 		DemonAnim->AnimState = EMisterNegativeState::DemonAttack1_Attack;
 		Alpha = 0;
+		demonMeshLocation = me->GetMesh()->GetRelativeLocation(); // 현재위치지정
+		me->bisDemonAttack = true;
 	}
 }
 
 void UMisterNegativeFSM::DemonAttack1_AttackState()
 {
+	UE_LOG(LogTemp, Warning, TEXT("DemonAttack1_MoveState"));
 	
+	// 현재 위치 로부터 위 방향으로 상승
+	if (me->bisDemonAttack)
+	{
+		me->GetMesh()->SetRelativeLocation(demonMeshLocation + me->GetActorUpVector() * 500 * GetWorld()->DeltaTimeSeconds); // 위이동	
+	}
+	else
+	{
+		me->GetMesh()->SetRelativeLocation(demonMeshLocation + (me->GetActorUpVector() *-1) * 500 * GetWorld()->DeltaTimeSeconds); // 아래이동
+	}
+
+	// 노티파이 실행 시 내려가기 실시..?
+	// 불값에 따라 올라가고 내려가기 ? V
 }
 
 void UMisterNegativeFSM::DemonAttack2_idleState()
@@ -442,12 +462,21 @@ void UMisterNegativeFSM::DemonAttack2_MoveState()
 		DemonAnim->AnimState = EMisterNegativeState::DemonAttack2_Attack;
 		SetState(EMisterNegativeState::DemonAttack2_Attack);
 		Alpha = 0;
+		demonMeshLocation = me->GetMesh()->GetRelativeLocation();
+		me->bisDemonAttack = true;
 	}
 }
 
 void UMisterNegativeFSM::DemonAttack2_AttackState()
 {
-	
+	if (me->bisDemonAttack)
+	{
+		me->GetMesh()->SetRelativeLocation(demonMeshLocation + me->GetActorUpVector() * 500 * GetWorld()->DeltaTimeSeconds); // 위이동	
+	}
+	else
+	{
+		me->GetMesh()->SetRelativeLocation(demonMeshLocation + (me->GetActorUpVector() * -1) * 500 * GetWorld()->DeltaTimeSeconds); // 아래이동
+	}
 }
 
 void UMisterNegativeFSM::SetState(EMisterNegativeState NewState)
@@ -460,7 +489,7 @@ void UMisterNegativeFSM::SetState(EMisterNegativeState NewState)
 void UMisterNegativeFSM::Dameged(float damge)
 {
 	curHp -= damge;
-
+	UE_LOG(LogTemp,Warning,TEXT("Negative Damaged!!!!!!"));
 	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
 	{
 		
@@ -541,6 +570,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::DemonAttack1_Attack:
 		stamina -= 40;
 		DemonAnim->AnimState = EMisterNegativeState::Idle;
+		me->GetMesh()->SetRelativeLocation(demonMeshLocation);
 		me->SetMeshVisible(false);
 		SetState(EMisterNegativeState::Idle);
 		break;
@@ -550,6 +580,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 		break;
 	case EMisterNegativeState::DemonAttack2_Attack:
 		stamina -= 40;
+		me->GetMesh()->SetRelativeLocation(demonMeshLocation);
 		me->SetMeshVisible(false);
 		DemonAnim->AnimState = EMisterNegativeState::Idle;
 		SetState(EMisterNegativeState::Idle);
