@@ -254,9 +254,10 @@ void ASpiderMan::FindHookPint()
 			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
 
 			//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
-		
-			EndPointActor->SetActorLocation(GetActorLocation());
-			EndPointActor->meshComp->SetWorldLocation(GetActorLocation());
+			FVector offset = GetActorLocation() + GetActorUpVector()*500.f;
+			
+			EndPointActor->SetActorLocation(offset);
+			EndPointActor->meshComp->SetWorldLocation(offset);
 			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
 			
 			//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
@@ -270,6 +271,8 @@ void ASpiderMan::FindHookPint()
 
 			//나자신 (캐릭터를) 끝점에 부착
 			this->AttachToComponent(EndPointActor->meshComp,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
+			this->SetActorRelativeLocation(FVector(0,0,0));
+			//UKismetSystemLibrary::MoveComponentTo(this,)
 			
 			//PhysicsHandle->GrabComponentAtLocation(EndPointActor->meshComp,NAME_None,EndPointActor->GetActorLocation());
 			//피직스 핸들 아직 모르는점 많아서 보류
