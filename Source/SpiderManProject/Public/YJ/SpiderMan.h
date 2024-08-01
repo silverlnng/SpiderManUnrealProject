@@ -173,5 +173,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USpiderManAnimInstance* SpiderManAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float MaxHP=10.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float CurHP=MaxHP;
+
+	UFUNCTION(BlueprintCallable)
+	void Damaged(float value);
 	
 };

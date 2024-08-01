@@ -4,6 +4,8 @@
 #include "YJ/SpiderFSMComponent.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "PSH/MisterNegative.h"
+#include "PSH/MisterNegativeFSM.h"
 #include "YJ/SpiderMan.h"
 
 // Sets default values for this component's properties
@@ -70,6 +72,8 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 
 void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 {
+	// ECC_GameTraceChannel4 : 네거티브 채널
+	
 	FHitResult HitResult;
 	FCollisionQueryParams Params(NAME_None, false, this);
 	bool bResult = GetWorld()->SweepSingleByChannel(
@@ -77,7 +81,7 @@ void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 		Me->GetActorLocation(),
 		Me->GetActorLocation() + Me->GetActorForwardVector() * AttackRange,
 		FQuat::Identity,
-		ECollisionChannel::ECC_Visibility,
+		ECC_GameTraceChannel4,
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params);
 
@@ -102,10 +106,13 @@ void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 	if (bResult) {
 		if (::IsValid(HitResult.GetActor()))
 		{
-			//HUNT_LOG(Warning, TEXT("Hit Actor Name : %s"), *HitResult.GetActor()->GetName());
-
-			//FDamageEvent DamageEvent;
-			//HitResult.GetActor()->TakeDamage(50.0f, DamageEvent, GetController(), this);
+			UE_LOG(LogTemp,Warning, TEXT("Hit Actor Name : %s"), *HitResult.GetActor()->GetName());
+			AMisterNegative* MisterNegative = Cast<AMisterNegative>(HitResult.GetActor());
+			if(MisterNegative)
+			{
+				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
+				NegativeFSM->Dameged(1);
+			}
 		}
 	}
 }

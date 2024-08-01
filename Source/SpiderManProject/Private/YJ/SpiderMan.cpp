@@ -513,6 +513,12 @@ void ASpiderMan::Attack()
 	//fsm 에서  attack 중 tick으로 작동해야할것 처리하기
 }
 
+void ASpiderMan::Damaged(float value)
+{
+	CurHP-=value;
+	UE_LOG(LogTemp,Warning, TEXT("Spider Damaged, curHP : %f"), CurHP);
+}
+
 
 
 
