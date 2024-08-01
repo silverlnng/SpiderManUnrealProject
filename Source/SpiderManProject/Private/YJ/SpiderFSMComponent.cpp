@@ -83,7 +83,7 @@ void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 		Me->GetActorLocation(),
 		Me->GetActorLocation() + Me->GetActorForwardVector() * AttackRange,
 		FQuat::Identity,
-		ECollisionChannel::ECC_GameTraceChannel4,
+		ECollisionChannel::ECC_Visibility,
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params);
 

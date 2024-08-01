@@ -3,6 +3,8 @@
 
 #include "YJ/SpiderManAnimInstance.h"
 
+#include "YJ/SpiderFSMComponent.h"
+
 void USpiderManAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
@@ -25,4 +27,5 @@ void USpiderManAnimInstance::AnimNotify_SpiderAnimEnd()
 {
 	//AnimState = EAnimState::IDLEAnim;
 	SetAnimState(EAnimState::IDLEAnim);
+	SpiderMan->FSMComp->SetState(EState::DIE);
 }
