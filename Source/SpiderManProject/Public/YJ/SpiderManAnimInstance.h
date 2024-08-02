@@ -38,9 +38,17 @@ public:
 	void SetAnimState(EAnimState nextState);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	class ASpiderMan* SpiderMan;
+	class ASpiderMan* Me;
 
 	UFUNCTION()
 	void AnimNotify_SpiderAnimEnd();
+	UFUNCTION()
+	void AnimNotify_SpiderAttack_Start();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
+	float AttackRange =50.f ;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
+	float AttackRadius = 50.f;
 	
 };
