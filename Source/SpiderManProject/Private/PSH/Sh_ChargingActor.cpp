@@ -6,6 +6,7 @@
 #include "YJ/SpiderMan.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ASh_ChargingActor::ASh_ChargingActor()
@@ -26,7 +27,7 @@ ASh_ChargingActor::ASh_ChargingActor()
 	mesh->SetRelativeScale3D(FVector(2,2,1));
 	mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ConstructorHelpers::FObjectFinder<UStaticMesh>tempMesh(TEXT("/Script/Engine.StaticMesh'/Game/NiagaraMagicalSlashes/Model/SM_Slash_02.SM_Slash_02'"));
-
+	col->SetCollisionProfileName(TEXT("NegativeWeapon"));
 	if (tempMesh.Succeeded())
 	{
 		mesh->SetStaticMesh(tempMesh.Object);
@@ -56,7 +57,9 @@ void ASh_ChargingActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 
 	if (player != nullptr)
 	{
-		/*player->GetCapsuleComponent()->UPrimitiveComponent::AddForce((player->GetActorForwardVector()*-1));*/
+		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		Destroy();
+		player->Damaged(1);
 	}
 }
 

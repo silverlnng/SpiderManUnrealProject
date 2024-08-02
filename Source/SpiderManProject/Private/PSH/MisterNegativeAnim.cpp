@@ -35,6 +35,11 @@ void UMisterNegativeAnim::AnimNotify_MisterAnimEnd()
 	misterNegative->MisterFSM->EndState(AnimState);
 }
 
+void UMisterNegativeAnim::AnimNotify_MisterAnimStart()
+{
+	misterNegative->MisterFSM->StaertState(AnimState);
+}
+
 void UMisterNegativeAnim::AnimNotify_BossCameraShake()
 {
 	misterNegative->CameraShake();

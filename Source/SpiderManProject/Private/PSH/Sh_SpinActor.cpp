@@ -3,6 +3,7 @@
 
 #include "PSH/Sh_SpinActor.h"
 #include "Components/BoxComponent.h"
+#include "YJ/SpiderMan.h"
 
 // Sets default values
 ASh_SpinActor::ASh_SpinActor()
@@ -20,7 +21,7 @@ ASh_SpinActor::ASh_SpinActor()
 	mesh->SetRelativeLocation(FVector(-350.0,0,0));
 	mesh->SetRelativeScale3D(FVector(1.5f, 1.5f, 1));
 	mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+	col->SetCollisionProfileName(TEXT("NegativeWeapon"));
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh>tempMesh(TEXT("/Script/Engine.StaticMesh'/Game/NiagaraMagicalSlashes/Model/SM_Slash_01.SM_Slash_01'"));
 
@@ -35,7 +36,8 @@ ASh_SpinActor::ASh_SpinActor()
 void ASh_SpinActor::BeginPlay()
 {
 	Super::BeginPlay();
-	SetLifeSpan(5);
+	SetLifeSpan(3);
+	col->OnComponentBeginOverlap.AddDynamic(this, &ASh_SpinActor::OnComponentBeginOverlap);
 	
 }
 
@@ -45,5 +47,18 @@ void ASh_SpinActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	SetActorLocation(GetActorLocation()+GetActorForwardVector()*speed*DeltaTime);
+}
+
+void ASh_SpinActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+
+	ASpiderMan* player = Cast<ASpiderMan>(OtherActor);
+
+	if (player != nullptr)
+	{
+		player->LaunchCharacter(GetActorForwardVector()*1000, false, false);
+		player->Damaged(1);
+		Destroy();
+	}
 }
 

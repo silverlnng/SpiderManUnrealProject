@@ -38,6 +38,8 @@ public:
 
 	UFUNCTION()
 	void AnimNotify_MisterAnimEnd();
+	UFUNCTION()
+	void AnimNotify_MisterAnimStart();
 
 	UFUNCTION()
 	void AnimNotify_BossCameraShake();
