@@ -56,8 +56,8 @@ AMisterNegative::AMisterNegative()
 		Demon->SetSkeletalMesh(tempDemonMesh.Object);
 		Demon->SetupAttachment(GetMesh());
 		Demon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Demon->SetRelativeLocation(FVector(-100, -190, -560));
-		Demon->SetRelativeScale3D(FVector(150));
+		Demon->SetRelativeLocation(FVector(-100, -190, -760));
+		Demon->SetRelativeScale3D(FVector(300,300,250));
 	}
 
 	ConstructorHelpers::FClassFinder<UAnimInstance> DemonAnimClass(TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Demon.ABP_Demon_C'"));

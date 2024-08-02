@@ -53,6 +53,8 @@ public:
 
 	UPROPERTY()
 	EMisterNegativeState State = EMisterNegativeState::Idle;
+	UPROPERTY()
+	EMisterNegativeState curState = EMisterNegativeState::Idle;
 
 // 	UPROPERTY()
 // 	class ASpiderMan* Target;
@@ -131,11 +133,18 @@ private:
 	UPROPERTY(EditAnywhere, Category = State)
 	bool bisNextStage = false;
 
+	bool bisMaxPowerMode = true;
+
+	int hitcount = 0;
 	FVector demonMeshLocation;
+
+	FVector worldCenter; // ¸Ê Áß¾Ó ÁÂÇ¥
+
+
 public:
 
 	void Dameged(float damge);
 	void EndState(EMisterNegativeState endState);
-	void StaertState(EMisterNegativeState StaertState);
-	void beforebeforeState(EMisterNegativeState curState);
+	void StaertState(EMisterNegativeState staertState);
+	void beforebeforeState(EMisterNegativeState currentState);
 };
