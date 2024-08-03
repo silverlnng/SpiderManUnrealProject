@@ -69,6 +69,10 @@ public:
 	void Look(const FInputActionValue& Value);
 
 public:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
+	class UCableComponent* CableComp;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
 	bool canHook;
 
@@ -79,7 +83,7 @@ public:
 	FVector hookPoint;
 	
 	UFUNCTION(BlueprintCallable)
-	void FindHookPint();
+	void FindHookPoint_pushShift();
 
 	UFUNCTION(BlueprintCallable)
 	void CompletedHook();
@@ -107,6 +111,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	FVector force;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	class APlayerCameraManager* CameraManager;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	FTimerHandle addforceTimer;
+	
 	UFUNCTION(BlueprintCallable)
 	void DetectWall(FVector Direction);
 
@@ -119,6 +128,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ClimbingMode();
 
+	UFUNCTION(BlueprintCallable)
+	void FindHookPoint_Auto();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	TArray<AActor*> HookPoints;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	class AActor* Hookpoint_Nearest;
+
+	float prevDistance = 500.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	float DetectHookPointRadius = 5000.0f;
+	
 	UPROPERTY()
 	class APlayerController* pc;
 
@@ -135,7 +158,7 @@ public:
 	TArray<AActor*> DetectEnemy();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	float DetectionRadius = 1000.0f; // ���� �ݰ� ����
+	float DetectEnemyRadius = 1000.0f; // ���� �ݰ� ����
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	float DetectionAngle = 45.0f; // ���� ���� ���� (90���� ��)
 
@@ -199,7 +222,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CatchActor();
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CatchaObj")
-	float curYaw=0;
+	float curtime=0;
 	bool bRotateSpiderMan=false;
 	UFUNCTION(BlueprintCallable)
 	void RotateSpiderMan(float time);

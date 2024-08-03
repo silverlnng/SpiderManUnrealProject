@@ -24,6 +24,7 @@
 #include "YJ/PointActor.h"
 #include "YJ/SpiderFSMComponent.h"
 #include "YJ/SpiderManAnimInstance.h"
+#include "Camera/PlayerCameraManager.h"
 
 
 // Sets default values
@@ -62,6 +63,11 @@ ASpiderMan::ASpiderMan()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	CableComp =CreateDefaultSubobject<UCableComponent>(TEXT("CableComponent"));
+
+	CableComp->SetupAttachment(GetMesh(),TEXT("hand_rSocket"));
+	
 	
 	FSMComp = CreateDefaultSubobject<USpiderFSMComponent>(TEXT("FSMComp"));
 
@@ -85,6 +91,14 @@ void ASpiderMan::BeginPlay()
 
 	//피직스 핸들을 만들고 항상 나의 위치에 오도록 만든다
 	PhysicsHandle->SetTargetLocation(GetActorLocation());
+
+	CableComp->SetVisibility(false);
+
+	CameraManager =GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+
+	FTimerHandle FindHookPoint_Auto;
+	GetWorldTimerManager().SetTimer(FindHookPoint_Auto,this,&ASpiderMan::FindHookPoint_Auto,0.5f,true,-1);
+	
 }
 
 // Called every frame
@@ -165,7 +179,7 @@ void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpiderMan::Look);
 
-		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASpiderMan::FindHookPint);
+		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASpiderMan::FindHookPoint_pushShift);
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Completed, this, &ASpiderMan::CompletedHook);
 		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Started, this, &ASpiderMan::Attack);
 		EnhancedInputComponent->BindAction(IA_CatchAction, ETriggerEvent::Started, this, &ASpiderMan::CatchActor);
@@ -213,7 +227,9 @@ void ASpiderMan::Look(const FInputActionValue& Value)
 
 #pragma endregion BasicMove 
 
-void ASpiderMan::FindHookPint()
+#pragma region Hook
+
+void ASpiderMan::FindHookPoint_pushShift()
 {
 	// 버튼을 누르면 내 시야로 ray를 발사하여 hit지점을 구하고 ,
 		// 내 시야가 꼭 카메라의  ViewPoint는 아님
@@ -269,7 +285,7 @@ void ASpiderMan::FindHookPint()
 			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
 
 			//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
-			FVector offset = GetActorLocation() + GetActorUpVector()*500.f;
+			FVector offset = GetActorLocation() + GetActorUpVector()*50.f;
 			
 			EndPointActor->SetActorLocation(offset);
 			EndPointActor->meshComp->SetWorldLocation(offset);
@@ -300,7 +316,7 @@ void ASpiderMan::FindHookPint()
 			
 			newforce = GetVelocity()*100.f + GetActorLocation();
 
-			this->GetCapsuleComponent()->SetCapsuleHalfHeight(45);
+			this->GetCapsuleComponent()->SetCapsuleHalfHeight(20);
 			
 			FSMComp->SetState(EState::SWING);
 			
@@ -312,7 +328,15 @@ void ASpiderMan::FindHookPint()
 				//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
 				GetCharacterMovement()->AirControl=1.f;
 				GetCharacterMovement()->GravityScale=0.5f;
-			}), 0.1f, false);
+				FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
+				EndPointActor->meshComp->AddForce(camForce*100,NAME_None,true);
+			}), 0.01f, false);
+			
+			GetWorld()->GetTimerManager().SetTimer(addforceTimer,([this]()->void
+			{
+				FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
+				EndPointActor->meshComp->AddForce(camForce*100,NAME_None,true);
+			}),1.f,true,1.f);
 
 			
 		}
@@ -333,14 +357,17 @@ void ASpiderMan::CompletedHook()
 	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
 	this->GetCapsuleComponent()->SetCapsuleHalfHeight(90);
 	//FSMComp->SetState(EState::IDLE);
+	GetWorldTimerManager().ClearTimer(addforceTimer);
 	
 }
+
+#pragma endregion Hook
 
 void ASpiderMan::CalculateSwing(FVector loc) //틱에서 작동
 {
 	//케이블의 길이 설정
 	float length = (GetActorLocation() - loc).Size();
-	CableActor->CableComp->CableLength = length;
+	CableActor->CableComp->CableLength = length-300;
 }
 
 void ASpiderMan::DetectWall(FVector Direction)
@@ -386,6 +413,53 @@ void ASpiderMan::ClimbingMode()
 	//DetctedWall=true 하면 그 벽에 딱 달라붙기
 }
 
+void ASpiderMan::FindHookPoint_Auto()
+{
+	//타이머로 자동으로 가까운 hook 타겟 찾기
+	
+	TArray<AActor*> DetectedActors;
+	FVector MyLocation = GetActorLocation();
+	FVector ForwardVector = GetActorForwardVector();
+
+	// SphereOverlapActors를 사용하여 반경 내의 액터들을 검색
+	TArray<FOverlapResult> OverlapHookPointResults;
+	FCollisionShape CollisionShape;
+	CollisionShape.SetSphere(DetectHookPointRadius);
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	bool bOverlaped = GetWorld()->OverlapMultiByChannel(
+		OverlapHookPointResults,
+		MyLocation,
+		FQuat::Identity,
+		ECC_GameTraceChannel6, // 필요한 콜리전 채널을 설정
+		CollisionShape,
+		QueryParams
+	);
+
+	if (bOverlaped) //overlap 되는게 있다면 
+	{
+		for (const FOverlapResult& Result : OverlapHookPointResults)
+		{
+			AActor* Actor = Result.GetActor();
+			float dist =FVector::Dist(Actor->GetActorLocation(),GetActorLocation());
+			
+			DrawDebugSphere(GetWorld(),Actor->GetActorLocation(),100, 13, FColor::Orange, true, -1, 0, 2);
+			
+			//거리가 가장 가까운거로 change.
+			//Hookpoint_Nearest =
+			if(dist<prevDistance) // 기존 것보다 더 작으면 
+			{
+				//prevDistance = dist; //이게 계속 작아지면 안될려나...
+				Hookpoint_Nearest = Actor;
+				DrawDebugSphere(GetWorld(),Hookpoint_Nearest->GetActorLocation(),100, 13, FColor::Purple, true, -1, 0, 2);
+			}
+			
+		}
+	}	
+}
+
 void ASpiderMan::DetectCatchActor()
 {
 	// 내가 RAY를 써서 물건잡는게 아니라 범위안에 들어오는 물건을 잡는것
@@ -425,8 +499,8 @@ void ASpiderMan::DetectCatchActor()
 			// Log the hit location
 			UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
 			
-			CatchableObj = HitResult.GetActor();
 			
+			CatchableObj = HitResult.GetActor();
 		}
 		else
 		{
@@ -448,15 +522,12 @@ void ASpiderMan::CatchActor() //Q버튼 누르면 실행할 함수
 			//lerp 를 이용해서 나에게 다가오도록
 			//물건과 나의거리가 가까워지면 lerp 종료 ==> 이건 tick 에서 작동
 		// hit 지점있으면 저장해두기
-		CableActor->CableComp->SetWorldLocation(GetActorLocation());
-		//케이블의 시작점을 히트지점으로 설정
-			
-		//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
-		CableActor->CableComp->SetAttachEndTo(CatchableObj,"BOX",NAME_None);
-
-		// CatchableObj 를 나의 자식으로 두어서 내가 회전하면 같이 따라 회전하도록 만들고 싶다
-
 		
+		//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
+	
+		// CatchableObj 를 나의 자식으로 두어서 내가 회전하면 같이 따라 회전하도록 만들고 싶다
+		CableComp->SetVisibility(true);
+		CableComp->SetAttachEndTo(CatchableObj,"BOX",NAME_None);
 		
 	}
 	else
@@ -468,26 +539,28 @@ void ASpiderMan::CatchActor() //Q버튼 누르면 실행할 함수
 
 void ASpiderMan::RotateSpiderMan(float time)
 {
-	curYaw+=time;
-	AddActorLocalRotation(FRotator(0,time*360/3,0));
-	if(curYaw>=3)
+	curtime+=time;
+	AddActorLocalRotation(FRotator(0,time*360,0));
+	if(curtime>=1.f)
 	{
 		// 틱 종료 
 		bRotateSpiderMan=false;
-
+		CatchableObj->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		ThrowCatchActor();
+		curtime=0;
 		//물건 던지기 
 	}
 }
 
 void ASpiderMan::ThrowCatchActor()
 {
-	//
+
+	CableComp->SetVisibility(false);
+	UStaticMeshComponent* temp =Cast<UStaticMeshComponent>(CatchableObj->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 	
-	//AddActorWorldRotation()
-	
-	
-	//SetActorRotation()
-	//
+	temp->SetSimulatePhysics(true);
+	temp->AddForce(GetActorForwardVector()*5000.f);
+	CatchableObj=nullptr;
 }
 
 
@@ -500,7 +573,7 @@ TArray<AActor*> ASpiderMan::DetectEnemy()
 	// SphereOverlapActors를 사용하여 반경 내의 액터들을 검색
 	TArray<FOverlapResult> OverlapResults;
 	FCollisionShape CollisionShape;
-	CollisionShape.SetSphere(DetectionRadius);
+	CollisionShape.SetSphere(DetectEnemyRadius);
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
@@ -547,8 +620,8 @@ void ASpiderMan::MyDrawDebugLine()
 	FVector LeftBoundary = ForwardVector.RotateAngleAxis(-DetectionAngle, FVector::UpVector);
 	FVector RightBoundary = ForwardVector.RotateAngleAxis(DetectionAngle, FVector::UpVector);
 
-	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + LeftBoundary * DetectionRadius, FColor::Blue, false, 1.0f);
-	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + RightBoundary * DetectionRadius, FColor::Blue, false, 1.0f);
+	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + LeftBoundary * DetectEnemyRadius, FColor::Blue, false, 1.0f);
+	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + RightBoundary * DetectEnemyRadius, FColor::Blue, false, 1.0f);
 }
 
 void ASpiderMan::Jump()
