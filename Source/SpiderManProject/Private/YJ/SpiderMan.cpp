@@ -80,11 +80,7 @@ void ASpiderMan::BeginPlay()
 	StartPointActor =GetWorld()->SpawnActor<APointActor>(BP_StartPoint);
 
 	EndPointActor =GetWorld()->SpawnActor<APointActor>(BP_EndPoint);
-	if (FSMComp)
-	{
-		FSMComp->SetState(EState::IDLE);
-	}
-
+	
 	SpiderManAnim = Cast<USpiderManAnimInstance>(GetMesh()->GetAnimInstance());
 
 	//피직스 핸들을 만들고 항상 나의 위치에 오도록 만든다
@@ -101,24 +97,43 @@ void ASpiderMan::Tick(float DeltaTime)
 	//DetectWall(Right);
 	if(hooked&& !DetctedWall)
 	{
-		CalculateSwing();
+		CalculateSwing(hookPoint);
 	}
 	
 	DetectCatchActor();
 	
-	if(CatchableObj&&bPressedCatchObj)
+	if(CatchableObj && bPressedCatchObj)
 	{
 		//있으면 lerp으로 다가오도록
 
 		FVector CurrentLocation = FMath::Lerp(CatchableObj->GetActorLocation(), GetActorLocation(), DeltaTime * 5.f);
 		CatchableObj->SetActorLocation(CurrentLocation);
 		float dist = this->GetDistanceTo(CatchableObj);
-		if(dist<=500.f)
+
+		CalculateSwing(CatchableObj->GetActorLocation());
+		
+		if(dist<=300.f)
 		{
-			//lerp 종료 -> 적이있으면 적에게 날라가도록 , 없으면 그냥 앞으로 던지기
+			
+
+			// CatchableObj 을 나에게 부착 그리고 회전 !
+			CatchableObj->K2_AttachToActor(this,NAME_None,EAttachmentRule::KeepWorld,EAttachmentRule::KeepRelative,EAttachmentRule::KeepRelative,true);
+			//CatchableObj->AttachToActor(this,FAttachmentTransformRules::KeepWorldTransform);
+			//CatchableObj->AttachToComponent(this->GetCapsuleComponent(),FAttachmentTransformRules::KeepWorldTransform);
+			// 한번 나를 회전시키고
+			bRotateSpiderMan =true;
+			// 적이있으면 적에게 날라가도록 , 없으면 그냥 앞으로 던지기
+
+			//lerp 종료 -
 			bPressedCatchObj=false;
 		}
 	}
+
+	if(bRotateSpiderMan)
+	{
+		RotateSpiderMan(DeltaTime);
+	}
+	
 	
 }
 
@@ -284,9 +299,10 @@ void ASpiderMan::FindHookPint()
 
 			
 			newforce = GetVelocity()*100.f + GetActorLocation();
+
+			this->GetCapsuleComponent()->SetCapsuleHalfHeight(45);
 			
-			
-			FSMComp->SetState(EState::Swing);
+			FSMComp->SetState(EState::SWING);
 			
 			FTimerHandle physicsTimer; 
 			GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()->void
@@ -297,6 +313,8 @@ void ASpiderMan::FindHookPint()
 				GetCharacterMovement()->AirControl=1.f;
 				GetCharacterMovement()->GravityScale=0.5f;
 			}), 0.1f, false);
+
+			
 		}
 		else
 		{
@@ -313,15 +331,15 @@ void ASpiderMan::CompletedHook()
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EndPointActor->meshComp->SetSimulatePhysics(false);
 	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
-	
-		//FSMComp->SetState(EState::IDLE);
+	this->GetCapsuleComponent()->SetCapsuleHalfHeight(90);
+	//FSMComp->SetState(EState::IDLE);
 	
 }
 
-void ASpiderMan::CalculateSwing() //틱에서 작동
+void ASpiderMan::CalculateSwing(FVector loc) //틱에서 작동
 {
 	//케이블의 길이 설정
-	float length = (GetActorLocation() - hookPoint).Size();
+	float length = (GetActorLocation() - loc).Size();
 	CableActor->CableComp->CableLength = length;
 }
 
@@ -406,8 +424,7 @@ void ASpiderMan::DetectCatchActor()
 
 			// Log the hit location
 			UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
-
-			// hit 지점있으면 저장해두기
+			
 			CatchableObj = HitResult.GetActor();
 			
 		}
@@ -430,6 +447,15 @@ void ASpiderMan::CatchActor() //Q버튼 누르면 실행할 함수
 		//잡을수있는 물건이 있다면 ..
 			//lerp 를 이용해서 나에게 다가오도록
 			//물건과 나의거리가 가까워지면 lerp 종료 ==> 이건 tick 에서 작동
+		// hit 지점있으면 저장해두기
+		CableActor->CableComp->SetWorldLocation(GetActorLocation());
+		//케이블의 시작점을 히트지점으로 설정
+			
+		//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
+		CableActor->CableComp->SetAttachEndTo(CatchableObj,"BOX",NAME_None);
+
+		// CatchableObj 를 나의 자식으로 두어서 내가 회전하면 같이 따라 회전하도록 만들고 싶다
+
 		
 		
 	}
@@ -440,6 +466,29 @@ void ASpiderMan::CatchActor() //Q버튼 누르면 실행할 함수
 	
 }
 
+void ASpiderMan::RotateSpiderMan(float time)
+{
+	curYaw+=time;
+	AddActorLocalRotation(FRotator(0,time*360/3,0));
+	if(curYaw>=3)
+	{
+		// 틱 종료 
+		bRotateSpiderMan=false;
+
+		//물건 던지기 
+	}
+}
+
+void ASpiderMan::ThrowCatchActor()
+{
+	//
+	
+	//AddActorWorldRotation()
+	
+	
+	//SetActorRotation()
+	//
+}
 
 
 TArray<AActor*> ASpiderMan::DetectEnemy()

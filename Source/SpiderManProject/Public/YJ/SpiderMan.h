@@ -94,7 +94,7 @@ public:
 	float MaxSwingTraceDistance = 10000.0f;
 
 	UFUNCTION(BlueprintCallable)
-	void CalculateSwing();
+	void CalculateSwing(FVector loc);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	float Radius = 10.0f;
 
@@ -111,7 +111,7 @@ public:
 	void DetectWall(FVector Direction);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	float DetectTraceLength =70;
+	float DetectTraceLength = 100;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	bool DetctedWall;
@@ -190,13 +190,22 @@ public:
 	float RayDetectObjDistance = 5000.f; // 레이의 길이
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "detect")
 	int RayCount = 30;
-	UPROPERTY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CatchaObj")
 	class AActor* CatchableObj;
 
 	UFUNCTION(BlueprintCallable)
 	void DetectCatchActor();
 	UFUNCTION(BlueprintCallable)
 	void CatchActor();
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CatchaObj")
+	float curYaw=0;
+	bool bRotateSpiderMan=false;
+	UFUNCTION(BlueprintCallable)
+	void RotateSpiderMan(float time);
+	
+	UFUNCTION(BlueprintCallable)
+	void ThrowCatchActor();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
 	UInputAction* IA_CatchAction;

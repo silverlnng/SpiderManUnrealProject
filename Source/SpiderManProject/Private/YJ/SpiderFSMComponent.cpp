@@ -41,7 +41,7 @@ void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	switch ( State )
 	{
 	case EState::IDLE:		TickIdle(DeltaTime);		break;
-	case EState::Swing:		TickSwing(DeltaTime);		break;
+	case EState::SWING:		TickSwing(DeltaTime);		break;
 	case EState::DoubleJump:TickDoubleJump(DeltaTime);	break;
 	case EState::ATTACK:	TickAttack(DeltaTime);		break;
 	case EState::DAMAGE:	TickDamage(DeltaTime);		break;
