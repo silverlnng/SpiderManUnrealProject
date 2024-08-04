@@ -125,7 +125,7 @@ private:
 	void SetState(EMisterNegativeState NewState);
 
 	UPROPERTY(EditAnywhere, Category = State)
-	float maxHp = 100;
+	float maxHp = 20;
 
 	UPROPERTY(EditAnywhere, Category = State)
 	int stamina = 0;
@@ -140,6 +140,7 @@ private:
 
 	FVector worldCenter; // ¸Ê Áß¾Ó ÁÂÇ¥
 
+	bool bisDamagedAnim;
 
 public:
 

@@ -52,7 +52,7 @@ void UMisterNegativeFSM::BeginPlay()
 		curPage = 0;; // 1페이지
 	}
 	
-	
+	bisDamagedAnim = false;
 	stamina = 100;
 
 	worldCenter = FVector(0, 0, 0);// 맵 중앙좌표 고정
@@ -138,11 +138,16 @@ void UMisterNegativeFSM::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 		DemonAttack2_AttackState();
 		break;
 	}
+	
 
+	const FString myState = UEnum::GetValueAsString(State);
+	DrawDebugString(GetWorld(), me->GetActorLocation() * 20, myState, nullptr, FColor::Red, 0, true);
+	
 }
 
 void UMisterNegativeFSM::idleState()
 {
+	bisDamagedAnim = true;
 	curTime += GetWorld()->DeltaTimeSeconds;
 	TargetLoc = Target->GetActorLocation();
 	Dir = TargetLoc - me->GetActorLocation();
@@ -153,7 +158,9 @@ void UMisterNegativeFSM::idleState()
 	if (curTime >= AttackDelayTime)
 	{
 		SetState(EMisterNegativeState::Attack);
+		bisDamagedAnim = false;;
 		curTime = 0;
+
 	}
 }
 
@@ -188,7 +195,7 @@ void UMisterNegativeFSM::evasionState() // 회피
 {
 	// 테스트용 그냥 이동
 	StartLoc = me->GetActorLocation();
-	TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
+	TargetLoc = me->GetActorRightVector() * 300;; // 월드 가운데를 타겟으로 지정
 	Dir = TargetLoc - StartLoc; // 월드 정 가운데 방향
 	Dir.Normalize();
 
@@ -201,21 +208,26 @@ void UMisterNegativeFSM::evasionState() // 회피
 
 void UMisterNegativeFSM::DamageState() // 맞았을때
 {
-	hitcount++;
+	
 	curTime += GetWorld()->DeltaTimeSeconds;
-	MisterAnim->HitAnim();
+	
 	UE_LOG(LogTemp, Warning, TEXT("DamageState"));
 	if (bisMaxPowerMode) // 그로기 x 상태
 	{
 		// 2번 맞을경우 회피 스테이트로
-		if(hitcount >=2)
+		if (hitcount >= 2)
+		{
+		bisDamagedAnim = false;
 		SetState(EMisterNegativeState::evasion);
+		hitcount = 0;
+		}
 	}
 	else // 그로기 스테이트 이후
 	{
 		// 시간이 지나면 move스테이트로
 		if (curTime >= 5)
 		{
+			bisDamagedAnim = false;
 			StartLoc = me->GetActorLocation();
 			TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
 			Dir = TargetLoc - StartLoc; // 월드 정 가운데 방향
@@ -229,10 +241,58 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 		}
 	}
 }
+void UMisterNegativeFSM::Dameged(float damge)
+{
+	curHp -= damge;
+	hitcount++;
+
+	if (bisDamagedAnim) // bisDamagedAnim true일때만 피격 애니메이션 사용
+	{
+		bisDamagedAnim = false;
+		MisterAnim->HitAnim();
+		
+	}
+
+	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
+	{
+
+	}
+	else
+	{
+		if (curHp <= maxHp / 2) // Level 1에서 페이지 나누기 사용
+		{
+			curPage++;
+		}
+	}
+
+
+	if (curHp <= 0)
+	{
+		SetState(EMisterNegativeState::Die);
+	}
+	else
+	{
+		SetState(EMisterNegativeState::Damage);
+		
+	}
+}
+
+void UMisterNegativeFSM::DieState() // 죽음
+{
+	if (bisNextStage)
+	{
+		me->Destroy();
+	}
+	else
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), TEXT("MisterMap_page2"));// 스테이지 변경
+	}
+}
 
 void UMisterNegativeFSM::GroggyState() // 스턴
 {
 	bisMaxPowerMode = false;
+	bisDamagedAnim = true;
 }
 
 void UMisterNegativeFSM::Groggy_loopState()
@@ -250,6 +310,7 @@ void UMisterNegativeFSM::Groggy_loopState()
 		EndLoc.Z = StartLoc.Z;
 		SetState(EMisterNegativeState::Move);
 		bisMaxPowerMode = true;
+		bisDamagedAnim = false;
 		curTime = 0;
 	}
 }
@@ -265,18 +326,6 @@ void UMisterNegativeFSM::MoveState() // 중앙으로 이동
 	{
 		SetState(EMisterNegativeState::Idle);
 		Alpha = 0;
-	}
-}
-
-void UMisterNegativeFSM::DieState() // 죽음
-{
-	if (bisNextStage)
-	{
-		me->Destroy();
-	}
-	else
-	{
-		UGameplayStatics::OpenLevel(GetWorld(), TEXT("MisterMap_page2"));// 스테이지 변경
 	}
 }
 
@@ -320,13 +369,13 @@ void UMisterNegativeFSM::RandomAttackCheak2() // 데몬 페이즈 때 사용
 // 		break;
 	case 1:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
-		me->Demon->SetRelativeLocation(FVector(-100, -190, -760));
+		me->Demon->SetRelativeLocation(FVector(-1, -1.9f, -7.6f));
 		me->Demon->SetRelativeRotation(FRotator(0, 0, 10));
 
 		break;
 	case 2:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
-		me->Demon->SetRelativeLocation(FVector(0, -190, -200));
+		me->Demon->SetRelativeLocation(FVector(0, -1.9f, -2));
 		me->Demon->SetRelativeRotation(FRotator(0, 0, 0));
 		break;
 	default:
@@ -539,31 +588,7 @@ void UMisterNegativeFSM::SetState(EMisterNegativeState NewState)
 
 }
 
-void UMisterNegativeFSM::Dameged(float damge)
-{
-	curHp -= damge;
-	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
-	{
-		
-	}
-	else
-	{
-		if (curHp <= maxHp / 2) // Level 1에서 페이지 나누기 사용
-		{
-			curPage++;
-		}
-	}
-	
-	
-	if (curHp <= 0)
-	{
-		SetState(EMisterNegativeState::Die);
-	}
-	else
-	{
-		SetState(EMisterNegativeState::Damage);
-	}
-}
+
 
 void UMisterNegativeFSM::EndState(EMisterNegativeState endState) 
 {
