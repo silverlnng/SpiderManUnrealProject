@@ -203,6 +203,7 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 {
 	hitcount++;
 	curTime += GetWorld()->DeltaTimeSeconds;
+	MisterAnim->HitAnim();
 	UE_LOG(LogTemp, Warning, TEXT("DamageState"));
 	if (bisMaxPowerMode) // 그로기 x 상태
 	{

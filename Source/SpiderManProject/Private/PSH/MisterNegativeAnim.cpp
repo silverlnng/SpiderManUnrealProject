@@ -14,6 +14,11 @@ void UMisterNegativeAnim::NativeUpdateAnimation(float DeltaSeconds)
 	misterNegative = Cast<AMisterNegative>(ownerPawn);
 }
 
+void UMisterNegativeAnim::HitAnim()
+{
+	Montage_Play(RightHit);
+}
+
 void UMisterNegativeAnim::AnimNotify_SpawnLightning()
 {
 	misterNegative->SpawnLightning();
