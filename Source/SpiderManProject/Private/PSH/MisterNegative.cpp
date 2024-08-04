@@ -12,7 +12,7 @@ AMisterNegative::AMisterNegative()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempMesh (TEXT("/Script/Engine.SkeletalMesh'/Game/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'")); 
+	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempMesh (TEXT("/Script/Engine.SkeletalMesh'/Game/SH/Asset/Mister_Negative/Negative.Negative'")); 
 
 	if (tempMesh.Succeeded())
 	{
@@ -23,7 +23,7 @@ AMisterNegative::AMisterNegative()
 
 	MisterFSM = CreateDefaultSubobject<UMisterNegativeFSM>(TEXT("MisterFSM"));
 
-	ConstructorHelpers::FClassFinder<UAnimInstance> animClass (TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_MisterNegative.ABP_MisterNegative_C'"));
+	ConstructorHelpers::FClassFinder<UAnimInstance> animClass (TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Negative.ABP_Negative'"));
 
 	if (animClass.Succeeded())
 	{
@@ -33,7 +33,7 @@ AMisterNegative::AMisterNegative()
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Negative"));
 	SwordCol = CreateDefaultSubobject<UCapsuleComponent>(TEXT("SwrodCol"));
 	SwordCol->SetupAttachment(GetMesh(), TEXT("Weapon_R"));
-	SwordCol->SetRelativeLocation(FVector(0,0,70));
+	SwordCol->SetRelativeLocation(FVector(-6,12,65));
 	SwordCol->SetCollisionProfileName("NegativeWeapon");
 	SwordCol->SetCapsuleHalfHeight(80);
 	SwordCol->SetCapsuleRadius(10);
@@ -56,8 +56,8 @@ AMisterNegative::AMisterNegative()
 		Demon->SetSkeletalMesh(tempDemonMesh.Object);
 		Demon->SetupAttachment(GetMesh());
 		Demon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Demon->SetRelativeLocation(FVector(-100, -190, -560));
-		Demon->SetRelativeScale3D(FVector(150));
+		Demon->SetRelativeLocation(FVector(-1, -1.9f, -7.6f));
+		Demon->SetRelativeScale3D(FVector(3,3,2.5));
 	}
 
 	ConstructorHelpers::FClassFinder<UAnimInstance> DemonAnimClass(TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Demon.ABP_Demon_C'"));
@@ -71,8 +71,8 @@ AMisterNegative::AMisterNegative()
 	demonCol->SetupAttachment(Demon,TEXT("arm-right-elbow"));
 	demonCol->SetRelativeLocationAndRotation(FVector(-0.4f,0.6,0.45f),FRotator(15,25,63.5));
 	demonCol->SetCollisionProfileName("NegativeWeapon");
-	demonCol->SetCapsuleHalfHeight(3);
 	demonCol->SetCapsuleRadius(0.45);
+	demonCol->SetCapsuleHalfHeight(3);
 	
 }
 

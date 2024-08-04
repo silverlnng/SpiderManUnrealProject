@@ -26,8 +26,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = AttackFSM)
 	EMisterNegativeState AnimState;
 
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage * RightHit;
 	
-	
+	void HitAnim();
 
 	UFUNCTION()
 	void AnimNotify_SpawnLightning();

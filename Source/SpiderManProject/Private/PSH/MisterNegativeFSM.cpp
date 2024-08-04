@@ -25,6 +25,7 @@ UMisterNegativeFSM::UMisterNegativeFSM()
 void UMisterNegativeFSM::BeginPlay()
 {
 	Super::BeginPlay();
+
 	Target = Cast<ASpiderMan>(UGameplayStatics::GetActorOfClass(GetWorld(), ASpiderMan::StaticClass()));
 	me = Cast<AMisterNegative>(GetOwner());
 	if (me)
@@ -33,16 +34,28 @@ void UMisterNegativeFSM::BeginPlay()
 		DemonAnim = Cast<UDemonAnim>(me->Demon->GetAnimInstance());
 	}
 
-	// 현재 페이지
-	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
+	FString mapName = UGameplayStatics::GetCurrentLevelName(GetWorld()); // 현재 맵 이름 가져오기
+	if (mapName == "MisterMap") // 1페이지 맵이면
 	{
-		 curPage = 2;
+		bisNextStage = false;
 	}
 	else
 	{
-		curPage = 0;
+		bisNextStage = true;
 	}
+
+	curHp = maxHp;
+	
+	
+	if (!bisNextStage) // 2페이지가 아니라면
+	{
+		curPage = 0;; // 1페이지
+	}
+	
+	bisDamagedAnim = false;
 	stamina = 100;
+
+	worldCenter = FVector(0, 0, 0);// 맵 중앙좌표 고정
 }
 
 
@@ -55,9 +68,6 @@ void UMisterNegativeFSM::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	{
 		SetState(EMisterNegativeState::Groggy);
 	}
-
-	
-
 
 	switch (State)
 	{
@@ -128,11 +138,16 @@ void UMisterNegativeFSM::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 		DemonAttack2_AttackState();
 		break;
 	}
+	
 
+	const FString myState = UEnum::GetValueAsString(State);
+	DrawDebugString(GetWorld(), me->GetActorLocation() * 20, myState, nullptr, FColor::Red, 0, true);
+	
 }
 
 void UMisterNegativeFSM::idleState()
 {
+	bisDamagedAnim = true;
 	curTime += GetWorld()->DeltaTimeSeconds;
 	TargetLoc = Target->GetActorLocation();
 	Dir = TargetLoc - me->GetActorLocation();
@@ -143,74 +158,165 @@ void UMisterNegativeFSM::idleState()
 	if (curTime >= AttackDelayTime)
 	{
 		SetState(EMisterNegativeState::Attack);
+		bisDamagedAnim = false;;
 		curTime = 0;
+
 	}
 }
 
 void UMisterNegativeFSM::AttackState() 
 {
-	switch (curPage)
+	if (bisNextStage)
 	{
-		case 0:
-		SetState(EMisterNegativeState::LightningstepAttack);
-		UE_LOG(LogTemp, Warning, TEXT("curPage0"));
-		break;
-		case 1:
-		RandomAttackCheak1();	
-		UE_LOG(LogTemp, Warning, TEXT("curPage1"));
-		break;
-		case 2 :
-		RandomAttackCheak2();	
-		UE_LOG(LogTemp, Warning, TEXT("curPage2"));
-		break;
-		default:
-		RandomAttackCheak2();
-		UE_LOG(LogTemp, Warning, TEXT("defaultPage"));
-		break;
+		RandomAttackCheak2(); // 2페이지
 	}
+	else
+	{
+		switch (curPage)
+		{
+		case 0:
+			SetState(EMisterNegativeState::LightningstepAttack);
+			UE_LOG(LogTemp, Warning, TEXT("curPage0"));
+			break;
+		case 1:
+			RandomAttackCheak1();
+			UE_LOG(LogTemp, Warning, TEXT("curPage1"));
+			break;
+		default:
+			RandomAttackCheak1();
+			UE_LOG(LogTemp, Warning, TEXT("defaultPage"));
+			break;
+		}
+	}
+	
 }
 
 void UMisterNegativeFSM::evasionState() // 회피
 {
+	// 테스트용 그냥 이동
+	StartLoc = me->GetActorLocation();
+	TargetLoc = me->GetActorRightVector() * 300;; // 월드 가운데를 타겟으로 지정
+	Dir = TargetLoc - StartLoc; // 월드 정 가운데 방향
+	Dir.Normalize();
 
+	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치 거리
+	EndLoc = StartLoc + Dir * dist;  // 최종 돌진 위치
+	EndLoc.Z = StartLoc.Z; // 위 방향으로는 이동하지 않기때문에 시작 위치로 고정.
+	SetState(EMisterNegativeState::Move); // 정가운데로 이동
+	curTime = 0;
 }
 
 void UMisterNegativeFSM::DamageState() // 맞았을때
 {
 	
+	curTime += GetWorld()->DeltaTimeSeconds;
+	
+	UE_LOG(LogTemp, Warning, TEXT("DamageState"));
+	if (bisMaxPowerMode) // 그로기 x 상태
+	{
+		// 2번 맞을경우 회피 스테이트로
+		if (hitcount >= 2)
+		{
+		bisDamagedAnim = false;
+		SetState(EMisterNegativeState::evasion);
+		hitcount = 0;
+		}
+	}
+	else // 그로기 스테이트 이후
+	{
+		// 시간이 지나면 move스테이트로
+		if (curTime >= 5)
+		{
+			bisDamagedAnim = false;
+			StartLoc = me->GetActorLocation();
+			TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
+			Dir = TargetLoc - StartLoc; // 월드 정 가운데 방향
+			Dir.Normalize();
+
+			dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치 거리
+			EndLoc = StartLoc + Dir * dist;  // 최종 돌진 위치
+			EndLoc.Z = StartLoc.Z; // 위 방향으로는 이동하지 않기때문에 시작 위치로 고정.
+			SetState(EMisterNegativeState::Move); // 정가운데로 이동
+			curTime = 0;
+		}
+	}
+}
+void UMisterNegativeFSM::Dameged(float damge)
+{
+	curHp -= damge;
+	hitcount++;
+
+	if (bisDamagedAnim) // bisDamagedAnim true일때만 피격 애니메이션 사용
+	{
+		bisDamagedAnim = false;
+		MisterAnim->HitAnim();
+		
+	}
+
+	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
+	{
+
+	}
+	else
+	{
+		if (curHp <= maxHp / 2) // Level 1에서 페이지 나누기 사용
+		{
+			curPage++;
+		}
+	}
+
+
+	if (curHp <= 0)
+	{
+		SetState(EMisterNegativeState::Die);
+	}
+	else
+	{
+		SetState(EMisterNegativeState::Damage);
+		
+	}
+}
+
+void UMisterNegativeFSM::DieState() // 죽음
+{
+	if (bisNextStage)
+	{
+		me->Destroy();
+	}
+	else
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), TEXT("MisterMap_page2"));// 스테이지 변경
+	}
 }
 
 void UMisterNegativeFSM::GroggyState() // 스턴
 {
-	
-	
+	bisMaxPowerMode = false;
+	bisDamagedAnim = true;
 }
 
 void UMisterNegativeFSM::Groggy_loopState()
 {
 	curTime += GetWorld()->DeltaTimeSeconds;
-	UE_LOG(LogTemp, Warning, TEXT("Groggy_loopState"));
 	if (curTime >= 5)
 	{
 		StartLoc = me->GetActorLocation();
-		TargetLoc = FVector(0, 0, 0);
+		TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
 		Dir = TargetLoc - StartLoc; // 타겟에 방향
 		Dir.Normalize();
-
-		MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
-		me->SetActorRotation(MeRotation);
 
 		dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
 		EndLoc = StartLoc + Dir * dist;
 		EndLoc.Z = StartLoc.Z;
 		SetState(EMisterNegativeState::Move);
+		bisMaxPowerMode = true;
+		bisDamagedAnim = false;
 		curTime = 0;
 	}
 }
 
 void UMisterNegativeFSM::MoveState() // 중앙으로 이동
 {
-	UE_LOG(LogTemp, Warning, TEXT("Move"));
 	Alpha += GetWorld()->DeltaTimeSeconds * 4;
 	CurLoc = UKismetMathLibrary::VEase(StartLoc, EndLoc, Alpha, EEasingFunc::SinusoidalIn);
 
@@ -221,11 +327,6 @@ void UMisterNegativeFSM::MoveState() // 중앙으로 이동
 		SetState(EMisterNegativeState::Idle);
 		Alpha = 0;
 	}
-}
-
-void UMisterNegativeFSM::DieState() // 죽음
-{
-
 }
 
 void UMisterNegativeFSM::RandomAttackCheak1()
@@ -252,27 +353,30 @@ void UMisterNegativeFSM::RandomAttackCheak1()
 }
 void UMisterNegativeFSM::RandomAttackCheak2() // 데몬 페이즈 때 사용
 {
-	int RandemNum = FMath::RandRange(1, 5);
+	int RandemNum = FMath::RandRange(1, 2);
 	switch (RandemNum)
 	{
+// 	case 1:
+// 		SetState(EMisterNegativeState::LightningstepAttack); // 종료
+// 		break;
+// 
+// 	case 2:
+// 		SetState(EMisterNegativeState::SpinAttack_idle);
+// 		break;
+// 
+// 	case 3:
+// 		SetState(EMisterNegativeState::ChargingAttack_idle);
+// 		break;
 	case 1:
-		SetState(EMisterNegativeState::LightningstepAttack); // 종료
-		break;
-
-	case 2:
-		SetState(EMisterNegativeState::SpinAttack_idle);
-		break;
-
-	case 3:
-		SetState(EMisterNegativeState::ChargingAttack_idle);
-		break;
-	case 4:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
-		me->Demon->SetRelativeLocation(FVector(-100, -190, -560));
+		me->Demon->SetRelativeLocation(FVector(-1, -1.9f, -7.6f));
+		me->Demon->SetRelativeRotation(FRotator(0, 0, 10));
+
 		break;
-	case 5:
+	case 2:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
-		me->Demon->SetRelativeLocation(FVector(-100, -190, -200));
+		me->Demon->SetRelativeLocation(FVector(0, -1.9f, -2));
+		me->Demon->SetRelativeRotation(FRotator(0, 0, 0));
 		break;
 	default:
 		break;
@@ -368,12 +472,11 @@ void UMisterNegativeFSM::ChargingAttack_AttackState()
 void UMisterNegativeFSM::DemonAttack1_idleState()
 {
 	curTime += GetWorld()->DeltaTimeSeconds;
-	UE_LOG(LogTemp, Warning, TEXT("DemonAttack1_idleState"));
 	if (curTime >= 1)
 	{
 	StartLoc = me->GetActorLocation();
-	TargetLoc = FVector(0, 0, 0);
-	Dir = TargetLoc - StartLoc; // 타겟에 방향
+	TargetLoc = worldCenter; // 월드 가운데를 좌표로 지정
+	Dir = TargetLoc - StartLoc; // 좌표에 방향
 	Dir.Normalize();
 
 	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
@@ -389,7 +492,6 @@ void UMisterNegativeFSM::DemonAttack1_idleState()
 
 void UMisterNegativeFSM::DemonAttack1_MoveState()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DemonAttack1_MoveState"));
 	Alpha += GetWorld()->DeltaTimeSeconds * 4;
 	CurLoc = UKismetMathLibrary::VEase(StartLoc, EndLoc, Alpha, EEasingFunc::SinusoidalIn);
 
@@ -410,16 +512,16 @@ void UMisterNegativeFSM::DemonAttack1_MoveState()
 
 void UMisterNegativeFSM::DemonAttack1_AttackState()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DemonAttack1_MoveState"));
+	
 	
 	// 현재 위치 로부터 위 방향으로 상승
 	if (me->bisDemonAttack)
 	{
-		me->GetMesh()->SetRelativeLocation(demonMeshLocation + me->GetActorUpVector() * 500 * GetWorld()->DeltaTimeSeconds); // 위이동	
+		me->GetMesh()->SetRelativeLocation(me->GetMesh()->GetRelativeLocation() + me->GetActorUpVector() * 50 * GetWorld()->DeltaTimeSeconds); // 위이동	
 	}
 	else
 	{
-		me->GetMesh()->SetRelativeLocation(demonMeshLocation + (me->GetActorUpVector() *-1) * 500 * GetWorld()->DeltaTimeSeconds); // 아래이동
+		me->GetMesh()->SetRelativeLocation(me->GetMesh()->GetRelativeLocation() + (me->GetActorUpVector() *-1) * 50 * GetWorld()->DeltaTimeSeconds); // 아래이동
 	}
 
 	// 노티파이 실행 시 내려가기 실시..?
@@ -429,11 +531,10 @@ void UMisterNegativeFSM::DemonAttack1_AttackState()
 void UMisterNegativeFSM::DemonAttack2_idleState()
 {
 	curTime += GetWorld()->DeltaTimeSeconds;
-	UE_LOG(LogTemp, Warning, TEXT("DemonAttack2_idleState"));
 	if (curTime >= 1)
 	{
 		StartLoc = me->GetActorLocation();
-		TargetLoc = FVector(0, 0, 0);
+		TargetLoc = worldCenter; // 월드 중앙을 타겟으로 지정
 		Dir = TargetLoc - StartLoc; // 타겟에 방향
 		Dir.Normalize();
 
@@ -450,7 +551,6 @@ void UMisterNegativeFSM::DemonAttack2_idleState()
 
 void UMisterNegativeFSM::DemonAttack2_MoveState()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DemonAttack2_MoveState"));
 	Alpha += GetWorld()->DeltaTimeSeconds * 4;
 	CurLoc = UKismetMathLibrary::VEase(StartLoc, EndLoc, Alpha, EEasingFunc::SinusoidalIn);
 
@@ -473,11 +573,11 @@ void UMisterNegativeFSM::DemonAttack2_AttackState()
 {
 	if (me->bisDemonAttack)
 	{
-		me->GetMesh()->SetRelativeLocation(demonMeshLocation + me->GetActorUpVector() * 500 * GetWorld()->DeltaTimeSeconds); // 위이동	
+		me->GetMesh()->SetRelativeLocation(me->GetMesh()->GetRelativeLocation() + me->GetActorUpVector() * 50 * GetWorld()->DeltaTimeSeconds); // 위이동	
 	}
 	else
 	{
-		me->GetMesh()->SetRelativeLocation(demonMeshLocation + (me->GetActorUpVector() * -1) * 500 * GetWorld()->DeltaTimeSeconds); // 아래이동
+		me->GetMesh()->SetRelativeLocation(me->GetMesh()->GetRelativeLocation() + (me->GetActorUpVector() * -1) * 50 * GetWorld()->DeltaTimeSeconds); // 아래이동
 	}
 }
 
@@ -488,38 +588,12 @@ void UMisterNegativeFSM::SetState(EMisterNegativeState NewState)
 
 }
 
-void UMisterNegativeFSM::Dameged(float damge)
-{
-	curHp -= damge;
-	UE_LOG(LogTemp,Warning,TEXT("Negative Damaged!!!!!!"));
-	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
-	{
-		
-	}
-	else
-	{
-		if (curHp <= maxHp / 2) // Level 1에서 페이지 나누기 사용
-		{
-			curPage++;
-		}
-	}
-	
 
-	if (curHp <= 0)
-	{
-		SetState(EMisterNegativeState::Die);
-	}
-	else
-	{
-		SetState(EMisterNegativeState::Damage);
-	}
-}
 
 void UMisterNegativeFSM::EndState(EMisterNegativeState endState) 
 {
 	me->SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	me->demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	UE_LOG(LogTemp, Warning, TEXT("AnimEnd"));
 	switch (endState)
 	{
 	case EMisterNegativeState::Idle:
@@ -530,8 +604,6 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 		break;
 	case EMisterNegativeState::Groggy:
 		stamina = 100;
-		curPage++; // 임시 
-		UE_LOG(LogTemp, Warning, TEXT("GroggyState"));
 		SetState(EMisterNegativeState::Groggy_loop);
 		break;
 	case EMisterNegativeState::Groggy_loop:
@@ -572,7 +644,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::DemonAttack1_Move:
 		break;
 	case EMisterNegativeState::DemonAttack1_Attack:
-		stamina -= 40;
+		stamina -= 50;
 		DemonAnim->AnimState = EMisterNegativeState::Idle;
 		me->GetMesh()->SetRelativeLocation(demonMeshLocation);
 		me->SetMeshVisible(false);
@@ -583,7 +655,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::DemonAttack2_Move:
 		break;
 	case EMisterNegativeState::DemonAttack2_Attack:
-		stamina -= 40;
+		stamina -= 50;
 		me->GetMesh()->SetRelativeLocation(demonMeshLocation);
 		me->SetMeshVisible(false);
 		DemonAnim->AnimState = EMisterNegativeState::Idle;
@@ -594,7 +666,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	// 끝난 상태에서 다음 상태로 넘긴다.
 }
 
-void UMisterNegativeFSM::StaertState(EMisterNegativeState StaertState)
+void UMisterNegativeFSM::StaertState(EMisterNegativeState staertState)
 {
 	
 	me->demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -657,8 +729,9 @@ void UMisterNegativeFSM::StaertState(EMisterNegativeState StaertState)
 	}
 }
 
-void UMisterNegativeFSM::beforebeforeState(EMisterNegativeState curState)
+void UMisterNegativeFSM::beforebeforeState(EMisterNegativeState currentState)
 {
+	curState = currentState;
 	// 정보 저장용 스테이트
 }
 
