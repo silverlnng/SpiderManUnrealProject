@@ -18,6 +18,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "PhysicsEngine/PhysicsConstraintActor.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "YJ/Cable.h"
 #include "YJ/PhyConstraintActor.h"
 #include "YJ/PointActor.h"
@@ -63,6 +64,8 @@ ASpiderMan::ASpiderMan()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	FSMComp = CreateDefaultSubobject<USpiderFSMComponent>(TEXT("FSMComp"));
+
+	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 }
 
 // Called when the game starts or when spawned
@@ -77,10 +80,15 @@ void ASpiderMan::BeginPlay()
 	StartPointActor =GetWorld()->SpawnActor<APointActor>(BP_StartPoint);
 
 	EndPointActor =GetWorld()->SpawnActor<APointActor>(BP_EndPoint);
-
-	FSMComp->SetState(EState::IDLE);
+	if (FSMComp)
+	{
+		FSMComp->SetState(EState::IDLE);
+	}
 
 	SpiderManAnim = Cast<USpiderManAnimInstance>(GetMesh()->GetAnimInstance());
+
+	//피직스 핸들을 만들고 항상 나의 위치에 오도록 만든다
+	PhysicsHandle->SetTargetLocation(GetActorLocation());
 }
 
 // Called every frame
@@ -94,6 +102,22 @@ void ASpiderMan::Tick(float DeltaTime)
 	if(hooked&& !DetctedWall)
 	{
 		CalculateSwing();
+	}
+	
+	DetectCatchActor();
+	
+	if(CatchableObj&&bPressedCatchObj)
+	{
+		//있으면 lerp으로 다가오도록
+
+		FVector CurrentLocation = FMath::Lerp(CatchableObj->GetActorLocation(), GetActorLocation(), DeltaTime * 5.f);
+		CatchableObj->SetActorLocation(CurrentLocation);
+		float dist = this->GetDistanceTo(CatchableObj);
+		if(dist<=500.f)
+		{
+			//lerp 종료 -> 적이있으면 적에게 날라가도록 , 없으면 그냥 앞으로 던지기
+			bPressedCatchObj=false;
+		}
 	}
 	
 }
@@ -129,6 +153,7 @@ void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASpiderMan::FindHookPint);
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Completed, this, &ASpiderMan::CompletedHook);
 		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Started, this, &ASpiderMan::Attack);
+		EnhancedInputComponent->BindAction(IA_CatchAction, ETriggerEvent::Started, this, &ASpiderMan::CatchActor);
 	}
 	else
 	{
@@ -186,7 +211,7 @@ void ASpiderMan::FindHookPint()
 		pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
 		// Calculate end location
-		FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxTraceDistance);
+		FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxSwingTraceDistance);
 
 		// Perform line trace
 		FHitResult HitResult;
@@ -229,9 +254,10 @@ void ASpiderMan::FindHookPint()
 			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
 
 			//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
-		
-			EndPointActor->SetActorLocation(GetActorLocation());
-			EndPointActor->meshComp->SetWorldLocation(GetActorLocation());
+			FVector offset = GetActorLocation() + GetActorUpVector()*500.f;
+			
+			EndPointActor->SetActorLocation(offset);
+			EndPointActor->meshComp->SetWorldLocation(offset);
 			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
 			
 			//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
@@ -245,30 +271,32 @@ void ASpiderMan::FindHookPint()
 
 			//나자신 (캐릭터를) 끝점에 부착
 			this->AttachToComponent(EndPointActor->meshComp,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
-
+			this->SetActorRelativeLocation(FVector(0,0,0));
+			//UKismetSystemLibrary::MoveComponentTo(this,)
+			
+			//PhysicsHandle->GrabComponentAtLocation(EndPointActor->meshComp,NAME_None,EndPointActor->GetActorLocation());
+			//피직스 핸들 아직 모르는점 많아서 보류
+			
+			//PhysicsHandle->GrabComponent()
+			
 			//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
 			//=> AttachToActor 이거 왜안됌..??
 
-			FVector Dir = (GetActorLocation()-hookPoint);
-			auto dot = UKismetMathLibrary::Dot_VectorVector(GetVelocity(), Dir);
-			force = Dir.GetSafeNormal()*dot*-2.f;
-
-			//만약 force크기가 작다면 증폭시켜야함 => 조금 위로 올라가야함...
-			/*if(force.Size()<=100.f)
-			{
-				force*=10.f;
-			}*/
+			
+			newforce = GetVelocity()*100.f + GetActorLocation();
+			
+			
+			FSMComp->SetState(EState::Swing);
 			
 			FTimerHandle physicsTimer; 
 			GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()->void
 			{
 				EndPointActor->meshComp->SetSimulatePhysics(true);
-				GetCharacterMovement()->AddForce(force);
-				//EndPointActor->meshComp->AddForce(force*0.01f);
+				LaunchCharacter(newforce,false,false);
 				//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
-				GetCharacterMovement()->AirControl=1;
+				GetCharacterMovement()->AirControl=1.f;
+				GetCharacterMovement()->GravityScale=0.5f;
 			}), 0.1f, false);
-			
 		}
 		else
 		{
@@ -285,6 +313,9 @@ void ASpiderMan::CompletedHook()
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EndPointActor->meshComp->SetSimulatePhysics(false);
 	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
+	
+		//FSMComp->SetState(EState::IDLE);
+	
 }
 
 void ASpiderMan::CalculateSwing() //틱에서 작동
@@ -292,26 +323,6 @@ void ASpiderMan::CalculateSwing() //틱에서 작동
 	//케이블의 길이 설정
 	float length = (GetActorLocation() - hookPoint).Size();
 	CableActor->CableComp->CableLength = length;
-
-	// addforce를 하는 크기 
-	/*FVector Dir = (GetActorLocation()-hookPoint);
-	auto dot = UKismetMathLibrary::Dot_VectorVector(GetVelocity(), Dir);
-	force = Dir.GetSafeNormal()*dot;
-	GetCharacterMovement()->AddForce(force);
-	GetCharacterMovement()->AirControl=1;*/
-
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
-	
-	// 카메라의 앞 방향 (Forward Vector)을 얻어옴
-	FVector CameraForward = CameraRotation.Vector();
-
-	// 캐릭터의 위치를 기준으로 힘을 가할 방향 설정
-	FVector ForceDirection = CameraForward.GetSafeNormal();
-	FVector Force = ForceDirection * 100;
-	//GetCharacterMovement()->AddForce(Force);
-	 
 }
 
 void ASpiderMan::DetectWall(FVector Direction)
@@ -321,7 +332,7 @@ void ASpiderMan::DetectWall(FVector Direction)
 	FVector Start = GetActorLocation();
 	FVector End = Start + Direction * DetectTraceLength;
 
-	ECollisionChannel TraceChannel = ECC_GameTraceChannel1;
+	ECollisionChannel TraceChannel = ECC_GameTraceChannel1; //벽
 
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
@@ -335,7 +346,10 @@ void ASpiderMan::DetectWall(FVector Direction)
 		DrawDebugLine(GetWorld(), Start, OutHit.ImpactPoint, FColor::Red, false, 1);
 		DetctedWall=true;
 		hooked =false;
-		FSMComp->SetState(EState::IDLE);
+		if(FSMComp)
+		{
+			FSMComp->SetState(EState::IDLE);
+		}
 		//ImpactPoint 겉면의 지점
 		//벽을 감지한다면 힘을 그만받도록 만들기
 		    // 속도도 느리게
@@ -354,10 +368,79 @@ void ASpiderMan::ClimbingMode()
 	//DetctedWall=true 하면 그 벽에 딱 달라붙기
 }
 
-void ASpiderMan::CatchActor()
+void ASpiderMan::DetectCatchActor()
 {
+	// 내가 RAY를 써서 물건잡는게 아니라 범위안에 들어오는 물건을 잡는것
+	 // 부채꼴의 시작 각도와 끝 각도를 계산
+
+	// 내가 카메라 돌릴때마다 타겟팅 바뀜 ==>,,,,카메라에서 레이 발사 . 그리고 계속해서 작동 (공격하는 동안 )
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+		// Calculate end location
+		FVector EndLocation = CameraLocation + (CameraRotation.Vector() * RayDetectObjDistance);
+
+		// Perform line trace
+		FHitResult HitResult;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this); // Ignore self in trace
+	
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel2)); //Catchable
+
+		bool bHitSphere = UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),GetActorLocation(),EndLocation,DetectRadius,
+		ObjectTypes,
+		false,   // bTraceComplex
+		TArray<AActor*>(), // Actors to ignore
+		EDrawDebugTrace::None, // Draw debug
+		HitResult,
+		true);
+		
+		if (bHitSphere)
+		{
+			// Draw a debug line
+			DrawDebugLine(GetWorld(), GetActorLocation(), EndLocation, FColor::Orange, false, 1.0f, 0, 1.0f);
+			// Draw a debug point at the hit location
+			DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, FColor::Purple, false, 1.0f);
+
+			// Log the hit location
+			UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
+
+			// hit 지점있으면 저장해두기
+			CatchableObj = HitResult.GetActor();
+			
+		}
+		else
+		{
+			// Draw a debug line
+			//DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
+		}
 	
 }
+
+
+
+void ASpiderMan::CatchActor() //Q버튼 누르면 실행할 함수
+{
+	bPressedCatchObj=!bPressedCatchObj;
+	//DetectCatchActor 한 결과물을 가져오기
+	if(CatchableObj)
+	{
+		//잡을수있는 물건이 있다면 ..
+			//lerp 를 이용해서 나에게 다가오도록
+			//물건과 나의거리가 가까워지면 lerp 종료 ==> 이건 tick 에서 작동
+		
+		
+	}
+	else
+	{
+		return;
+	}
+	
+}
+
+
 
 TArray<AActor*> ASpiderMan::DetectEnemy()
 {
@@ -448,7 +531,7 @@ void ASpiderMan::DoubleJump()
 	pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
 	// Calculate end location
-	FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxTraceDistance);
+	FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxSwingTraceDistance);
 
 	// Perform line trace
 	FHitResult HitResult;
@@ -484,7 +567,10 @@ void ASpiderMan::DoubleJump()
 			CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
 
 			//lerp이동 처리를 여기서 하기
-			FSMComp->SetState(EState::DoubleJump);
+			if(FSMComp)
+			{
+				FSMComp->SetState(EState::DoubleJump);
+			}
 
 			UE_LOG(LogTemp, Log, TEXT("Hit ImpactPoint: %s"), *HitResult.ImpactPoint.ToString());
 			 
@@ -518,6 +604,7 @@ void ASpiderMan::Damaged(float value)
 	CurHP-=value;
 	UE_LOG(LogTemp,Warning, TEXT("Spider Damaged, curHP : %f"), CurHP);
 }
+
 
 
 

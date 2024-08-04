@@ -12,6 +12,7 @@ enum class EState : uint8
 	IDLE UMETA(DisplayName = "대기") ,
 	DoubleJump  UMETA(DisplayName = "이동") ,
 	ATTACK  UMETA(DisplayName = "공격") ,
+	Swing  UMETA(DisplayName = "스윙") ,
 	DAMAGE UMETA(DisplayName = "데미지") ,
 	DIE UMETA(DisplayName = "죽음")
 };
@@ -34,13 +35,14 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EState State = EState::IDLE;
-
+	
 	void TickIdle(const float& DeltaTime);
 	void TickDoubleJump(const float& DeltaTime);
 	void TickAttack(const float& DeltaTime);
+	void TickSwing(const float& DeltaTime);
 	void TickDamage(const float& DeltaTime);
 	void TickDie(const float& DeltaTime); 
-
+	UFUNCTION()
 	void SetState(EState NextState);
 	
 	UPROPERTY()

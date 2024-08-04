@@ -41,6 +41,7 @@ void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	switch ( State )
 	{
 	case EState::IDLE:		TickIdle(DeltaTime);		break;
+	case EState::Swing:		TickSwing(DeltaTime);		break;
 	case EState::DoubleJump:TickDoubleJump(DeltaTime);	break;
 	case EState::ATTACK:	TickAttack(DeltaTime);		break;
 	case EState::DAMAGE:	TickDamage(DeltaTime);		break;
@@ -56,7 +57,7 @@ void USpiderFSMComponent::TickIdle(const float& DeltaTime)
 void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 {
 	//Me 를 타겟점으로 lerp하게 이동 => 이렇게 하는동안 은 중력영향안받게
-	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime*2.f);
+	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime*5.f);
 	Me->GetCharacterMovement()->GravityScale =0.1f;
 	Me->SetActorLocation(CurrentLocation);
 	float dist = FVector::Dist(Me->GetActorLocation(),Me->DoubleTargetVector);
@@ -74,49 +75,12 @@ void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 {
 	// ECC_GameTraceChannel4 : 네거티브 채널
 	
-	FHitResult HitResult;
 	
-	FCollisionQueryParams Params;
+}
+
+void USpiderFSMComponent::TickSwing(const float& DeltaTime)
+{
 	
-	bool bResult = GetWorld()->SweepSingleByChannel(
-		HitResult,
-		Me->GetActorLocation(),
-		Me->GetActorLocation() + Me->GetActorForwardVector() * AttackRange,
-		FQuat::Identity,
-		ECollisionChannel::ECC_Visibility,
-		FCollisionShape::MakeSphere(AttackRadius),
-		Params);
-
-#if ENABLE_DRAW_DEBUG
-	FVector TraceVec =Me-> GetActorForwardVector() * AttackRange;
-	FVector Center = Me->GetActorLocation() + TraceVec * 0.5f;
-	float HalfHeight = AttackRange * 0.5f + AttackRadius;
-	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
-	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
-	float DebugLifeTime = 5.0f;
-
-	DrawDebugCapsule(GetWorld(),
-		Center,
-		HalfHeight,
-		AttackRadius,
-		CapsuleRot,
-		DrawColor,
-		false,
-		DebugLifeTime);
-
-#endif
-	if (bResult) {
-		if (::IsValid(HitResult.GetActor()))
-		{
-			UE_LOG(LogTemp,Warning, TEXT("Hit Actor Name : %s"), *HitResult.GetActor()->GetName());
-			AMisterNegative* MisterNegative = Cast<AMisterNegative>(HitResult.GetActor());
-			if(MisterNegative)
-			{
-				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
-				NegativeFSM->Dameged(1);
-			}
-		}
-	}
 }
 
 void USpiderFSMComponent::TickDamage(const float& DeltaTime)
