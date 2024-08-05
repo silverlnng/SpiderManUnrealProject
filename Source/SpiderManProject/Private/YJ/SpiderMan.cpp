@@ -126,7 +126,7 @@ void ASpiderMan::Tick(float DeltaTime)
 
 		CalculateSwing(CatchableObj->GetActorLocation());
 		
-		if(dist<=300.f)
+		if(dist<=200.f)
 		{
 			
 
@@ -148,7 +148,7 @@ void ASpiderMan::Tick(float DeltaTime)
 		RotateSpiderMan(DeltaTime);
 	}
 	
-	
+	camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
 }
 
 #pragma region BasicMove
@@ -327,15 +327,13 @@ void ASpiderMan::FindHookPoint_pushShift()
 				LaunchCharacter(newforce,false,false);
 				//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
 				GetCharacterMovement()->AirControl=1.f;
-				GetCharacterMovement()->GravityScale=0.5f;
 				FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
 				EndPointActor->meshComp->AddForce(camForce*100,NAME_None,true);
 			}), 0.01f, false);
 			
 			GetWorld()->GetTimerManager().SetTimer(addforceTimer,([this]()->void
 			{
-				FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
-				EndPointActor->meshComp->AddForce(camForce*100,NAME_None,true);
+					EndPointActor->meshComp->AddForce(camForce * 10000.f, NAME_None, true);
 			}),1.f,true,1.f);
 
 			
@@ -546,6 +544,7 @@ void ASpiderMan::RotateSpiderMan(float time)
 		// 틱 종료 
 		bRotateSpiderMan=false;
 		CatchableObj->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
 		ThrowCatchActor();
 		curtime=0;
 		//물건 던지기 
@@ -559,8 +558,15 @@ void ASpiderMan::ThrowCatchActor()
 	UStaticMeshComponent* temp =Cast<UStaticMeshComponent>(CatchableObj->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 	
 	temp->SetSimulatePhysics(true);
-	temp->AddForce(GetActorForwardVector()*5000.f);
+
+	GetWorldTimerManager().SetTimer(addforceCatchItemTimer,([temp,this]()->void
+	{
+	//temp->AddForce(this->GetActorForwardVector()*10000.f);
+	temp->AddImpulse(this->GetActorForwardVector()*10000.f);
+	}), 1.f, false, 1.f);
+
 	CatchableObj=nullptr;
+	
 }
 
 

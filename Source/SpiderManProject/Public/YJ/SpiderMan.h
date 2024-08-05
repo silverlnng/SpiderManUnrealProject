@@ -177,6 +177,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	class APointActor* EndPointActor;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	FVector camForce;
+
 	virtual void Jump() override;
 	virtual void StopJumping() override;
 
@@ -229,6 +232,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void ThrowCatchActor();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
+	FTimerHandle addforceCatchItemTimer;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
 	UInputAction* IA_CatchAction;
