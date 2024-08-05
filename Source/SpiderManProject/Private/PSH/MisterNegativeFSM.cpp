@@ -140,8 +140,8 @@ void UMisterNegativeFSM::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 	
 
-	const FString myState = UEnum::GetValueAsString(State);
-	DrawDebugString(GetWorld(), me->GetActorLocation() * 20, myState, nullptr, FColor::Red, 0, true);
+// 	const FString myState = UEnum::GetValueAsString(State);
+// 	DrawDebugString(GetWorld(), me->GetActorLocation() * 20, myState, nullptr, FColor::Red, 0, true);
 	
 }
 
@@ -158,7 +158,7 @@ void UMisterNegativeFSM::idleState()
 	if (curTime >= AttackDelayTime)
 	{
 		SetState(EMisterNegativeState::Attack);
-		bisDamagedAnim = false;;
+		
 		curTime = 0;
 
 	}
@@ -166,6 +166,7 @@ void UMisterNegativeFSM::idleState()
 
 void UMisterNegativeFSM::AttackState() 
 {
+	bisDamagedAnim = false;
 	if (bisNextStage)
 	{
 		RandomAttackCheak2(); // 2페이지
@@ -194,8 +195,9 @@ void UMisterNegativeFSM::AttackState()
 void UMisterNegativeFSM::evasionState() // 회피
 {
 	// 테스트용 그냥 이동
+	bisDamagedAnim = false;
 	StartLoc = me->GetActorLocation();
-	TargetLoc = me->GetActorRightVector() * 300;; // 월드 가운데를 타겟으로 지정
+	TargetLoc = me->GetActorRightVector() * 150;; // 월드 가운데를 타겟으로 지정
 	Dir = TargetLoc - StartLoc; // 월드 정 가운데 방향
 	Dir.Normalize();
 
@@ -208,19 +210,30 @@ void UMisterNegativeFSM::evasionState() // 회피
 
 void UMisterNegativeFSM::DamageState() // 맞았을때
 {
-	
+
 	curTime += GetWorld()->DeltaTimeSeconds;
 	
 	UE_LOG(LogTemp, Warning, TEXT("DamageState"));
 	if (bisMaxPowerMode) // 그로기 x 상태
 	{
+		bisDamagedAnim = true;
 		// 2번 맞을경우 회피 스테이트로
-		if (hitcount >= 2)
+		if (hitcount >= 3)
 		{
 		bisDamagedAnim = false;
 		SetState(EMisterNegativeState::evasion);
 		hitcount = 0;
 		}
+		else
+		{
+			if (curTime >= 1)
+			{
+				SetState(EMisterNegativeState::Attack);
+				bisDamagedAnim = false;
+				hitcount = 0;
+			}
+		}
+		curTime = 0;
 	}
 	else // 그로기 스테이트 이후
 	{
@@ -246,13 +259,6 @@ void UMisterNegativeFSM::Dameged(float damge)
 	curHp -= damge;
 	hitcount++;
 
-	if (bisDamagedAnim) // bisDamagedAnim true일때만 피격 애니메이션 사용
-	{
-		bisDamagedAnim = false;
-		MisterAnim->HitAnim();
-		
-	}
-
 	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
 	{
 
@@ -264,6 +270,17 @@ void UMisterNegativeFSM::Dameged(float damge)
 			curPage++;
 		}
 	}
+
+
+	if (bisDamagedAnim) // bisDamagedAnim true일때만 피격 애니메이션 사용
+	{
+		MisterAnim->HitAnim();
+	}
+	else
+	{
+		return;
+	}
+
 
 
 	if (curHp <= 0)
@@ -353,27 +370,27 @@ void UMisterNegativeFSM::RandomAttackCheak1()
 }
 void UMisterNegativeFSM::RandomAttackCheak2() // 데몬 페이즈 때 사용
 {
-	int RandemNum = FMath::RandRange(1, 2);
+	int RandemNum = FMath::RandRange(1, 5);
 	switch (RandemNum)
 	{
-// 	case 1:
-// 		SetState(EMisterNegativeState::LightningstepAttack); // 종료
-// 		break;
-// 
-// 	case 2:
-// 		SetState(EMisterNegativeState::SpinAttack_idle);
-// 		break;
-// 
-// 	case 3:
-// 		SetState(EMisterNegativeState::ChargingAttack_idle);
-// 		break;
 	case 1:
+		SetState(EMisterNegativeState::LightningstepAttack); // 종료
+		break;
+
+	case 2:
+		SetState(EMisterNegativeState::SpinAttack_idle);
+		break;
+
+	case 3:
+		SetState(EMisterNegativeState::ChargingAttack_idle);
+		break;
+	case 4:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
 		me->Demon->SetRelativeLocation(FVector(-1, -1.9f, -7.6f));
 		me->Demon->SetRelativeRotation(FRotator(0, 0, 10));
 
 		break;
-	case 2:
+	case 5:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
 		me->Demon->SetRelativeLocation(FVector(0, -1.9f, -2));
 		me->Demon->SetRelativeRotation(FRotator(0, 0, 0));
