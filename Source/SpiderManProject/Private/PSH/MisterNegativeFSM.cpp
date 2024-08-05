@@ -233,7 +233,6 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 				hitcount = 0;
 			}
 		}
-		curTime = 0;
 	}
 	else // 그로기 스테이트 이후
 	{
