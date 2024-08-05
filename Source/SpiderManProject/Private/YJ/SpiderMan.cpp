@@ -96,8 +96,8 @@ void ASpiderMan::BeginPlay()
 
 	CameraManager =GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
 
-	FTimerHandle FindHookPoint_Auto;
-	GetWorldTimerManager().SetTimer(FindHookPoint_Auto,this,&ASpiderMan::FindHookPoint_Auto,0.5f,true,-1);
+	//FTimerHandle FindHookPoint_Auto;
+	//GetWorldTimerManager().SetTimer(FindHookPoint_Auto,this,&ASpiderMan::FindHookPoint_Auto,0.5f,true,-1);
 	
 }
 
@@ -132,8 +132,7 @@ void ASpiderMan::Tick(float DeltaTime)
 
 			// CatchableObj 을 나에게 부착 그리고 회전 !
 			CatchableObj->K2_AttachToActor(this,NAME_None,EAttachmentRule::KeepWorld,EAttachmentRule::KeepRelative,EAttachmentRule::KeepRelative,true);
-			//CatchableObj->AttachToActor(this,FAttachmentTransformRules::KeepWorldTransform);
-			//CatchableObj->AttachToComponent(this->GetCapsuleComponent(),FAttachmentTransformRules::KeepWorldTransform);
+			
 			// 한번 나를 회전시키고
 			bRotateSpiderMan =true;
 			// 적이있으면 적에게 날라가도록 , 없으면 그냥 앞으로 던지기
@@ -279,6 +278,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 			
 			FTransform CharaSocketTranform = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
 			
+			CableActor->CableComp->SetVisibility(true);
 
 			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정
 			
@@ -389,6 +389,7 @@ void ASpiderMan::DetectWall(FVector Direction)
 		DrawDebugLine(GetWorld(), Start, OutHit.ImpactPoint, FColor::Red, false, 1);
 		DetctedWall=true;
 		hooked =false;
+		CableActor->CableComp->SetVisibility(false);
 		if(FSMComp)
 		{
 			FSMComp->SetState(EState::IDLE);
@@ -410,6 +411,8 @@ void ASpiderMan::ClimbingMode()
 {
 	//DetctedWall=true 하면 그 벽에 딱 달라붙기
 }
+
+#pragma region ThrowCatchableActor
 
 void ASpiderMan::FindHookPoint_Auto()
 {
@@ -543,9 +546,9 @@ void ASpiderMan::RotateSpiderMan(float time)
 	{
 		// 틱 종료 
 		bRotateSpiderMan=false;
-		CatchableObj->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
 		ThrowCatchActor();
+
 		curtime=0;
 		//물건 던지기 
 	}
@@ -553,22 +556,25 @@ void ASpiderMan::RotateSpiderMan(float time)
 
 void ASpiderMan::ThrowCatchActor()
 {
+	CatchableObj->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
 	CableComp->SetVisibility(false);
+
 	UStaticMeshComponent* temp =Cast<UStaticMeshComponent>(CatchableObj->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 	
 	temp->SetSimulatePhysics(true);
 
-	GetWorldTimerManager().SetTimer(addforceCatchItemTimer,([temp,this]()->void
-	{
-	//temp->AddForce(this->GetActorForwardVector()*10000.f);
-	temp->AddImpulse(this->GetActorForwardVector()*10000.f);
-	}), 1.f, false, 1.f);
-
+	//GetWorldTimerManager().SetTimer(addforceCatchItemTimer,([temp,this]()->void
+	//{
+	////temp->AddForce(this->GetActorForwardVector()*10000.f);
+	//
+	//}), 1.f, false, 1.f);
+	temp->AddImpulse(this->GetActorForwardVector() * 10000.f);
 	CatchableObj=nullptr;
 	
 }
 
+#pragma endregion ThrowCatchableActor
 
 TArray<AActor*> ASpiderMan::DetectEnemy()
 {
@@ -683,7 +689,8 @@ void ASpiderMan::DoubleJump()
 		if(HitResult.GetActor()->ActorHasTag(TEXT("Wall")))
 		{
 			
-			
+			CableActor->CableComp->SetVisibility(true);
+
    			DoubleTargetVector=HitResult.ImpactPoint;
 
 			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정

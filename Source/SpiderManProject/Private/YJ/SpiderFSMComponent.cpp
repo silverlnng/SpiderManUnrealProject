@@ -7,6 +7,8 @@
 #include "PSH/MisterNegative.h"
 #include "PSH/MisterNegativeFSM.h"
 #include "YJ/SpiderMan.h"
+#include "YJ/Cable.h"
+#include "CableComponent.h"
 
 // Sets default values for this component's properties
 USpiderFSMComponent::USpiderFSMComponent()
@@ -61,7 +63,10 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	Me->GetCharacterMovement()->GravityScale =0.1f;
 	Me->SetActorLocation(CurrentLocation);
 	float dist = FVector::Dist(Me->GetActorLocation(),Me->DoubleTargetVector);
-	
+
+	float length = (Me->GetActorLocation() - Me->DoubleTargetVector).Size();
+	Me->CableActor->CableComp->CableLength = length - 300;
+
 	//다 도착하면 idle으로 다시
 	if(dist<=30.f)
 	{
