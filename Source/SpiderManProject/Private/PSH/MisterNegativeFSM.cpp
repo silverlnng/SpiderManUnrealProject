@@ -35,7 +35,7 @@ void UMisterNegativeFSM::BeginPlay()
 	}
 
 	FString mapName = UGameplayStatics::GetCurrentLevelName(GetWorld()); // 현재 맵 이름 가져오기
-	if (mapName == "MisterMap") // 1페이지 맵이면
+	if (mapName == "SpiderWhitebox") // 1페이지 맵이면
 	{
 		bisNextStage = false;
 	}
@@ -228,8 +228,8 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 		{
 			if (curTime >= 1)
 			{
-				SetState(EMisterNegativeState::Attack);
-				bisDamagedAnim = false;
+				SetState(EMisterNegativeState::Idle);
+				curTime = 0;
 				hitcount = 0;
 			}
 		}
@@ -258,6 +258,10 @@ void UMisterNegativeFSM::Dameged(float damge)
 {
 	curHp -= damge;
 	hitcount++;
+	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
+	me->SetActorRotation(MeRotation);
+
+	me->LaunchCharacter((me->GetActorForwardVector() * -1) * 1000, false, false);
 
 	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
 	{
@@ -302,7 +306,7 @@ void UMisterNegativeFSM::DieState() // 죽음
 	}
 	else
 	{
-		UGameplayStatics::OpenLevel(GetWorld(), TEXT("MisterMap_page2"));// 스테이지 변경
+		UGameplayStatics::OpenLevel(GetWorld(), TEXT("SpiderWhitebox1"));// 스테이지 변경
 	}
 }
 
