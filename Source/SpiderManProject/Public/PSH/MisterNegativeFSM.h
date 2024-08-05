@@ -125,7 +125,7 @@ private:
 	void SetState(EMisterNegativeState NewState);
 
 	UPROPERTY(EditAnywhere, Category = State)
-	float maxHp = 20;
+	float maxHp = 10;
 
 	UPROPERTY(EditAnywhere, Category = State)
 	int stamina = 0;
