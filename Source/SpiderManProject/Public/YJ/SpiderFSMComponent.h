@@ -58,4 +58,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
 	float AttackRadius = 50.f;
+
+
+
+	
 };

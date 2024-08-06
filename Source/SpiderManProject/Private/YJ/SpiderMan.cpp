@@ -72,6 +72,33 @@ ASpiderMan::ASpiderMan()
 	FSMComp = CreateDefaultSubobject<USpiderFSMComponent>(TEXT("FSMComp"));
 
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
+
+	IsAttacking = false;
+	MaxCombo = 3;
+	AttackStartComboState();
+	AttackEndComboState();
+	
+}
+
+void ASpiderMan::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
+	SpiderManAnim = Cast<USpiderManAnimInstance>(GetMesh()->GetAnimInstance());
+
+	SpiderManAnim->OnMontageEnded.AddDynamic(this, &ASpiderMan::OnAttackMontageEnded);
+
+	SpiderManAnim->OnNextAttackCheck.AddLambda([this]() -> void {
+		
+		CanNextCombo = false;
+
+		if (IsComboInputOn) {
+			AttackStartComboState();
+			SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
+		}
+	});
+	
+	SpiderManAnim->OnAttackHitCheck.AddUObject(this, &ASpiderMan::ComboAttackCheck);
 }
 
 // Called when the game starts or when spawned
@@ -87,7 +114,7 @@ void ASpiderMan::BeginPlay()
 
 	EndPointActor =GetWorld()->SpawnActor<APointActor>(BP_EndPoint);
 	
-	SpiderManAnim = Cast<USpiderManAnimInstance>(GetMesh()->GetAnimInstance());
+	
 
 	//피직스 핸들을 만들고 항상 나의 위치에 오도록 만든다
 	PhysicsHandle->SetTargetLocation(GetActorLocation());
@@ -100,6 +127,8 @@ void ASpiderMan::BeginPlay()
 	//GetWorldTimerManager().SetTimer(FindHookPoint_Auto,this,&ASpiderMan::FindHookPoint_Auto,0.5f,true,-1);
 	
 }
+
+
 
 // Called every frame
 void ASpiderMan::Tick(float DeltaTime)
@@ -574,6 +603,8 @@ void ASpiderMan::ThrowCatchActor()
 	
 }
 
+
+
 #pragma endregion ThrowCatchableActor
 
 TArray<AActor*> ASpiderMan::DetectEnemy()
@@ -740,7 +771,51 @@ void ASpiderMan::Damaged(float value)
 	UE_LOG(LogTemp,Warning, TEXT("Spider Damaged, curHP : %f"), CurHP);
 }
 
+#pragma region ComboAttack
 
 
+void ASpiderMan::ComboAttack()
+{
+	if (IsAttacking)	// 공격이 진행중에 들어온 입력이라면  
+	{
+		if (CanNextCombo)
+			{
+			IsComboInputOn = true;
+		}
+	}
+	else { 
+		AttackStartComboState();
+		SpiderManAnim->PlayAttackMontage();
+		SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
+		IsAttacking = true;
+	}
+}
+
+void ASpiderMan::ComboAttackCheck()
+{
+	// sweep 으로 공격체크
+}
+
+void ASpiderMan::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	IsAttacking = false;
+	AttackEndComboState();
+}
+
+void ASpiderMan::AttackStartComboState() //공격 시작할때 속성 설정
+{
+	CanNextCombo = true;
+	IsComboInputOn = false;
+	CurrentCombo = FMath::Clamp<int32>(CurrentCombo + 1, 1, MaxCombo);
+}
+
+void ASpiderMan::AttackEndComboState() // 공격끝날떄 속성설정
+{
+	IsComboInputOn = false;
+	CanNextCombo = false;
+	CurrentCombo = 0;
+}
+
+#pragma endregion  ComboAttack
 
 

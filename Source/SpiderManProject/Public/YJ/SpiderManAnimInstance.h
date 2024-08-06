@@ -21,6 +21,9 @@ enum class EAnimState : uint8
 	DIEAnim UMETA(DisplayName = "죽음애니")
 };
 
+DECLARE_MULTICAST_DELEGATE(FOnNextAttackCheckDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnAttackHitCheckDelegate);
+
 UCLASS()
 class SPIDERMANPROJECT_API USpiderManAnimInstance : public UAnimInstance
 {
@@ -30,6 +33,7 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeBeginPlay() override;
+	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EAnimState AnimState = EAnimState::IDLEAnim;
@@ -50,5 +54,27 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
 	float AttackRadius = 50.f;
+
+/////////////////////////////////////////콤보 공격
+	
+	FOnNextAttackCheckDelegate OnNextAttackCheck;
+	FOnAttackHitCheckDelegate OnAttackHitCheck;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "ComboAttack");
+	class UAnimMontage* ComboAttackMontage;
+
+	UFUNCTION()
+	void PlayAttackMontage();
+	
+	UFUNCTION()
+	void JumpToAttackMontageSection(int32 NewSection);
+	
+	UFUNCTION()
+	void AnimNotify_AttackHitCheck();
+	UFUNCTION()
+	void AnimNotify_NextAttackCheck();
+	UFUNCTION()
+	FName GetAttackMontageSectionName(int32 Section);
+	
 	
 };

@@ -104,3 +104,37 @@ void USpiderManAnimInstance::AnimNotify_SpiderAttack_Start()
 		}
 	}
 }
+
+
+#pragma region ComboAttack
+
+void USpiderManAnimInstance::PlayAttackMontage()
+{
+	if(!Montage_IsPlaying(ComboAttackMontage))
+	{
+		Montage_Play(ComboAttackMontage,1.f);
+	}
+}
+
+void USpiderManAnimInstance::JumpToAttackMontageSection(int32 NewSection)
+{
+	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), ComboAttackMontage);
+	
+	// 애니메이션 몽타주에서 세션 플레이 
+}
+
+void USpiderManAnimInstance::AnimNotify_AttackHitCheck()
+{
+	OnAttackHitCheck.Broadcast();
+}
+
+void USpiderManAnimInstance::AnimNotify_NextAttackCheck()
+{
+	OnNextAttackCheck.Broadcast();
+}
+
+FName USpiderManAnimInstance::GetAttackMontageSectionName(int32 Section)
+{
+	return FName(*FString::Printf(TEXT("Attack%d"), Section));
+}
+#pragma endregion ComboAttack

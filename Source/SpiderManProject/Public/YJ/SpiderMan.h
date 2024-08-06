@@ -49,7 +49,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
+	virtual void PostInitializeComponents() override;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -240,5 +241,37 @@ public:
 	UInputAction* IA_CatchAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
 	bool bPressedCatchObj=false;
+
+	//////////// 콤보 공격
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	bool IsAttacking;
+	
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	bool CanNextCombo;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	bool IsComboInputOn;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	int32 CurrentCombo;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	int32 MaxCombo;
+
+	UFUNCTION()
+	void ComboAttack();
+
+	UFUNCTION()
+	void ComboAttackCheck();
+	
+	UFUNCTION()
+	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	void AttackStartComboState();
+	void AttackEndComboState();
+	
+	//////////// 콤보 공격
+	
 	
 };
