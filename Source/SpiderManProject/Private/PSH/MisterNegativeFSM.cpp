@@ -153,7 +153,7 @@ void UMisterNegativeFSM::idleState()
 	Dir = TargetLoc - me->GetActorLocation();
 	Dir.Normalize();
 
-	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
+	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(),Dir);
 	me->SetActorRotation(MeRotation);
 	if (curTime >= AttackDelayTime)
 	{
@@ -244,11 +244,11 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 			TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
 			Dir = TargetLoc - StartLoc; // 월드 정 가운데 방향
 			Dir.Normalize();
-
 			dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치 거리
 			EndLoc = StartLoc + Dir * dist;  // 최종 돌진 위치
 			EndLoc.Z = StartLoc.Z; // 위 방향으로는 이동하지 않기때문에 시작 위치로 고정.
 			SetState(EMisterNegativeState::Move); // 정가운데로 이동
+			hitcount = 0;
 			curTime = 0;
 		}
 	}
@@ -257,9 +257,8 @@ void UMisterNegativeFSM::Dameged(float damge)
 {
 	curHp -= damge;
 	hitcount++;
-	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
+	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
 	me->SetActorRotation(MeRotation);
-
 	me->LaunchCharacter((me->GetActorForwardVector() * -1) * 1000, false, false);
 
 	if (bisNextStage) // Level 2에서 페이지 나누기 사용.
@@ -373,27 +372,27 @@ void UMisterNegativeFSM::RandomAttackCheak1()
 }
 void UMisterNegativeFSM::RandomAttackCheak2() // 데몬 페이즈 때 사용
 {
-	int RandemNum = FMath::RandRange(1, 5);
+	int RandemNum = FMath::RandRange(1, 2);
 	switch (RandemNum)
 	{
+// 	case 1:
+// 		SetState(EMisterNegativeState::LightningstepAttack); // 종료
+// 		break;
+// 
+// 	case 2:
+// 		SetState(EMisterNegativeState::SpinAttack_idle);
+// 		break;
+// 
+// 	case 3:
+// 		SetState(EMisterNegativeState::ChargingAttack_idle);
+// 		break;
 	case 1:
-		SetState(EMisterNegativeState::LightningstepAttack); // 종료
-		break;
-
-	case 2:
-		SetState(EMisterNegativeState::SpinAttack_idle);
-		break;
-
-	case 3:
-		SetState(EMisterNegativeState::ChargingAttack_idle);
-		break;
-	case 4:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
 		me->Demon->SetRelativeLocation(FVector(-1, -1.9f, -7.6f));
 		me->Demon->SetRelativeRotation(FRotator(0, 0, 10));
 
 		break;
-	case 5:
+	case 2:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
 		me->Demon->SetRelativeLocation(FVector(0, -1.9f, -2));
 		me->Demon->SetRelativeRotation(FRotator(0, 0, 0));
@@ -422,7 +421,8 @@ void UMisterNegativeFSM::LightningstepAttack_IdleState()
 	Dir = TargetLoc - StartLoc; // 타겟에 방향
 	Dir.Normalize();
 
-	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
+	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
+	me->SetActorRotation(MeRotation);
 	me->SetActorRotation(MeRotation);
 
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
@@ -454,7 +454,8 @@ void UMisterNegativeFSM::SpinAttackState_IdleState()
 	Dir = TargetLoc - StartLoc;
 	Dir.Normalize();
 
-	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
+	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
+	me->SetActorRotation(MeRotation);
 	me->SetActorRotation(MeRotation);
 
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
@@ -501,7 +502,6 @@ void UMisterNegativeFSM::DemonAttack1_idleState()
 
 	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
 	me->SetActorRotation(MeRotation);
-
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
 	EndLoc = StartLoc + Dir * dist;
 	EndLoc.Z = StartLoc.Z;
@@ -519,8 +519,6 @@ void UMisterNegativeFSM::DemonAttack1_MoveState()
 
 	if (Alpha >= 1)
 	{
-		MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
-		me->SetActorRotation(MeRotation);
 		me->SetMeshVisible(true);
 		SetState(EMisterNegativeState::DemonAttack1_Attack);
 		DemonAnim->AnimState = EMisterNegativeState::DemonAttack1_Attack;
@@ -558,7 +556,8 @@ void UMisterNegativeFSM::DemonAttack2_idleState()
 		Dir = TargetLoc - StartLoc; // 타겟에 방향
 		Dir.Normalize();
 
-		MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
+		//MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
+		MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(),Target->GetActorLocation());
 		me->SetActorRotation(MeRotation);
 
 		dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
@@ -578,8 +577,6 @@ void UMisterNegativeFSM::DemonAttack2_MoveState()
 
 	if (Alpha >= 1)
 	{
-		MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(),Target->GetActorLocation());
-		me->SetActorRotation(MeRotation);
 		me->SetMeshVisible(true);
 		DemonAnim->AnimState = EMisterNegativeState::DemonAttack2_Attack;
 		SetState(EMisterNegativeState::DemonAttack2_Attack);
