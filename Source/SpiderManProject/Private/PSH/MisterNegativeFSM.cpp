@@ -602,7 +602,6 @@ void UMisterNegativeFSM::SetState(EMisterNegativeState NewState)
 {
 	State = NewState;
 	MisterAnim->AnimState = State;;
-
 }
 
 
@@ -683,7 +682,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	// 끝난 상태에서 다음 상태로 넘긴다.
 }
 
-void UMisterNegativeFSM::StaertState(EMisterNegativeState staertState)
+void UMisterNegativeFSM::StartState(EMisterNegativeState staertState)
 {
 	
 	me->demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);

@@ -10,7 +10,7 @@
 AMisterNegative::AMisterNegative()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempMesh (TEXT("/Script/Engine.SkeletalMesh'/Game/SH/Asset/Mister_Negative/Negative.Negative'")); 
 
@@ -92,6 +92,13 @@ void AMisterNegative::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bisDissolve)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("dissolve"));
+		dissolveAnimValue += DeltaTime / 4;
+		Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), dissolveAnimValue);
+	}
+	
 }
 
 // Called to bind functionality to input
@@ -128,11 +135,24 @@ void AMisterNegative::SetMeshVisible(bool chek)
 {
 	Sword->SetVisibility(!chek);
 	Demon->SetVisibility(chek);
+	bisDissolve = false;
+	SetDissolveInit();
 }
 
 void AMisterNegative::CameraShake()
 {
 	GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(Cs_DemonAttack, 0.5f);
+}
+
+void AMisterNegative::DissolveAnim()
+{
+	bisDissolve = true;
+}
+
+void AMisterNegative::SetDissolveInit()
+{
+	dissolveAnimValue = 0;
+	Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), 0);
 }
 
 void AMisterNegative::SwordComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

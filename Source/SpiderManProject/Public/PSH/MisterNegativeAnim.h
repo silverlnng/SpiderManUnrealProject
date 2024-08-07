@@ -44,8 +44,5 @@ public:
 	void AnimNotify_MisterAnimStart();
 
 	UFUNCTION()
-	void AnimNotify_BossCameraShake();
-
-	UFUNCTION()
 	void AnimNotify_MisterNextAnim();
 };

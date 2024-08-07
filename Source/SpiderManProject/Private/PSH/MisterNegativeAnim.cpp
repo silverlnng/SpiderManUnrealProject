@@ -42,14 +42,7 @@ void UMisterNegativeAnim::AnimNotify_MisterAnimEnd()
 
 void UMisterNegativeAnim::AnimNotify_MisterAnimStart()
 {
-	misterNegative->MisterFSM->StaertState(AnimState);
-}
-
-void UMisterNegativeAnim::AnimNotify_BossCameraShake()
-{
-	misterNegative->CameraShake();
-	UE_LOG(LogTemp, Warning, TEXT("CameraShake"));
-
+	misterNegative->MisterFSM->StartState(AnimState);
 }
 
 void UMisterNegativeAnim::AnimNotify_MisterNextAnim()
