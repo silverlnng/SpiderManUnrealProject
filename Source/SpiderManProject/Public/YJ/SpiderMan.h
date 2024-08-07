@@ -68,7 +68,9 @@ public:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
+	FVector2D MovementVector;
+	
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
@@ -244,19 +246,19 @@ public:
 
 //////////////////// 콤보 공격////////////////////////////////////////////////////////////////////
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "ComboAttack")
 	bool IsAttacking;
 	
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "ComboAttack")
 	bool CanNextCombo;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "ComboAttack")
 	bool IsComboInputOn;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "ComboAttack")
 	int32 CurrentCombo;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "ComboAttack")
 	int32 MaxCombo;
 
 	UFUNCTION()
@@ -279,7 +281,19 @@ public:
 
 	
 //////////////// 회피 기능	//////////// 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dodge")
 	UInputAction* IA_LCtrl;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dodge")
+	bool bIsDodging;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dodge")
+	float DodgeDistance;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dodge")
+	float DodgeCooldown;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dodge")
+	float LastDodgeTime;
 	
+	UFUNCTION(BlueprintCallable)
+	void Dodge(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void StopDodge();
 };

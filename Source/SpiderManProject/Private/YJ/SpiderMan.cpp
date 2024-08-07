@@ -101,6 +101,12 @@ void ASpiderMan::PostInitializeComponents()
 	});
 	
 	SpiderManAnim->OnAttackHitCheck.AddUObject(this, &ASpiderMan::ComboAttackCheck);
+
+	bIsDodging = false;
+	DodgeDistance = 600.f;  // Dodge 이동 거리
+	DodgeCooldown = 1.0f;   // Dodge 쿨다운 시간
+	LastDodgeTime = -DodgeCooldown; // 초기화
+	
 }
 
 // Called when the game starts or when spawned
@@ -213,6 +219,7 @@ void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Completed, this, &ASpiderMan::CompletedHook);
 		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Started, this, &ASpiderMan::ComboAttack);
 		EnhancedInputComponent->BindAction(IA_CatchAction, ETriggerEvent::Started, this, &ASpiderMan::CatchActor);
+		EnhancedInputComponent->BindAction(IA_LCtrl, ETriggerEvent::Started, this, &ASpiderMan::Dodge);
 	}
 	else
 	{
@@ -223,7 +230,7 @@ void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 void ASpiderMan::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	MovementVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
 	{
 		// find out which way is forward
@@ -253,6 +260,50 @@ void ASpiderMan::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ASpiderMan::Dodge(const FInputActionValue& Value)
+{
+	if (bIsDodging || GetWorld()->GetTimeSeconds() - LastDodgeTime < DodgeCooldown)
+	{
+		return;
+	}
+
+	bIsDodging = true;
+	LastDodgeTime = GetWorld()->GetTimeSeconds();
+
+	FVector DodgeDirection = FVector::ZeroVector;
+	if (Controller != nullptr)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		float ForwardValue = GetInputAxisValue("MoveForward");
+		float RightValue = GetInputAxisValue("MoveRight");
+
+		if (FMath::Abs(ForwardValue) > 0.1f || FMath::Abs(RightValue) > 0.1f)
+		{
+			DodgeDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X) * MovementVector.X +
+						   FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y) * MovementVector.Y;
+			DodgeDirection.Normalize();
+		}
+		else
+		{
+			DodgeDirection = GetActorForwardVector();
+		}
+	}
+
+	FVector DodgeVelocity = DodgeDirection * DodgeDistance;
+	LaunchCharacter(DodgeVelocity, true, true);
+
+	// 일정 시간 후에 dodge 상태를 false로 설정
+	FTimerHandle UnusedHandle;
+	GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &ASpiderMan::StopDodge, 0.2f, false);
+}
+
+void ASpiderMan::StopDodge()
+{
+	bIsDodging = false;
 }
 
 #pragma endregion BasicMove 
@@ -669,6 +720,8 @@ void ASpiderMan::MyDrawDebugLine()
 	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + RightBoundary * DetectEnemyRadius, FColor::Blue, false, 1.0f);
 }
 
+#pragma region Jump,DoubleJump
+
 void ASpiderMan::Jump()
 {
 	Super::Jump();
@@ -752,6 +805,8 @@ void ASpiderMan::DoubleJump()
 		DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
 	}
 }
+
+#pragma endregion Jump,DoubleJump
 
 void ASpiderMan::Attack()
 {
@@ -866,5 +921,7 @@ void ASpiderMan::AttackEndComboState() // 공격끝날떄 속성설정
 }
 
 #pragma endregion  ComboAttack
+
+
 
 
