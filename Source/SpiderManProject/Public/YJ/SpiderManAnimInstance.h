@@ -60,7 +60,7 @@ public:
 	FOnNextAttackCheckDelegate OnNextAttackCheck;
 	FOnAttackHitCheckDelegate OnAttackHitCheck;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "ComboAttack");
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComboAttack");
 	class UAnimMontage* ComboAttackMontage;
 
 	UFUNCTION()

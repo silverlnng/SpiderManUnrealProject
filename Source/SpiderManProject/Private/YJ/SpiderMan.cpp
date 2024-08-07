@@ -25,6 +25,8 @@
 #include "YJ/SpiderFSMComponent.h"
 #include "YJ/SpiderManAnimInstance.h"
 #include "Camera/PlayerCameraManager.h"
+#include "PSH/MisterNegative.h"
+#include "PSH/MisterNegativeFSM.h"
 
 
 // Sets default values
@@ -209,7 +211,7 @@ void ASpiderMan::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASpiderMan::FindHookPoint_pushShift);
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Completed, this, &ASpiderMan::CompletedHook);
-		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Started, this, &ASpiderMan::Attack);
+		EnhancedInputComponent->BindAction(LMouseAction, ETriggerEvent::Started, this, &ASpiderMan::ComboAttack);
 		EnhancedInputComponent->BindAction(IA_CatchAction, ETriggerEvent::Started, this, &ASpiderMan::CatchActor);
 	}
 	else
@@ -779,7 +781,7 @@ void ASpiderMan::ComboAttack()
 	if (IsAttacking)	// 공격이 진행중에 들어온 입력이라면  
 	{
 		if (CanNextCombo)
-			{
+		{
 			IsComboInputOn = true;
 		}
 	}
@@ -793,7 +795,54 @@ void ASpiderMan::ComboAttack()
 
 void ASpiderMan::ComboAttackCheck()
 {
-	// sweep 으로 공격체크
+	// 애니메이션 실행중 
+	// sweep 으로 내가 enemy를 damage를 주는지 체크
+	FHitResult HitResult_Hand_R;
+	
+	FCollisionQueryParams Params;
+	//Params.AddIgnoredActor(Me);
+	
+	bool bResult = GetWorld()->SweepSingleByChannel(
+		HitResult_Hand_R,
+		GetActorLocation(),
+		GetActorLocation() + GetActorForwardVector() * AttackRange,
+		FQuat::Identity,
+		ECollisionChannel::ECC_Visibility,
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params);
+
+#if ENABLE_DRAW_DEBUG
+	FVector TraceVec = GetActorForwardVector() * AttackRange;
+	FVector Center = GetActorLocation() + TraceVec * 0.5f;
+	float HalfHeight = AttackRange * 0.5f + AttackRadius;
+	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
+	float DebugLifeTime = 5.0f;
+
+	DrawDebugCapsule(GetWorld(),
+		Center,
+		HalfHeight,
+		AttackRadius,
+		CapsuleRot,
+		DrawColor,
+		false,
+		DebugLifeTime);
+
+#endif
+	if (bResult) {
+		if (::IsValid(HitResult_Hand_R.GetActor()))
+		{
+			UE_LOG(LogTemp,Warning, TEXT("Hit Actor Name : %s"), *HitResult_Hand_R.GetActor()->GetName());
+			AMisterNegative* MisterNegative = Cast<AMisterNegative>(HitResult_Hand_R.GetActor());
+			if(MisterNegative)
+			{
+				
+				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
+				NegativeFSM->Dameged(1);
+			}
+		}
+	}
+	
 }
 
 void ASpiderMan::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -804,8 +853,8 @@ void ASpiderMan::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 
 void ASpiderMan::AttackStartComboState() //공격 시작할때 속성 설정
 {
-	CanNextCombo = true;
 	IsComboInputOn = false;
+	CanNextCombo = true;
 	CurrentCombo = FMath::Clamp<int32>(CurrentCombo + 1, 1, MaxCombo);
 }
 

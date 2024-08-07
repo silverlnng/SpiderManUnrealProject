@@ -242,7 +242,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
 	bool bPressedCatchObj=false;
 
-	//////////// 콤보 공격
+//////////////////// 콤보 공격////////////////////////////////////////////////////////////////////
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Attack")
 	bool IsAttacking;
@@ -264,14 +264,22 @@ public:
 
 	UFUNCTION()
 	void ComboAttackCheck();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
+	float AttackRange =50.f ;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
+	float AttackRadius = 50.f;
 	
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	void AttackStartComboState();
 	void AttackEndComboState();
+
 	
-	//////////// 콤보 공격
-	
+//////////////// 회피 기능	//////////// 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setting")
+	UInputAction* IA_LCtrl;
 	
 };

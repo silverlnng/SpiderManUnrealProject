@@ -120,7 +120,7 @@ void USpiderManAnimInstance::JumpToAttackMontageSection(int32 NewSection)
 {
 	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), ComboAttackMontage);
 	
-	// 애니메이션 몽타주에서 세션 플레이 
+	// 애니메이션 몽타주의  해당 세션으로 바로 플레이하는 내부함수 
 }
 
 void USpiderManAnimInstance::AnimNotify_AttackHitCheck()
@@ -135,6 +135,7 @@ void USpiderManAnimInstance::AnimNotify_NextAttackCheck()
 
 FName USpiderManAnimInstance::GetAttackMontageSectionName(int32 Section)
 {
+	// 순서를 매개변수로 받아서 실행시킬 세션이름으로 반환
 	return FName(*FString::Printf(TEXT("Attack%d"), Section));
 }
 #pragma endregion ComboAttack
