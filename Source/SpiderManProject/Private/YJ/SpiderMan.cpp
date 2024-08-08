@@ -104,7 +104,7 @@ void ASpiderMan::PostInitializeComponents()
 
 	bIsDodging = false;
 	DodgeDistance = 600.f;  // Dodge 이동 거리
-	DodgeCooldown = 1.0f;   // Dodge 쿨다운 시간
+	DodgeCooldown = 0.7f;   // Dodge 쿨다운 시간
 	LastDodgeTime = -DodgeCooldown; // 초기화
 	
 }
@@ -133,6 +133,8 @@ void ASpiderMan::BeginPlay()
 
 	//FTimerHandle FindHookPoint_Auto;
 	//GetWorldTimerManager().SetTimer(FindHookPoint_Auto,this,&ASpiderMan::FindHookPoint_Auto,0.5f,true,-1);
+
+	BossEnemy =Cast<AMisterNegative>(UGameplayStatics::GetActorOfClass(GetWorld(),AMisterNegative::StaticClass()));
 	
 }
 
@@ -272,7 +274,7 @@ void ASpiderMan::Dodge(const FInputActionValue& Value)
 	bIsDodging = true;
 	LastDodgeTime = GetWorld()->GetTimeSeconds();
 
-	FVector DodgeDirection = FVector::ZeroVector;
+	/*FVector DodgeDirection = FVector::ZeroVector;
 	if (Controller != nullptr)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -281,7 +283,7 @@ void ASpiderMan::Dodge(const FInputActionValue& Value)
 		float ForwardValue = GetInputAxisValue("MoveForward");
 		float RightValue = GetInputAxisValue("MoveRight");
 
-		if (FMath::Abs(ForwardValue) > 0.1f || FMath::Abs(RightValue) > 0.1f)
+		if (FMath::Abs(MovementVector.X) > 0.1f || FMath::Abs(MovementVector.Y) > 0.1f)
 		{
 			DodgeDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X) * MovementVector.X +
 						   FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y) * MovementVector.Y;
@@ -294,9 +296,12 @@ void ASpiderMan::Dodge(const FInputActionValue& Value)
 	}
 
 	FVector DodgeVelocity = DodgeDirection * DodgeDistance;
-	LaunchCharacter(DodgeVelocity, true, true);
+	LaunchCharacter(DodgeVelocity, true, true);*/
 
 	// 일정 시간 후에 dodge 상태를 false로 설정
+
+	//PlayAnimMontage(SpiderManAnim->dodgeMontage);
+	
 	FTimerHandle UnusedHandle;
 	GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &ASpiderMan::StopDodge, 0.2f, false);
 }
@@ -315,118 +320,203 @@ void ASpiderMan::FindHookPoint_pushShift()
 	// 버튼을 누르면 내 시야로 ray를 발사하여 hit지점을 구하고 ,
 		// 내 시야가 꼭 카메라의  ViewPoint는 아님
 	// hit지점을 endlocation 으로 정하기
-	if (pc )
+
+	// State 에 따라 다르게 작동하도록 하기
+	if(FSMComp->LevelState == ELevelState::BOSSENEMY)
 	{
-		// Get camera location and rotation
-		FVector CameraLocation;
-		FRotator CameraRotation;
-		pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
-		// Calculate end location
-		FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxSwingTraceDistance);
+		//보스를 찾아서 보스 위치 z 값만 올려서 hook point 잡기
 
-		// Perform line trace
-		FHitResult HitResult;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this); // Ignore self in trace
 
-		//bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, EndLocation, ECC_Visibility, Params);
+		hooked = true;
 
-		
-		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1)); //Wall
-		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel2)); //Catchable
+		FVector BossPoint = BossEnemy->GetActorLocation();
+		float OffsetBoss = BossPoint.Z + 3000.f;
+		BossPoint = FVector(BossPoint.X,BossPoint.Y,OffsetBoss);
+		hookPoint = BossPoint;
 
-		bool bHitSphere = UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),GetActorLocation(),EndLocation,Radius,
-		ObjectTypes,
-		false,   // bTraceComplex
-		TArray<AActor*>(), // Actors to ignore
-		EDrawDebugTrace::ForDuration, // Draw debug
-		HitResult,
-		true);
-		
-		if (bHitSphere)
+		DrawDebugLine(GetWorld(), GetActorLocation(), hookPoint, FColor::Yellow, false, 1.0f, 0, 1.0f);
+
+		CableActor->CableComp->SetVisibility(true);
+
+		CableActor->CableComp->SetWorldLocation(hookPoint); //케이블의 시작점을 히트지점으로 설정
+
+		StartPointActor->SetActorLocation(hookPoint);
+
+		//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
+		FVector offset = GetActorLocation() + GetActorUpVector() * 50.f;
+
+		EndPointActor->SetActorLocation(offset);
+		EndPointActor->meshComp->SetWorldLocation(offset);
+		// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
+
+		//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
+		CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
+
+		//Physics Constraint도 위치시키고 연결 시켜주기 
+		PConstraintActor->SetActorLocation(hookPoint);
+
+
+		PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(
+			StartPointActor->meshComp, NAME_None, EndPointActor->meshComp, NAME_None);
+
+		//나자신 (캐릭터를) 끝점에 부착
+		this->AttachToComponent(EndPointActor->meshComp, FAttachmentTransformRules::KeepWorldTransform,
+		                        TEXT("hand_rSocket"));
+		this->SetActorRelativeLocation(FVector(0, 0, 0));
+
+		//UKismetSystemLibrary::MoveComponentTo(this,)
+
+		//PhysicsHandle->GrabComponentAtLocation(EndPointActor->meshComp,NAME_None,EndPointActor->GetActorLocation());
+		//피직스 핸들 아직 모르는점 많아서 보류
+
+		//PhysicsHandle->GrabComponent()
+
+		//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
+		//=> AttachToActor 이거 왜안됌..??
+
+
+		newforce = GetVelocity() * 100.f + GetActorLocation();
+
+		this->GetCapsuleComponent()->SetCapsuleHalfHeight(20);
+
+		FSMComp->SetState(EState::SWING);
+
+		FTimerHandle physicsTimer;
+		GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()-> void
 		{
-			// Draw a debug line
-			DrawDebugLine(GetWorld(), GetActorLocation(), EndLocation, FColor::Green, false, 1.0f, 0, 1.0f);
-			// Draw a debug point at the hit location
-			DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, FColor::Red, false, 1.0f);
+			EndPointActor->meshComp->SetSimulatePhysics(true);
+			LaunchCharacter(newforce, false, false);
+			//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
+			GetCharacterMovement()->AirControl = 1.f;
+			FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
+			EndPointActor->meshComp->AddForce(camForce * 100, NAME_None, true);
+		}), 0.01f, false);
 
-			// Log the hit location
-			UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
-			
-			hooked =true;
-			hookPoint = HitResult.ImpactPoint;
-			
-			FTransform CharaSocketTranform = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
-			
-			CableActor->CableComp->SetVisibility(true);
+		GetWorld()->GetTimerManager().SetTimer(addforceTimer, ([this]()-> void
+		{
+			EndPointActor->meshComp->AddForce(camForce * 10000.f, NAME_None, true);
+		}), 1.f, true, 1.f);
+		
+		
+	}
+	else // 보스 스테이트 에 따라
+	{
+		if (pc)
+		{
+			// Get camera location and rotation
+			FVector CameraLocation;
+			FRotator CameraRotation;
+			pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
-			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정
-			
-			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
+			// Calculate end location
+			FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxSwingTraceDistance);
 
-			//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
-			FVector offset = GetActorLocation() + GetActorUpVector()*50.f;
-			
-			EndPointActor->SetActorLocation(offset);
-			EndPointActor->meshComp->SetWorldLocation(offset);
-			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
-			
-			//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
-			CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
+			// Perform line trace
+			FHitResult HitResult;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(this); // Ignore self in trace
 
-			//Physics Constraint도 위치시키고 연결 시켜주기 
-			PConstraintActor->SetActorLocation(HitResult.ImpactPoint);
-			
-			
-			PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(StartPointActor->meshComp,NAME_None,EndPointActor->meshComp,NAME_None);
+			//bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, EndLocation, ECC_Visibility, Params);
 
-			//나자신 (캐릭터를) 끝점에 부착
-			this->AttachToComponent(EndPointActor->meshComp,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
-			this->SetActorRelativeLocation(FVector(0,0,0));
-			//UKismetSystemLibrary::MoveComponentTo(this,)
-			
-			//PhysicsHandle->GrabComponentAtLocation(EndPointActor->meshComp,NAME_None,EndPointActor->GetActorLocation());
-			//피직스 핸들 아직 모르는점 많아서 보류
-			
-			//PhysicsHandle->GrabComponent()
-			
-			//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
-			//=> AttachToActor 이거 왜안됌..??
 
-			
-			newforce = GetVelocity()*100.f + GetActorLocation();
+			TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+			ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1)); //Wall
+			ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel2)); //Catchable
 
-			this->GetCapsuleComponent()->SetCapsuleHalfHeight(20);
-			
-			FSMComp->SetState(EState::SWING);
-			
-			FTimerHandle physicsTimer; 
-			GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()->void
+			bool bHitSphere = UKismetSystemLibrary::SphereTraceSingleForObjects(
+				GetWorld(), GetActorLocation(), EndLocation, Radius,
+				ObjectTypes,
+				false, // bTraceComplex
+				TArray<AActor*>(), // Actors to ignore
+				EDrawDebugTrace::ForDuration, // Draw debug
+				HitResult,
+				true);
+
+			if (bHitSphere)
 			{
-				EndPointActor->meshComp->SetSimulatePhysics(true);
-				LaunchCharacter(newforce,false,false);
-				//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
-				GetCharacterMovement()->AirControl=1.f;
-				FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
-				EndPointActor->meshComp->AddForce(camForce*100,NAME_None,true);
-			}), 0.01f, false);
-			
-			GetWorld()->GetTimerManager().SetTimer(addforceTimer,([this]()->void
-			{
+				// Draw a debug line
+				DrawDebugLine(GetWorld(), GetActorLocation(), EndLocation, FColor::Green, false, 1.0f, 0, 1.0f);
+				// Draw a debug point at the hit location
+				DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, FColor::Red, false, 1.0f);
+
+				// Log the hit location
+				UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
+
+				hooked = true;
+				hookPoint = HitResult.ImpactPoint;
+
+				FTransform CharaSocketTranform = GetMesh()->GetSocketTransform(TEXT("hand_rSocket"), RTS_Actor);
+
+				CableActor->CableComp->SetVisibility(true);
+
+				CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정
+
+				StartPointActor->SetActorLocation(HitResult.ImpactPoint);
+
+				//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
+				FVector offset = GetActorLocation() + GetActorUpVector() * 50.f;
+
+				EndPointActor->SetActorLocation(offset);
+				EndPointActor->meshComp->SetWorldLocation(offset);
+				// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
+
+				//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
+				CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
+
+				//Physics Constraint도 위치시키고 연결 시켜주기 
+				PConstraintActor->SetActorLocation(HitResult.ImpactPoint);
+
+
+				PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(
+					StartPointActor->meshComp, NAME_None, EndPointActor->meshComp, NAME_None);
+
+				//나자신 (캐릭터를) 끝점에 부착
+				this->AttachToComponent(EndPointActor->meshComp, FAttachmentTransformRules::KeepWorldTransform,
+				                        TEXT("hand_rSocket"));
+				this->SetActorRelativeLocation(FVector(0, 0, 0));
+
+				//UKismetSystemLibrary::MoveComponentTo(this,)
+
+				//PhysicsHandle->GrabComponentAtLocation(EndPointActor->meshComp,NAME_None,EndPointActor->GetActorLocation());
+				//피직스 핸들 아직 모르는점 많아서 보류
+
+				//PhysicsHandle->GrabComponent()
+
+				//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
+				//=> AttachToActor 이거 왜안됌..??
+
+
+				newforce = GetVelocity() * 100.f + GetActorLocation();
+
+				this->GetCapsuleComponent()->SetCapsuleHalfHeight(20);
+
+				FSMComp->SetState(EState::SWING);
+
+				FTimerHandle physicsTimer;
+				GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()-> void
+				{
+					EndPointActor->meshComp->SetSimulatePhysics(true);
+					LaunchCharacter(newforce, false, false);
+					//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
+					GetCharacterMovement()->AirControl = 1.f;
+					FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
+					EndPointActor->meshComp->AddForce(camForce * 100, NAME_None, true);
+				}), 0.01f, false);
+
+				GetWorld()->GetTimerManager().SetTimer(addforceTimer, ([this]()-> void
+				{
 					EndPointActor->meshComp->AddForce(camForce * 10000.f, NAME_None, true);
-			}),1.f,true,1.f);
-
-			
-		}
-		else
-		{
-			// Draw a debug line
-			DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
-			
+				}), 1.f, true, 1.f);
+			}
+			else
+			{
+				// Draw a debug line
+				DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
+			}
 		}
 	}
+	
 	
 }
 

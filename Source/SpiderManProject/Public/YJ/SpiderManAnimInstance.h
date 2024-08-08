@@ -33,7 +33,17 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeBeginPlay() override;
+
+	// Vertical
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float Speed;
+
+	// Horizontal
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float Direction;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bIsDodging;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EAnimState AnimState = EAnimState::IDLEAnim;
@@ -75,6 +85,10 @@ public:
 	void AnimNotify_NextAttackCheck();
 	UFUNCTION()
 	FName GetAttackMontageSectionName(int32 Section);
-	
+
+/////////////// Dodge /////////////////////////////
+
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage* dodgeMontage;
 	
 };

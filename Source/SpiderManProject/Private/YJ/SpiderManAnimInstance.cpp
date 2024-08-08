@@ -23,7 +23,23 @@ void USpiderManAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 	DrawDebugString(GetWorld(),Me->GetActorLocation(),mystate, nullptr,FColor::Black,0,true);
 	}
-	
+
+	if ( nullptr == Me )
+	{
+		return;
+	}
+
+	FVector velocity = Me->GetVelocity();
+	FVector forwardVector = Me->GetActorForwardVector();
+	FVector rightVector = Me->GetActorRightVector();
+
+	// 앞 뒤 속도
+	Speed = FVector::DotProduct(forwardVector , velocity);
+
+	// 좌우 속도
+	Direction = FVector::DotProduct(rightVector , velocity);
+
+	bIsDodging=Me->bIsDodging;
 }
 
 void USpiderManAnimInstance::NativeBeginPlay()

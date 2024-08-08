@@ -296,4 +296,10 @@ public:
 	void Dodge(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void StopDodge();
+
+/////////////////////////////////////보스 /////////////////////////////
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
+	class AMisterNegative* BossEnemy;
+	
 };

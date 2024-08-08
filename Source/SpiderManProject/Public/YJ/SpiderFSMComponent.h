@@ -16,6 +16,15 @@ enum class EState : uint8
 	DAMAGE UMETA(DisplayName = "데미지") ,
 	DIE UMETA(DisplayName = "죽음")
 };
+
+UENUM(BlueprintType)
+enum class ELevelState : uint8
+{
+	GMOVE UMETA(DisplayName = "일반이동시") ,
+	GENEMY  UMETA(DisplayName = "일반에너미"),
+	BOSSENEMY  UMETA(DisplayName = "보스에너미")
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPIDERMANPROJECT_API USpiderFSMComponent : public UActorComponent
 {
@@ -35,6 +44,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EState State = EState::IDLE;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	ELevelState LevelState = ELevelState::BOSSENEMY;
+	
 	UFUNCTION()
 	void TickIdle(const float& DeltaTime);
 	UFUNCTION()
