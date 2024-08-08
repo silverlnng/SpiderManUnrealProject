@@ -65,7 +65,7 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	float dist = FVector::Dist(Me->GetActorLocation(),Me->DoubleTargetVector);
 
 	float length = (Me->GetActorLocation() - Me->DoubleTargetVector).Size();
-	Me->CableActor->CableComp->CableLength = length - 300;
+	Me->CableActor->CableComp->CableLength = length - 500;
 
 	//다 도착하면 idle으로 다시
 	if(dist<=30.f)

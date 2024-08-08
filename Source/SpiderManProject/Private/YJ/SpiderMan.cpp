@@ -344,7 +344,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 		StartPointActor->SetActorLocation(hookPoint);
 
 		//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
-		FVector offset = GetActorLocation() + GetActorUpVector() * 50.f;
+		FVector offset = GetActorLocation() + GetActorUpVector() * 100.f;
 
 		EndPointActor->SetActorLocation(offset);
 		EndPointActor->meshComp->SetWorldLocation(offset);
@@ -376,8 +376,9 @@ void ASpiderMan::FindHookPoint_pushShift()
 		//=> AttachToActor 이거 왜안됌..??
 
 
-		newforce = GetVelocity() * 100.f + GetActorLocation();
-
+		//newforce = GetVelocity() * 100.f + GetActorLocation();
+		newforce = hookPoint-GetActorLocation();
+		 
 		this->GetCapsuleComponent()->SetCapsuleHalfHeight(20);
 
 		FSMComp->SetState(EState::SWING);
@@ -396,7 +397,8 @@ void ASpiderMan::FindHookPoint_pushShift()
 		GetWorld()->GetTimerManager().SetTimer(addforceTimer, ([this]()-> void
 		{
 			EndPointActor->meshComp->AddForce(camForce * 10000.f, NAME_None, true);
-		}), 1.f, true, 1.f);
+			//EndPointActor->meshComp->AddForce(newforce*100.f, NAME_None, true);
+		}), 0.5f, true, 0.3f);
 		
 		
 	}
@@ -547,8 +549,8 @@ void ASpiderMan::DetectWall(FVector Direction)
 	FVector Start = GetActorLocation();
 	FVector End = Start + Direction * DetectTraceLength;
 
-	ECollisionChannel TraceChannel = ECC_GameTraceChannel1; //벽
-
+	ECollisionChannel TraceChannel = ECC_Visibility; //벽 
+	//TraceChannel.ad
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
@@ -558,18 +560,25 @@ void ASpiderMan::DetectWall(FVector Direction)
 	
 	if (bHit)
 	{
-		DrawDebugLine(GetWorld(), Start, OutHit.ImpactPoint, FColor::Red, false, 1);
-		DetctedWall=true;
-		hooked =false;
-		CableActor->CableComp->SetVisibility(false);
-		if(FSMComp)
+		//OutHit 결과물이 Wall , boss
+		if(OutHit.GetActor()->ActorHasTag(TEXT("Wall")) || OutHit.GetActor()->ActorHasTag(TEXT("Boss")) )
 		{
-			FSMComp->SetState(EState::IDLE);
-		}
-		//ImpactPoint 겉면의 지점
-		//벽을 감지한다면 힘을 그만받도록 만들기
-		    // 속도도 느리게
+			DrawDebugLine(GetWorld(), Start, OutHit.ImpactPoint, FColor::Red, false, 1);
+			DetctedWall=true;
+			hooked =false;
+			CableActor->CableComp->SetVisibility(false);
+			if(FSMComp)
+			{
+				FSMComp->SetState(EState::IDLE);
+			}
+			//ImpactPoint 겉면의 지점
+			//벽을 감지한다면 힘을 그만받도록 만들기
+			// 속도도 느리게
 			// 클라이밍 되도록 만들기
+		}
+		
+		
+		
 	}
 	else
 	{
@@ -835,65 +844,92 @@ void ASpiderMan::DoubleJump()
 		// 살짝위로 점프
 		// 
 		// 나의 앞방향으로 ray 발사 그지점으로 내가 앞으로 쭉 lerp 이동 
-	
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
-	// Calculate end location
-	FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxSwingTraceDistance);
-
-	// Perform line trace
-	FHitResult HitResult;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this); // Ignore self in trace
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, EndLocation, ECC_Visibility, Params);
-
-
-	if (bHit)
+	if(FSMComp->LevelState == ELevelState::BOSSENEMY) //보스에게 
 	{
-		// Draw a debug line
-		DrawDebugLine(GetWorld(), GetActorLocation(), EndLocation, FColor::Silver, false, 1.0f, 0, 1.0f);
-		// Draw a debug point at the hit location
-		DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, FColor::Red, false, 1.0f);
+		CableActor->CableComp->SetVisibility(true);
 
-		// Log the hit location
-		UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
+		DoubleTargetVector=BossEnemy->GetActorLocation();
 
-		//벽이라면
-		if(HitResult.GetActor()->ActorHasTag(TEXT("Wall")))
-		{
-			
-			CableActor->CableComp->SetVisibility(true);
+		CableActor->CableComp->SetWorldLocation(DoubleTargetVector); //케이블의 시작점을 히트지점으로 설정
 
-   			DoubleTargetVector=HitResult.ImpactPoint;
-
-			CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정
-
-			StartPointActor->SetActorLocation(HitResult.ImpactPoint);
+		StartPointActor->SetActorLocation(DoubleTargetVector);
 			
 		
-			//끝점(EndPointActor)의 component를 메쉬의 끝점
-			CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
+		//끝점(EndPointActor)의 component를 메쉬의 끝점
+		CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
 
-			//lerp이동 처리를 여기서 하기
-			if(FSMComp)
+		//lerp이동 처리를 여기서 하기
+		if(FSMComp)
+		{
+			FSMComp->SetState(EState::DoubleJump);
+		}
+
+	
+	}
+	else // 보스에네미 상태가 아닐때 
+	{
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+		// Calculate end location
+		FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxSwingTraceDistance);
+
+		// Perform line trace
+		FHitResult HitResult;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this); // Ignore self in trace
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, EndLocation, ECC_Visibility, Params);
+
+
+		if (bHit)
+		{
+			// Draw a debug line
+			DrawDebugLine(GetWorld(), GetActorLocation(), EndLocation, FColor::Silver, false, 1.0f, 0, 1.0f);
+			// Draw a debug point at the hit location
+			DrawDebugPoint(GetWorld(), HitResult.Location, 10.0f, FColor::Red, false, 1.0f);
+
+			// Log the hit location
+			UE_LOG(LogTemp, Log, TEXT("Hit location: %s"), *HitResult.Location.ToString());
+
+			//벽이라면
+			if(HitResult.GetActor()->ActorHasTag(TEXT("Wall")))
 			{
-				FSMComp->SetState(EState::DoubleJump);
-			}
+			
+				CableActor->CableComp->SetVisibility(true);
 
-			UE_LOG(LogTemp, Log, TEXT("Hit ImpactPoint: %s"), *HitResult.ImpactPoint.ToString());
+				DoubleTargetVector=HitResult.ImpactPoint;
+
+				CableActor->CableComp->SetWorldLocation(HitResult.ImpactPoint); //케이블의 시작점을 히트지점으로 설정
+
+				StartPointActor->SetActorLocation(HitResult.ImpactPoint);
+			
+		
+				//끝점(EndPointActor)의 component를 메쉬의 끝점
+				CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
+
+				//lerp이동 처리를 여기서 하기
+				if(FSMComp)
+				{
+					FSMComp->SetState(EState::DoubleJump);
+				}
+
+				UE_LOG(LogTemp, Log, TEXT("Hit ImpactPoint: %s"), *HitResult.ImpactPoint.ToString());
 			 
 			
-		}
+			}
 		
+		}
+		else
+		{
+			// Draw a debug line
+			DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
+		}
 	}
-	else
-	{
-		// Draw a debug line
-		DrawDebugLine(GetWorld(), CameraLocation, EndLocation, FColor::Red, false, 1.0f, 0, 1.0f);
-	}
+	
+	
 }
 
 #pragma endregion Jump,DoubleJump

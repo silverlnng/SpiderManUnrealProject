@@ -123,7 +123,7 @@ public:
 	void DetectWall(FVector Direction);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	float DetectTraceLength = 100;
+	float DetectTraceLength = 200;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	bool DetctedWall;
