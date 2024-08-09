@@ -45,6 +45,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bIsDodging;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bIshooking;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EAnimState AnimState = EAnimState::IDLEAnim;
 

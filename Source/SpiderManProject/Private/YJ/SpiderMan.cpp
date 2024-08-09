@@ -522,7 +522,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 	
 }
 
-void ASpiderMan::CompletedHook()
+void ASpiderMan::CompletedHook() 
 {
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EndPointActor->meshComp->SetSimulatePhysics(false);

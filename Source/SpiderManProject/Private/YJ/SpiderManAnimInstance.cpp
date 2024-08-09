@@ -39,7 +39,9 @@ void USpiderManAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// 좌우 속도
 	Direction = FVector::DotProduct(rightVector , velocity);
 
-	bIsDodging=Me->bIsDodging;
+	bIsDodging = Me->bIsDodging;
+
+	bIshooking = Me->hooked;
 }
 
 void USpiderManAnimInstance::NativeBeginPlay()
