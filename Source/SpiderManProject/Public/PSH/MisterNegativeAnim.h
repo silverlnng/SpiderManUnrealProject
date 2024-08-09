@@ -44,8 +44,9 @@ public:
 	void AnimNotify_MisterAnimStart();
 
 	UFUNCTION()
-	void AnimNotify_BossCameraShake();
-
+	void AnimNotify_MisterSwordPowerOut();
+	UFUNCTION()
+	void AnimNotify_MisterSwordPower();
 	UFUNCTION()
 	void AnimNotify_MisterNextAnim();
 };

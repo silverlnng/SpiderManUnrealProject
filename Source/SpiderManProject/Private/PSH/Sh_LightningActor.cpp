@@ -5,6 +5,8 @@
 #include "Components/BoxComponent.h"
 #include "YJ/SpiderMan.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Classes/NiagaraSystem.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 
 // Sets default values
 ASh_LightningActor::ASh_LightningActor()
@@ -20,7 +22,7 @@ ASh_LightningActor::ASh_LightningActor()
 	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	mesh->SetupAttachment(RootComponent);
 	mesh->SetRelativeLocation(FVector(-430, 0, 0));
-	mesh->SetRelativeRotation(FRotator(0, -90, 0));
+	mesh->SetRelativeRotation(FRotator(0, -90, -60));
 	mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh>tempMesh (TEXT("/Script/Engine.StaticMesh'/Game/NiagaraMagicalSlashes/Model/SM_Slash_03.SM_Slash_03'"));
@@ -31,6 +33,9 @@ ASh_LightningActor::ASh_LightningActor()
 	}
 
 	col->SetCollisionProfileName(TEXT("NegativeWeapon"));
+
+	Naiagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
+	Naiagara->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -38,7 +43,7 @@ void ASh_LightningActor::BeginPlay()
 {
 	Super::BeginPlay();
 	col->OnComponentBeginOverlap.AddDynamic(this, &ASh_LightningActor::OnComponentBeginOverlap);
-	SetLifeSpan(3);
+	SetLifeSpan(2);
 }
 
 // Called every frame

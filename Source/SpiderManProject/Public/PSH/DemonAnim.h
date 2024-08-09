@@ -26,7 +26,7 @@ public:
 	EMisterNegativeState AnimState;
 
 	UFUNCTION()
-	void AnimNotify_MisterAnimEnd();
+	void AnimNotify_BossDissolve();
 
 	UFUNCTION()
 	void AnimNotify_BossCameraShake();

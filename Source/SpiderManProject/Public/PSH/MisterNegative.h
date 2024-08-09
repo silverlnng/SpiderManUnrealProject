@@ -34,6 +34,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent * Demon;
+	
 
 	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent * Sword;
@@ -55,10 +56,22 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent * SwordCol;
 
+	UPROPERTY(EditDefaultsOnly)
+	class UNiagaraComponent * Naiagara;
+
+	void SwordNiagaraVisible(bool chek);
+
 	void SetMeshVisible(bool chek);
 
 	void CameraShake();
 
+	void DissolveAnim();
+
+	void SetDissolveInit();
+	
+	float dissolveAnimValue;
+
+	bool bisDissolve;
 	bool bisDemonAttack;
 private:
 	

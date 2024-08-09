@@ -42,14 +42,17 @@ void UMisterNegativeAnim::AnimNotify_MisterAnimEnd()
 
 void UMisterNegativeAnim::AnimNotify_MisterAnimStart()
 {
-	misterNegative->MisterFSM->StaertState(AnimState);
+	misterNegative->MisterFSM->StartState(AnimState);
 }
 
-void UMisterNegativeAnim::AnimNotify_BossCameraShake()
+void UMisterNegativeAnim::AnimNotify_MisterSwordPowerOut()
 {
-	misterNegative->CameraShake();
-	UE_LOG(LogTemp, Warning, TEXT("CameraShake"));
+	misterNegative->SwordNiagaraVisible(false);
+}
 
+void UMisterNegativeAnim::AnimNotify_MisterSwordPower()
+{
+	misterNegative->SwordNiagaraVisible(true);
 }
 
 void UMisterNegativeAnim::AnimNotify_MisterNextAnim()

@@ -18,8 +18,9 @@ ASh_SpinActor::ASh_SpinActor()
 
 	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	mesh->SetupAttachment(RootComponent);
-	mesh->SetRelativeLocation(FVector(-350.0,0,0));
-	mesh->SetRelativeScale3D(FVector(1.5f, 1.5f, 1));
+	mesh->SetRelativeLocation(FVector(550.0,0,0));
+	mesh->SetRelativeRotation(FRotator(0,-90,0));
+	mesh->SetRelativeScale3D(FVector(1.5f, 18.75f, 3));
 	mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	col->SetCollisionProfileName(TEXT("NegativeWeapon"));
 

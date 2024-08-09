@@ -146,6 +146,6 @@ public:
 
 	void Dameged(float damge);
 	void EndState(EMisterNegativeState endState);
-	void StaertState(EMisterNegativeState staertState);
+	void StartState(EMisterNegativeState staertState);
 	void beforebeforeState(EMisterNegativeState currentState);
 };

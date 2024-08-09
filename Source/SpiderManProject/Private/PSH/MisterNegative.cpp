@@ -5,12 +5,13 @@
 #include "PSH/MisterNegativeFSM.h"
 #include "Components/CapsuleComponent.h"
 #include "YJ/SpiderMan.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 
 // Sets default values
 AMisterNegative::AMisterNegative()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh>tempMesh (TEXT("/Script/Engine.SkeletalMesh'/Game/SH/Asset/Mister_Negative/Negative.Negative'")); 
 
@@ -23,7 +24,7 @@ AMisterNegative::AMisterNegative()
 
 	MisterFSM = CreateDefaultSubobject<UMisterNegativeFSM>(TEXT("MisterFSM"));
 
-	ConstructorHelpers::FClassFinder<UAnimInstance> animClass (TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Negative.ABP_Negative'"));
+	ConstructorHelpers::FClassFinder<UAnimInstance> animClass (TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Negative.ABP_Negative_C'"));
 
 	if (animClass.Succeeded())
 	{
@@ -73,14 +74,17 @@ AMisterNegative::AMisterNegative()
 	demonCol->SetCollisionProfileName("NegativeWeapon");
 	demonCol->SetCapsuleRadius(0.45);
 	demonCol->SetCapsuleHalfHeight(3);
-	
+
+	Naiagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
+	Naiagara->SetupAttachment(Sword);
+	Naiagara->SetRelativeLocationAndRotation(FVector(0,0,30),FRotator(-90,0,0));
 }
 
 // Called when the game starts or when spawned
 void AMisterNegative::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	Naiagara->SetVisibility(false);
 	Demon->SetVisibility(false);
 	demonCol->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::DemonComponentBeginOverlap);
 
@@ -92,6 +96,13 @@ void AMisterNegative::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bisDissolve)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("dissolve"));
+		dissolveAnimValue += DeltaTime / 4;
+		Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), dissolveAnimValue);
+	}
+	
 }
 
 // Called to bind functionality to input
@@ -124,15 +135,33 @@ void AMisterNegative::SpawnCharging()
 	GetWorld()->SpawnActor<AActor>(Charging, GetActorLocation(), GetActorRotation(), parm);
 }
 
+void AMisterNegative::SwordNiagaraVisible(bool chek)
+{
+	Naiagara->SetVisibility(chek);
+}
+
 void AMisterNegative::SetMeshVisible(bool chek)
 {
 	Sword->SetVisibility(!chek);
 	Demon->SetVisibility(chek);
+	bisDissolve = false;
+	SetDissolveInit();
 }
 
 void AMisterNegative::CameraShake()
 {
 	GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(Cs_DemonAttack, 0.5f);
+}
+
+void AMisterNegative::DissolveAnim()
+{
+	bisDissolve = true;
+}
+
+void AMisterNegative::SetDissolveInit()
+{
+	dissolveAnimValue = 0;
+	Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), 0);
 }
 
 void AMisterNegative::SwordComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
