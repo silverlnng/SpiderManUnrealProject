@@ -5,6 +5,7 @@
 #include "PSH/MisterNegativeFSM.h"
 #include "Components/CapsuleComponent.h"
 #include "YJ/SpiderMan.h"
+#include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 
 // Sets default values
 AMisterNegative::AMisterNegative()
@@ -23,7 +24,7 @@ AMisterNegative::AMisterNegative()
 
 	MisterFSM = CreateDefaultSubobject<UMisterNegativeFSM>(TEXT("MisterFSM"));
 
-	ConstructorHelpers::FClassFinder<UAnimInstance> animClass (TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Negative.ABP_Negative'"));
+	ConstructorHelpers::FClassFinder<UAnimInstance> animClass (TEXT("/Script/Engine.AnimBlueprint'/Game/SH/BluePrints/ABP_Negative.ABP_Negative_C'"));
 
 	if (animClass.Succeeded())
 	{
@@ -73,14 +74,17 @@ AMisterNegative::AMisterNegative()
 	demonCol->SetCollisionProfileName("NegativeWeapon");
 	demonCol->SetCapsuleRadius(0.45);
 	demonCol->SetCapsuleHalfHeight(3);
-	
+
+	Naiagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
+	Naiagara->SetupAttachment(Sword);
+	Naiagara->SetRelativeLocationAndRotation(FVector(0,0,30),FRotator(-90,0,0));
 }
 
 // Called when the game starts or when spawned
 void AMisterNegative::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	Naiagara->SetVisibility(false);
 	Demon->SetVisibility(false);
 	demonCol->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::DemonComponentBeginOverlap);
 
@@ -129,6 +133,11 @@ void AMisterNegative::SpawnCharging()
 	FActorSpawnParameters parm;
 	parm.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	GetWorld()->SpawnActor<AActor>(Charging, GetActorLocation(), GetActorRotation(), parm);
+}
+
+void AMisterNegative::SwordNiagaraVisible(bool chek)
+{
+	Naiagara->SetVisibility(chek);
 }
 
 void AMisterNegative::SetMeshVisible(bool chek)

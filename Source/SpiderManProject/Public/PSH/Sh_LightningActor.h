@@ -26,9 +26,12 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	class UBoxComponent * col;
 	UPROPERTY(EditAnywhere)
-	float speed = 1000;
+	float speed = 1500;
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent * mesh;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UNiagaraComponent * Naiagara;
 
 		UFUNCTION()
 	void OnComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);

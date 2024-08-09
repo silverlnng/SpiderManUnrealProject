@@ -45,6 +45,16 @@ void UMisterNegativeAnim::AnimNotify_MisterAnimStart()
 	misterNegative->MisterFSM->StartState(AnimState);
 }
 
+void UMisterNegativeAnim::AnimNotify_MisterSwordPowerOut()
+{
+	misterNegative->SwordNiagaraVisible(false);
+}
+
+void UMisterNegativeAnim::AnimNotify_MisterSwordPower()
+{
+	misterNegative->SwordNiagaraVisible(true);
+}
+
 void UMisterNegativeAnim::AnimNotify_MisterNextAnim()
 {
 	misterNegative->bisDemonAttack = false;

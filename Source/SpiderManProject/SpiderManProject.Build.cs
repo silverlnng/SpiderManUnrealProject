@@ -8,7 +8,7 @@ public class SpiderManProject : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "CableComponent"});
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "CableComponent","UMG", "Niagara" });
 		
 		PrivateDependencyModuleNames.AddRange(new string[] {"CableComponent"});
 		PrivateIncludePathModuleNames.AddRange(new string[] { "CableComponent" });

@@ -22,10 +22,18 @@ ASh_ChargingActor::ASh_ChargingActor()
 
 	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	mesh->SetupAttachment(RootComponent);
-	mesh->SetRelativeLocation(FVector(-460.0, 0, 0));
+	mesh->SetRelativeLocation(FVector(30, 0, -25));
 	mesh->SetRelativeRotation(FRotator(0,-90,0));
-	mesh->SetRelativeScale3D(FVector(2,2,1));
+	mesh->SetRelativeScale3D(FVector(5.5f,7,4.5f));
 	mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Dust = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Dust"));
+	Dust->SetupAttachment(RootComponent);
+	Dust->SetRelativeLocation(FVector(-100.0, 0, 40));
+	Dust->SetRelativeRotation(FRotator(0, -90, 40));
+	Dust->SetRelativeScale3D(FVector(18.5, 5, 1));
+	Dust->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	ConstructorHelpers::FObjectFinder<UStaticMesh>tempMesh(TEXT("/Script/Engine.StaticMesh'/Game/NiagaraMagicalSlashes/Model/SM_Slash_02.SM_Slash_02'"));
 	col->SetCollisionProfileName(TEXT("NegativeWeapon"));
 	if (tempMesh.Succeeded())
@@ -39,7 +47,7 @@ void ASh_ChargingActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SetLifeSpan(3);
+	SetLifeSpan(1.5f);
 	col->OnComponentBeginOverlap.AddDynamic(this,&ASh_ChargingActor::OnComponentBeginOverlap);
 }
 

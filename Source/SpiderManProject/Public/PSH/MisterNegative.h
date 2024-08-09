@@ -56,6 +56,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent * SwordCol;
 
+	UPROPERTY(EditDefaultsOnly)
+	class UNiagaraComponent * Naiagara;
+
+	void SwordNiagaraVisible(bool chek);
+
 	void SetMeshVisible(bool chek);
 
 	void CameraShake();
