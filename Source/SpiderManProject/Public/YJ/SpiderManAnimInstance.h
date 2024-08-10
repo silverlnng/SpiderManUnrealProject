@@ -16,6 +16,7 @@ enum class EAnimState : uint8
 {
 	IDLEAnim UMETA(DisplayName = "대기애니") ,
 	ATTACKAnim  UMETA(DisplayName = "공격애니") ,
+	SWINGATTACKAnim  UMETA(DisplayName = "스윙공격애니") ,
 	DAMAGEAnim UMETA(DisplayName = "데미지애니") ,
 	SwingAnim UMETA(DisplayName = "스윙애니") ,
 	DIEAnim UMETA(DisplayName = "죽음애니")

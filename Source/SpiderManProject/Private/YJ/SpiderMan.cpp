@@ -76,7 +76,7 @@ ASpiderMan::ASpiderMan()
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 
 	IsAttacking = false;
-	MaxCombo = 3;
+	MaxCombo = 5;
 	AttackStartComboState();
 	AttackEndComboState();
 	
@@ -104,7 +104,7 @@ void ASpiderMan::PostInitializeComponents()
 
 	bIsDodging = false;
 	DodgeDistance = 600.f;  // Dodge 이동 거리
-	DodgeCooldown = 0.7f;   // Dodge 쿨다운 시간
+	DodgeCooldown = 0.5f;   // Dodge 쿨다운 시간
 	LastDodgeTime = -DodgeCooldown; // 초기화
 	
 }
@@ -303,7 +303,7 @@ void ASpiderMan::Dodge(const FInputActionValue& Value)
 	//PlayAnimMontage(SpiderManAnim->dodgeMontage);
 	
 	FTimerHandle UnusedHandle;
-	GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &ASpiderMan::StopDodge, 0.2f, false);
+	GetWorld()->GetTimerManager().SetTimer(UnusedHandle, this, &ASpiderMan::StopDodge, 0.1f, false);
 }
 
 void ASpiderMan::StopDodge()
@@ -351,8 +351,10 @@ void ASpiderMan::FindHookPoint_pushShift()
 		// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
 
 		//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
-		CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
+		//CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
 
+		CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"), TEXT("hand_rSocket"));
+		
 		//Physics Constraint도 위치시키고 연결 시켜주기 
 		PConstraintActor->SetActorLocation(hookPoint);
 
@@ -365,15 +367,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 		                        TEXT("hand_rSocket"));
 		this->SetActorRelativeLocation(FVector(0, 0, 0));
 
-		//UKismetSystemLibrary::MoveComponentTo(this,)
-
-		//PhysicsHandle->GrabComponentAtLocation(EndPointActor->meshComp,NAME_None,EndPointActor->GetActorLocation());
-		//피직스 핸들 아직 모르는점 많아서 보류
-
-		//PhysicsHandle->GrabComponent()
-
-		//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
-		//=> AttachToActor 이거 왜안됌..??
+		// 매달리는 애니메이션 실행 
 
 
 		//newforce = GetVelocity() * 100.f + GetActorLocation();
@@ -387,11 +381,15 @@ void ASpiderMan::FindHookPoint_pushShift()
 		GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()-> void
 		{
 			EndPointActor->meshComp->SetSimulatePhysics(true);
-			LaunchCharacter(newforce, false, false);
-			//왜 EndPointActor 에 addforce하면 문제 생기는것 ??
+			
+			EndPointActor->meshComp->AddForce(newforce);			
+	
 			GetCharacterMovement()->AirControl = 1.f;
+			
 			FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
+			
 			EndPointActor->meshComp->AddForce(camForce * 100, NAME_None, true);
+			
 		}), 0.01f, false);
 
 		GetWorld()->GetTimerManager().SetTimer(addforceTimer, ([this]()-> void
@@ -402,7 +400,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 		
 		
 	}
-	else // 보스 스테이트 에 따라
+	else //  스테이트 에 따라 다르게 hook point 잡기 
 	{
 		if (pc)
 		{
@@ -463,8 +461,15 @@ void ASpiderMan::FindHookPoint_pushShift()
 				EndPointActor->meshComp->SetWorldLocation(offset);
 				// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
 
+				FVector handSocket_Loc  = GetMesh()->GetSocketLocation(TEXT("hand_rSocket"));
+
+				EndPointActor->SetActorLocation(handSocket_Loc);
+				EndPointActor->meshComp->SetWorldLocation(handSocket_Loc);
+				
 				//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
-				CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
+				//CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
+
+				CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"), TEXT("hand_rSocket"));
 
 				//Physics Constraint도 위치시키고 연결 시켜주기 
 				PConstraintActor->SetActorLocation(HitResult.ImpactPoint);
@@ -474,19 +479,17 @@ void ASpiderMan::FindHookPoint_pushShift()
 					StartPointActor->meshComp, NAME_None, EndPointActor->meshComp, NAME_None);
 
 				//나자신 (캐릭터를) 끝점에 부착
+					// 나의 handSocket 을 endpoint에 부착 
 				this->AttachToComponent(EndPointActor->meshComp, FAttachmentTransformRules::KeepWorldTransform,
 				                        TEXT("hand_rSocket"));
+
+				
+				
+				
+				
 				this->SetActorRelativeLocation(FVector(0, 0, 0));
 
-				//UKismetSystemLibrary::MoveComponentTo(this,)
-
-				//PhysicsHandle->GrabComponentAtLocation(EndPointActor->meshComp,NAME_None,EndPointActor->GetActorLocation());
-				//피직스 핸들 아직 모르는점 많아서 보류
-
-				//PhysicsHandle->GrabComponent()
-
-				//this->AttachToActor(EndPointActor,FAttachmentTransformRules::KeepWorldTransform,TEXT("hand_rSocket"));
-				//=> AttachToActor 이거 왜안됌..??
+				// 매달리는 애니메이션 실행 
 
 
 				newforce = GetVelocity() * 100.f + GetActorLocation();
@@ -524,11 +527,12 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 void ASpiderMan::CompletedHook() 
 {
+	hooked = false;
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	EndPointActor->meshComp->SetSimulatePhysics(false);
 	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
 	this->GetCapsuleComponent()->SetCapsuleHalfHeight(90);
-	//FSMComp->SetState(EState::IDLE);
+	FSMComp->SetState(EState::IDLE);
 	GetWorldTimerManager().ClearTimer(addforceTimer);
 	
 }
@@ -549,8 +553,7 @@ void ASpiderMan::DetectWall(FVector Direction)
 	FVector Start = GetActorLocation();
 	FVector End = Start + Direction * DetectTraceLength;
 
-	ECollisionChannel TraceChannel = ECC_Visibility; //벽 
-	//TraceChannel.ad
+	ECollisionChannel TraceChannel = ECC_Visibility; 
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
@@ -945,6 +948,8 @@ void ASpiderMan::Attack()
 	{
 		SpiderManAnim->SetAnimState(EAnimState::ATTACKAnim);
 	}
+
+	
 	//fsm 에서  attack 중 tick으로 작동해야할것 처리하기
 }
 
@@ -959,6 +964,9 @@ void ASpiderMan::Damaged(float value)
 
 void ASpiderMan::ComboAttack()
 {
+	// 스윙공격 중 들어온 입력이라면
+		// 스윙공격을 
+	
 	if (IsAttacking)	// 공격이 진행중에 들어온 입력이라면  
 	{
 		if (CanNextCombo)
