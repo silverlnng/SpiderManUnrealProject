@@ -76,7 +76,7 @@ ASpiderMan::ASpiderMan()
 	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
 
 	IsAttacking = false;
-	MaxCombo = 5;
+	MaxCombo = 4;
 	AttackStartComboState();
 	AttackEndComboState();
 	
