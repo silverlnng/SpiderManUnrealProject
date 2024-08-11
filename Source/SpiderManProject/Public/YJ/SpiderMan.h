@@ -188,7 +188,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DoubleJump();
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USpiderFSMComponent* FSMComp;
 
 	FVector DoubleTargetVector;

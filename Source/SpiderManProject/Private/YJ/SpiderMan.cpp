@@ -382,7 +382,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 		{
 			EndPointActor->meshComp->SetSimulatePhysics(true);
 			
-			EndPointActor->meshComp->AddForce(newforce);			
+			EndPointActor->meshComp->AddForce(newforce*1000.f);			
 	
 			GetCharacterMovement()->AirControl = 1.f;
 			
@@ -533,6 +533,7 @@ void ASpiderMan::CompletedHook()
 	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
 	this->GetCapsuleComponent()->SetCapsuleHalfHeight(90);
 	FSMComp->SetState(EState::IDLE);
+	FSMComp->IdleState();
 	GetWorldTimerManager().ClearTimer(addforceTimer);
 	
 }
@@ -956,6 +957,12 @@ void ASpiderMan::Attack()
 void ASpiderMan::Damaged(float value)
 {
 	CurHP-=value;
+	
+	//Damage 애니 실행
+	
+	// 콤보공격 멈추고 초기화
+	
+	AttackEndComboState();
 	UE_LOG(LogTemp,Warning, TEXT("Spider Damaged, curHP : %f"), CurHP);
 }
 

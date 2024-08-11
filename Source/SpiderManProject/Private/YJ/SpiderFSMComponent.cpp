@@ -53,7 +53,7 @@ void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void USpiderFSMComponent::TickIdle(const float& DeltaTime)
 {
-	Me->GetCharacterMovement()->GravityScale=1.75f;
+	
 }
 
 void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
@@ -67,12 +67,20 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	float length = (Me->GetActorLocation() - Me->DoubleTargetVector).Size();
 	Me->CableActor->CableComp->CableLength = length - 500;
 
-	//다 도착하면 idle으로 다시
-	if(dist<=30.f)
+	//다 도착하면 idle으로 다시 => 그냥 시간이 지나면 idle상태로 돌아가도록
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle,([this]()->void
 	{
-		Me->GetCharacterMovement()->GravityScale=1.75f;
 		State=EState::IDLE;
-	}
+		IdleState();
+	}),1.5f,false);
+	
+	/*if(dist<=30.f)
+	{
+		State=EState::IDLE;
+		IdleState();
+	}*/
 	
 }
 
@@ -102,6 +110,13 @@ void USpiderFSMComponent::SetState(EState NextState)
 	FString mystate = UEnum::GetValueAsString(NextState);
 	UE_LOG(LogTemp, Warning, TEXT("SetState : %s"), *mystate);
 	State=NextState;
+}
+
+void USpiderFSMComponent::IdleState()
+{
+	//IdleState 가 될때 한번만 실행할 것들.
+	Me->GetCharacterMovement()->GravityScale=1.75f;
+	Me->CableActor->CableComp->SetVisibility(false);
 }
 
 

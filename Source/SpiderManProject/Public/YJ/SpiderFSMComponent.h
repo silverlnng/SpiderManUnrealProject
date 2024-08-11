@@ -63,6 +63,9 @@ public:
 	UFUNCTION()
 	void SetState(EState NextState);
 	
+	UFUNCTION()
+	void IdleState();
+	
 	UPROPERTY()
 	class ASpiderMan* Me;
 	
