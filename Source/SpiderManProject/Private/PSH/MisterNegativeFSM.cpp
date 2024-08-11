@@ -319,7 +319,7 @@ void UMisterNegativeFSM::GroggyState() // 스턴
 void UMisterNegativeFSM::Groggy_loopState()
 {
 	curTime += GetWorld()->DeltaTimeSeconds;
-	if (curTime >= 5)
+	if (curTime >= 8)
 	{
 		StartLoc = me->GetActorLocation();
 		TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정

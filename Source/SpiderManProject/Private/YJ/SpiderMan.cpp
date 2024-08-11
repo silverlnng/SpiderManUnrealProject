@@ -347,6 +347,8 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 		StartPointActor->SetActorLocation(hookPoint);
 
+		LaunchCharacter(GetActorUpVector()*1000.f,false,false);
+		
 		//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
 		FVector offset = GetActorLocation() + GetActorUpVector() * 100.f;
 
@@ -362,6 +364,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 		//Physics Constraint도 위치시키고 연결 시켜주기 
 		PConstraintActor->SetActorLocation(hookPoint);
 
+		//PConstraintActor 자체를 위로 조금만 올리기
 
 		PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(
 			StartPointActor->meshComp, NAME_None, EndPointActor->meshComp, NAME_None);
@@ -377,10 +380,11 @@ void ASpiderMan::FindHookPoint_pushShift()
 		//newforce = GetVelocity() * 100.f + GetActorLocation();
 		newforce = hookPoint-GetActorLocation();
 		 
-		this->GetCapsuleComponent()->SetCapsuleHalfHeight(20);
-
+		this->GetCapsuleComponent()->SetCapsuleRadius(1);
+		this->GetCapsuleComponent()->SetCapsuleHalfHeight(1);
 		FSMComp->SetState(EState::SWING);
 
+		
 		FTimerHandle physicsTimer;
 		GetWorld()->GetTimerManager().SetTimer(physicsTimer, ([this]()-> void
 		{
@@ -536,6 +540,7 @@ void ASpiderMan::CompletedHook()
 	EndPointActor->meshComp->SetSimulatePhysics(false);
 	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
 	this->GetCapsuleComponent()->SetCapsuleHalfHeight(90);
+	this->GetCapsuleComponent()->SetCapsuleRadius(35);
 	FSMComp->SetState(EState::IDLE);
 	FSMComp->IdleState();
 	GetWorldTimerManager().ClearTimer(addforceTimer);
@@ -1092,16 +1097,16 @@ void ASpiderMan::AirAttackTriggerCheck()
 	bool bResult = GetWorld()->SweepSingleByChannel(
 		HitResult_Hand_R,
 		GetActorLocation(),
-		GetActorLocation() + GetActorUpVector() * (AttackRange+50.f) +GetActorForwardVector() * (AttackRange+50.f),
+		GetActorLocation() + GetActorForwardVector() * (AttackRange),
 		FQuat::Identity,
 		ECollisionChannel::ECC_Visibility,
-		FCollisionShape::MakeSphere(AttackRadius+20.f),
+		FCollisionShape::MakeSphere(AttackRadius+100.f),
 		Params);
 
 #if ENABLE_DRAW_DEBUG
-	FVector TraceVec = GetActorLocation() + GetActorUpVector() * (AttackRange+50.f) +GetActorForwardVector() * (AttackRange+50.f);
+	FVector TraceVec = GetActorLocation() + GetActorForwardVector() * (AttackRange);
 	FVector Center = GetActorLocation() + TraceVec * 0.5f;
-	float HalfHeight = (AttackRange+50.f) * 0.5f + AttackRadius+50.f;
+	float HalfHeight = (AttackRange) * 0.5f + AttackRadius+100.f;
 	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
 	FColor DrawColor = bResult ? FColor::Purple : FColor::Black;
 	float DebugLifeTime = 1.0f;
