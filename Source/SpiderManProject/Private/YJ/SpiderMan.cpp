@@ -102,7 +102,8 @@ void ASpiderMan::PostInitializeComponents()
 	
 	SpiderManAnim->OnAttackHitCheck.AddUObject(this, &ASpiderMan::ComboAttackCheck);
 	SpiderManAnim->OnAirAttackTriggerCheck.AddUObject(this, &ASpiderMan::AirAttackTriggerCheck);
-
+	SpiderManAnim->OnAirAttackEnded.AddUObject(this, &ASpiderMan::AirComboAttackEnded);
+	
 	bIsDodging = false;
 	DodgeDistance = 600.f;  // Dodge 이동 거리
 	DodgeCooldown = 0.5f;   // Dodge 쿨다운 시간
@@ -264,6 +265,8 @@ void ASpiderMan::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
+
+
 
 void ASpiderMan::Dodge(const FInputActionValue& Value)
 {
@@ -974,21 +977,56 @@ void ASpiderMan::ComboAttack()
 {
 	// 스윙공격 중 들어온 입력이라면
 		// 스윙공격을 
-	
-	if (IsAttacking)	// 공격이 진행중에 들어온 입력이라면  
+	// air 콤보를 해야한다면 air 콤보 공격을 진행하도록
+	if (bCanAirAttackStart==false)
 	{
-		if (CanNextCombo)
+		if (IsAttacking) // 공격이 진행중에 들어온 입력이라면  
 		{
-			IsComboInputOn = true;
+			if (CanNextCombo)
+			{
+				IsComboInputOn = true;
+			}
+		}
+		else
+		{
+			AttackStartComboState();
+			SpiderManAnim->PlayAttackMontage();
+			SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
+			IsAttacking = true;
 		}
 	}
-	else { 
-		AttackStartComboState();
-		SpiderManAnim->PlayAttackMontage();
-		SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
-		IsAttacking = true;
+	else // 에어콤보 가능
+	{
+		if (IsAttacking) // 공격이 진행중에 들어온 입력이라면  
+		{
+			if (CanNextCombo)
+			{
+				IsComboInputOn = true;
+			}
+		}
+		else
+		{
+			AttackStartComboState();
+			SpiderManAnim->PlayAirAttackMontage();
+			SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
+			IsAttacking = true;
+		}
 	}
 }
+
+void ASpiderMan::AirComboAttack()
+{
+	LaunchCharacter(GetActorUpVector()*1000.f,false,false);
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	//GetCharacterMovement()->GravityScale =0.f;
+}
+
+void ASpiderMan::AirComboAttackEnded()
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	//GetCharacterMovement()->GravityScale =1.75f;
+}
+
 
 void ASpiderMan::ComboAttackCheck()
 {
@@ -1054,16 +1092,16 @@ void ASpiderMan::AirAttackTriggerCheck()
 	bool bResult = GetWorld()->SweepSingleByChannel(
 		HitResult_Hand_R,
 		GetActorLocation(),
-		GetActorLocation() + GetActorUpVector() * AttackRange,
+		GetActorLocation() + GetActorUpVector() * (AttackRange+50.f) +GetActorForwardVector() * (AttackRange+50.f),
 		FQuat::Identity,
 		ECollisionChannel::ECC_Visibility,
-		FCollisionShape::MakeSphere(AttackRadius),
+		FCollisionShape::MakeSphere(AttackRadius+20.f),
 		Params);
 
 #if ENABLE_DRAW_DEBUG
-	FVector TraceVec = GetActorUpVector() * AttackRange;
+	FVector TraceVec = GetActorLocation() + GetActorUpVector() * (AttackRange+50.f) +GetActorForwardVector() * (AttackRange+50.f);
 	FVector Center = GetActorLocation() + TraceVec * 0.5f;
-	float HalfHeight = AttackRange * 0.5f + AttackRadius;
+	float HalfHeight = (AttackRange+50.f) * 0.5f + AttackRadius+50.f;
 	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
 	FColor DrawColor = bResult ? FColor::Purple : FColor::Black;
 	float DebugLifeTime = 1.0f;
@@ -1088,10 +1126,14 @@ void ASpiderMan::AirAttackTriggerCheck()
 				
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
 				NegativeFSM->Dameged(1);
-
+				NegativeFSM->GroggyState();
+				NegativeFSM->Groggy_loopState();
 				// 적을 공중에 띄우고 -> 중력 0으로 해야 안떨어질듯 ??
 				MisterNegative->LaunchCharacter(GetActorUpVector()*1000.f,false,false);
-				// 에어콤보를 시작하기 
+				// 에어콤보를 시작하기
+				bCanAirAttackStart=true;
+				LaunchCharacter(GetActorUpVector()*1000.f,false,false);
+				GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 				
 			}
 		}
@@ -1102,6 +1144,14 @@ void ASpiderMan::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	IsAttacking = false;
 	AttackEndComboState();
+	if(GetCharacterMovement()->MovementMode == MOVE_Flying)
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+	if(bCanAirAttackStart)
+	{
+		bCanAirAttackStart=false;
+	}
 }
 
 void ASpiderMan::AttackStartComboState() //공격 시작할때 속성 설정

@@ -281,6 +281,34 @@ public:
 
 	void AttackStartComboState();
 	void AttackEndComboState();
+	
+///////////////////////// 에어 콤보 ////////////////////////////////////
+///
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComboAirAttack")
+	bool bCanAirAttackStart;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComboAirAttack")
+	bool IsAirAttacking;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComboAirAttack")
+	bool bCanAirNextCombo;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComboAirAttack")
+	bool IsAirComboInputOn;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComboAirAttack")
+	int32 CurrentAirCombo;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComboAirAttack")
+	int32 MaxAirCombo;
+	
+	UFUNCTION()
+	void AirComboAttack();
+
+	UFUNCTION()
+	void AirComboAttackEnded();
+	
+
 
 	
 //////////////// 회피 기능	//////////// 

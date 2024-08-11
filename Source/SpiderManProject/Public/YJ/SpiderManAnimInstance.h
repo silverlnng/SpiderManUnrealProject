@@ -25,7 +25,7 @@ enum class EAnimState : uint8
 DECLARE_MULTICAST_DELEGATE(FOnNextAttackCheckDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnAttackHitCheckDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnAirAttackTriggerCheckDelegate);
-
+DECLARE_MULTICAST_DELEGATE(FOnAirAttackEndedDelegate);
 UCLASS()
 class SPIDERMANPROJECT_API USpiderManAnimInstance : public UAnimInstance
 {
@@ -75,12 +75,19 @@ public:
 	FOnNextAttackCheckDelegate OnNextAttackCheck;
 	FOnAttackHitCheckDelegate OnAttackHitCheck;
 	FOnAirAttackTriggerCheckDelegate OnAirAttackTriggerCheck;
+	FOnAirAttackEndedDelegate OnAirAttackEnded;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComboAttack");
 	class UAnimMontage* ComboAttackMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ComboAttack");
+	class UAnimMontage* AirComboAttackMontage;
+
 	UFUNCTION()
 	void PlayAttackMontage();
+
+	UFUNCTION()
+	void PlayAirAttackMontage();
 	
 	UFUNCTION()
 	void JumpToAttackMontageSection(int32 NewSection);
@@ -94,8 +101,9 @@ public:
 
 	UFUNCTION()
 	void AnimNotify_AirAttackTriggerCheck();
+	void AnimNotify_AirComboAttackEnded();
 
-////////////////// DropKick //////////////////////////	
+	////////////////// DropKick //////////////////////////	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DropKick");
 	class UAnimMontage* DoubleJumpAttackMontage;
 	

@@ -9,6 +9,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "../SpiderManProjectCharacter.h"
 #include "PSH/DemonAnim.h"
+#include "Components/CapsuleComponent.h"
+
 
 // Sets default values for this component's properties
 UMisterNegativeFSM::UMisterNegativeFSM()

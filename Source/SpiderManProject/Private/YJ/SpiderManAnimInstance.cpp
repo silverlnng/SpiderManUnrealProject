@@ -134,6 +134,14 @@ void USpiderManAnimInstance::PlayAttackMontage()
 	}
 }
 
+void USpiderManAnimInstance::PlayAirAttackMontage()
+{
+	if(!Montage_IsPlaying(AirComboAttackMontage))
+	{
+		Montage_Play(AirComboAttackMontage,1.f);
+	}
+}
+
 void USpiderManAnimInstance::JumpToAttackMontageSection(int32 NewSection)
 {
 	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), ComboAttackMontage);
@@ -158,6 +166,11 @@ FName USpiderManAnimInstance::GetAttackMontageSectionName(int32 Section)
 }
 
 void USpiderManAnimInstance::AnimNotify_AirAttackTriggerCheck()
+{
+	OnAirAttackTriggerCheck.Broadcast();
+}
+
+void USpiderManAnimInstance::AnimNotify_AirComboAttackEnded()
 {
 	OnAirAttackTriggerCheck.Broadcast();
 }

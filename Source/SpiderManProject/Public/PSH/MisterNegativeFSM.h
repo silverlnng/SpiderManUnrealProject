@@ -92,10 +92,11 @@ private:
 	void idleState();
 	void MoveState();
 	void DamageState();
+public:	
 	void GroggyState();// 
 	void Groggy_loopState();// 
 	void AttackState();
-	void evasionState();// È¸ÇÇ
+	void evasionState();// È¸ï¿½ï¿½
 	void DieState();
 
 	void RandomAttackCheak1();
@@ -138,7 +139,7 @@ private:
 	int hitcount = 0;
 	FVector demonMeshLocation;
 
-	FVector worldCenter; // ¸Ê Áß¾Ó ÁÂÇ¥
+	FVector worldCenter; // ï¿½ï¿½ ï¿½ß¾ï¿½ ï¿½ï¿½Ç¥
 
 	bool bisDamagedAnim;
 
