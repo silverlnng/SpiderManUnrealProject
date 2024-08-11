@@ -9,6 +9,9 @@
 #include "YJ/SpiderMan.h"
 #include "YJ/Cable.h"
 #include "CableComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "YJ/SpiderManAnimInstance.h"
 
 // Sets default values for this component's properties
 USpiderFSMComponent::USpiderFSMComponent()
@@ -28,6 +31,9 @@ void USpiderFSMComponent::BeginPlay()
 
 	// ...
 	Me = Cast<ASpiderMan>(GetOwner());
+
+	BossEnemy = Cast<AMisterNegative>(UGameplayStatics::GetActorOfClass(GetWorld(),AMisterNegative::StaticClass()));
+	
 }
 
 
@@ -69,12 +75,25 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 
 	//다 도착하면 idle으로 다시 => 그냥 시간이 지나면 idle상태로 돌아가도록
 
+	
+	FTimerHandle TimerHandle0;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle0,([this]()->void
+	{
+		Me->SpiderManAnim->DoubleJumpEnded=true;
+	}),0.1f,false);
+
+	FTimerHandle TimerHandle1;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle1,([this]()->void
+	{
+		IdleState();
+	}),0.3f,false);
+	
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle,([this]()->void
 	{
 		State=EState::IDLE;
-		IdleState();
-	}),1.5f,false);
+	
+	}),1.0f,false);
 	
 	/*if(dist<=30.f)
 	{
@@ -87,7 +106,16 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 void USpiderFSMComponent::TickAttack(const float& DeltaTime)
 {
 	// ECC_GameTraceChannel4 : 네거티브 채널
+		// BossEnemy 를 향해 회전하도록 만들기
+
+	FVector start = Me->GetActorLocation();
+	FVector end = BossEnemy->GetActorLocation();
 	
+	FRotator rot = UKismetMathLibrary::FindLookAtRotation(start,end);
+
+	FRotator interpRot = UKismetMathLibrary::RInterpTo_Constant(Me->GetActorRotation(),rot,DeltaTime,100.f);
+	FRotator newRot = FRotator(0,interpRot.Yaw,0);
+	Me->SetActorRotation(newRot);
 	
 }
 

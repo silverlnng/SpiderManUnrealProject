@@ -101,6 +101,7 @@ void ASpiderMan::PostInitializeComponents()
 	});
 	
 	SpiderManAnim->OnAttackHitCheck.AddUObject(this, &ASpiderMan::ComboAttackCheck);
+	SpiderManAnim->OnAirAttackTriggerCheck.AddUObject(this, &ASpiderMan::AirAttackTriggerCheck);
 
 	bIsDodging = false;
 	DodgeDistance = 600.f;  // Dodge 이동 거리
@@ -1013,7 +1014,7 @@ void ASpiderMan::ComboAttackCheck()
 	float HalfHeight = AttackRange * 0.5f + AttackRadius;
 	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
 	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
-	float DebugLifeTime = 5.0f;
+	float DebugLifeTime = 1.0f;
 
 	DrawDebugCapsule(GetWorld(),
 		Center,
@@ -1041,6 +1042,62 @@ void ASpiderMan::ComboAttackCheck()
 	
 }
 
+void ASpiderMan::AirAttackTriggerCheck()
+{
+	// 애니메이션 실행중 
+	// sweep 으로 내가 enemy를 damage를 주는지 체크
+	FHitResult HitResult_Hand_R;
+	
+	FCollisionQueryParams Params;
+	//Params.AddIgnoredActor(Me);
+	
+	bool bResult = GetWorld()->SweepSingleByChannel(
+		HitResult_Hand_R,
+		GetActorLocation(),
+		GetActorLocation() + GetActorUpVector() * AttackRange,
+		FQuat::Identity,
+		ECollisionChannel::ECC_Visibility,
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params);
+
+#if ENABLE_DRAW_DEBUG
+	FVector TraceVec = GetActorUpVector() * AttackRange;
+	FVector Center = GetActorLocation() + TraceVec * 0.5f;
+	float HalfHeight = AttackRange * 0.5f + AttackRadius;
+	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
+	FColor DrawColor = bResult ? FColor::Purple : FColor::Black;
+	float DebugLifeTime = 1.0f;
+
+	DrawDebugCapsule(GetWorld(),
+		Center,
+		HalfHeight,
+		AttackRadius,
+		CapsuleRot,
+		DrawColor,
+		false,
+		DebugLifeTime);
+
+#endif
+	if (bResult) {
+		if (::IsValid(HitResult_Hand_R.GetActor()))
+		{
+			UE_LOG(LogTemp,Warning, TEXT("Hit Actor Name : %s"), *HitResult_Hand_R.GetActor()->GetName());
+			AMisterNegative* MisterNegative = Cast<AMisterNegative>(HitResult_Hand_R.GetActor());
+			if(MisterNegative)
+			{
+				
+				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
+				NegativeFSM->Dameged(1);
+
+				// 적을 공중에 띄우고 -> 중력 0으로 해야 안떨어질듯 ??
+				MisterNegative->LaunchCharacter(GetActorUpVector()*1000.f,false,false);
+				// 에어콤보를 시작하기 
+				
+			}
+		}
+	}
+}
+
 void ASpiderMan::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	IsAttacking = false;
@@ -1052,6 +1109,7 @@ void ASpiderMan::AttackStartComboState() //공격 시작할때 속성 설정
 	IsComboInputOn = false;
 	CanNextCombo = true;
 	CurrentCombo = FMath::Clamp<int32>(CurrentCombo + 1, 1, MaxCombo);
+	FSMComp->SetState(EState::ATTACK);
 }
 
 void ASpiderMan::AttackEndComboState() // 공격끝날떄 속성설정
@@ -1059,6 +1117,7 @@ void ASpiderMan::AttackEndComboState() // 공격끝날떄 속성설정
 	IsComboInputOn = false;
 	CanNextCombo = false;
 	CurrentCombo = 0;
+	FSMComp->SetState(EState::IDLE);
 }
 
 #pragma endregion  ComboAttack

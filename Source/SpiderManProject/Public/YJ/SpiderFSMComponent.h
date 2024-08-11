@@ -68,6 +68,9 @@ public:
 	
 	UPROPERTY()
 	class ASpiderMan* Me;
+
+	UPROPERTY()
+	class AMisterNegative* BossEnemy;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
 	float AttackRange =200.f ;

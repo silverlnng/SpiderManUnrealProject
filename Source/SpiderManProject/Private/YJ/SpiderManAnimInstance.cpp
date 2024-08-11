@@ -156,4 +156,15 @@ FName USpiderManAnimInstance::GetAttackMontageSectionName(int32 Section)
 	// 순서를 매개변수로 받아서 실행시킬 세션이름으로 반환
 	return FName(*FString::Printf(TEXT("Attack%d"), Section));
 }
+
+void USpiderManAnimInstance::AnimNotify_AirAttackTriggerCheck()
+{
+	OnAirAttackTriggerCheck.Broadcast();
+}
+
+void USpiderManAnimInstance::AnimNotify_DropKickEnded()
+{
+	DoubleJumpEnded =false;
+}
+
 #pragma endregion ComboAttack

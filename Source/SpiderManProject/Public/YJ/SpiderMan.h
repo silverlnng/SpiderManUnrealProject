@@ -266,6 +266,9 @@ public:
 
 	UFUNCTION()
 	void ComboAttackCheck();
+	
+	UFUNCTION()
+	void AirAttackTriggerCheck();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
 	float AttackRange =50.f ;
