@@ -15,8 +15,10 @@ enum class ESpawnMonsterState : uint8
 	RollAttack_End,
 	RollAttack_Attack,
 	LushAttack_Start,
+	LushAttack_End,
 	Attack1,
 	Attack2,
+	die,
 };
 
 UENUM(BlueprintType)
@@ -67,7 +69,8 @@ public:
 
 	void Attack1State();
 	void Attack2State();
-	void LushAttackState();
+	void LushAttack_StartState();
+	void LushAttack_EndState();
 
 	void RandomAttack();
 
@@ -76,17 +79,30 @@ public:
 	UPROPERTY(EditAnywhere)
 	float AttackRadius = 50.0f;
 
-	void RollAttack_Start();
-	void RollAttack_Attack();
-	void RollAttack_End();
+	void RollAttack_StartState();
+	void RollAttack_AttackState();
+	void RollAttack_EndState();
+
+	void Die();
 
 	float spin = 0;
 	float curSpin = 0;
 	FRotator curRot;
 
-private:
+	FVector Dir;
+	FVector TargetLoc;
+	FVector StartLoc;
+	FVector CurLoc;
+	FVector EndLoc;
+	float dist;
+	float Alpha = 0;
+
 
 	void AttackCchek();
+
+private:
+
+
 	float curTime = 0;
 	float SpawnTime = 2;
 	

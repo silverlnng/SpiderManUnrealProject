@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PSH/SpawnMonsterAnim.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values for this component's properties
 USpawnMonsterFSM::USpawnMonsterFSM()
@@ -26,7 +27,7 @@ void USpawnMonsterFSM::BeginPlay()
 
 	// ...
 	
-	Target = Cast<ASpiderMan>(GetWorld()->GetFirstPlayerController()->GetCharacter());
+	
 
 	me = Cast<ASpawnMonster>(GetOwner());
 	if (me != nullptr)
@@ -42,11 +43,13 @@ void USpawnMonsterFSM::BeginPlay()
 		me->Setvisble(false);
 		jobState = EMonsterJobState::idle;
 		anim->jobAnimState = jobState;
+		me->SetDissolveInit();
 		break;
 	case 2 :
 		me->Setvisble(true);
 		jobState = EMonsterJobState::Sword;
 		anim->jobAnimState = jobState;
+		me->SetDissolveInit();
 		break;
 	}
 	
@@ -82,16 +85,21 @@ void USpawnMonsterFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		Attack2State();
 		break;
 	case ESpawnMonsterState::RollAttack_Start:
-		RollAttack_Start();
+		RollAttack_StartState();
 		break;
 	case ESpawnMonsterState::RollAttack_End:
-		RollAttack_End();
+		RollAttack_EndState();
 		break;
 	case ESpawnMonsterState::RollAttack_Attack:
-		RollAttack_Attack();
+		RollAttack_AttackState();
 		break;
 	case ESpawnMonsterState::LushAttack_Start:
-		LushAttackState();
+		LushAttack_StartState();
+		break;
+	case ESpawnMonsterState::LushAttack_End:
+		LushAttack_EndState();
+		break;
+	case ESpawnMonsterState::die:
 		break;
 	}
 	// ...
@@ -108,6 +116,7 @@ void USpawnMonsterFSM::EndAnim(ESpawnMonsterState endState)
 	switch (State)
 	{
 	case ESpawnMonsterState::Spawn:
+		//SetState(ESpawnMonsterState::Idle);
 		break;
 	case ESpawnMonsterState::Idle:
 		break;
@@ -121,7 +130,6 @@ void USpawnMonsterFSM::EndAnim(ESpawnMonsterState endState)
 		SetState(ESpawnMonsterState::Idle);
 		break;
 	case ESpawnMonsterState::RollAttack_Start:
-		UE_LOG(LogTemp, Warning, TEXT("RollEnd"));
 		SetState(ESpawnMonsterState::RollAttack_Attack);
 		break;
 	case ESpawnMonsterState::RollAttack_End:
@@ -130,7 +138,19 @@ void USpawnMonsterFSM::EndAnim(ESpawnMonsterState endState)
 	case ESpawnMonsterState::RollAttack_Attack:
 		break;
 	case ESpawnMonsterState::LushAttack_Start:
-		SetState(ESpawnMonsterState::Attack2);
+
+		StartLoc = me->GetActorLocation();
+		TargetLoc = Target->GetActorLocation(); // 월드 가운데를 타겟으로 지정
+		Dir = TargetLoc - StartLoc; // 타겟에 방향
+		Dir.Normalize();
+
+		dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
+		EndLoc = StartLoc + Dir * dist;
+		EndLoc.Z = StartLoc.Z;
+
+		SetState(ESpawnMonsterState::LushAttack_End);
+		break;
+	case ESpawnMonsterState::LushAttack_End:
 		break;
 	}
 }
@@ -139,9 +159,10 @@ void USpawnMonsterFSM::SpawnState(const float& DeltaTime)
 {
 	// 애니메이션 추가후 애니메이션이 끝나면 Idle로 이동.
 	// 디졸브 실행.
+
 	curTime += DeltaTime;
 
-	if (curTime >= SpawnTime)
+	if (curTime >= 2)
 	{
 		SetState(ESpawnMonsterState::Idle);
 		curTime = 0;
@@ -152,7 +173,7 @@ void USpawnMonsterFSM::IdleState(const float& DeltaTime)
 {
 	/*Target = Cast<ASpiderMan>(UGameplayStatics::GetActorOfClass(GetWorld(), ASpiderMan::StaticClass()));*/
 	
-
+	Target = Cast<ASpiderMan>(GetWorld()->GetFirstPlayerController()->GetCharacter());
 // 	if (Target)
 // 	{
 // 		SetState(ESpawnMonsterState::Move);
@@ -168,12 +189,15 @@ void USpawnMonsterFSM::IdleState(const float& DeltaTime)
 }
 void USpawnMonsterFSM::MoveState(const float& DeltaTime)
 {
-	FVector Destination = Target->GetActorLocation();
-	FVector dir = Destination - me->GetActorLocation();
-	float dist = dir.Size();
+	TargetLoc = Target->GetActorLocation();
+	Dir = TargetLoc - me->GetActorLocation();
+	dist = Dir.Size();
 
-	me->AddMovementInput(dir.GetSafeNormal());
+	me->AddMovementInput(Dir.GetSafeNormal());
 
+	UE_LOG(LogTemp,Warning,TEXT("%f"),dist);
+	UE_LOG(LogTemp,Warning,TEXT("Move"));
+	UE_LOG(LogTemp,Warning,TEXT("Target : %s"),*Target->GetName());
 	if (dist < AttackRange) // 어택 가능 범위라면
 	{
 		RandomAttack(); // 랜덤 어택
@@ -214,13 +238,19 @@ void USpawnMonsterFSM::RandomAttack()
 
 }
 
-void USpawnMonsterFSM::RollAttack_Start()
+void USpawnMonsterFSM::RollAttack_StartState()
 {
 
 }
 
-void USpawnMonsterFSM::RollAttack_Attack()
+void USpawnMonsterFSM::RollAttack_AttackState()
 {
+	TargetLoc = Target->GetActorLocation();
+	Dir = TargetLoc - me->GetActorLocation();
+	dist = Dir.Size();
+
+	me->AddMovementInput(Dir.GetSafeNormal());
+
 	me->GetCharacterMovement()->bOrientRotationToMovement =false;
 	spin -= GetWorld()->DeltaTimeSeconds * 70;
 	curSpin += spin;
@@ -236,12 +266,36 @@ void USpawnMonsterFSM::RollAttack_Attack()
 		// 회전
 }
 
-void USpawnMonsterFSM::RollAttack_End()
+void USpawnMonsterFSM::RollAttack_EndState()
 {
 	me->GetCharacterMovement()->bOrientRotationToMovement = true;
 	// 애니메이션 진행후 멈추고
 }
 
+void USpawnMonsterFSM::Die()
+{
+	anim->Die_Montage();
+	// 피격 애니메이션 실행 
+}
+
+void USpawnMonsterFSM::LushAttack_StartState()
+{
+	
+}
+
+void USpawnMonsterFSM::LushAttack_EndState()
+{
+	Alpha += GetWorld()->DeltaTimeSeconds * 4;
+	CurLoc = UKismetMathLibrary::VEase(StartLoc, EndLoc, Alpha, EEasingFunc::SinusoidalIn);
+
+	me->SetActorLocation(CurLoc); // 앞으로이동
+
+	if (Alpha >= 1)
+	{
+		SetState(ESpawnMonsterState::Idle);
+		Alpha = 0;
+	}
+}
 
 void USpawnMonsterFSM::AttackCchek()
 {
@@ -309,10 +363,6 @@ void USpawnMonsterFSM::Attack2State()
 	}
 }
 
-void USpawnMonsterFSM::LushAttackState()
-{
-
-}
 
 
 

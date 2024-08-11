@@ -19,6 +19,12 @@ void UMisterNegativeAnim::HitAnim()
 	Montage_Play(RightHit);
 }
 
+void UMisterNegativeAnim::DeadAnim()
+{
+	Montage_Play(Dead);
+}
+
+
 void UMisterNegativeAnim::AnimNotify_SpawnLightning()
 {
 	misterNegative->SpawnLightning();
@@ -58,4 +64,19 @@ void UMisterNegativeAnim::AnimNotify_MisterSwordPower()
 void UMisterNegativeAnim::AnimNotify_MisterNextAnim()
 {
 	misterNegative->bisDemonAttack = false;
+}
+
+void UMisterNegativeAnim::AnimNotify_NextShake()
+{
+	misterNegative->NextShake();
+}
+
+void UMisterNegativeAnim::AnimNotify_NextFadeIn()
+{
+	misterNegative->NextFadeIn();
+}
+
+void UMisterNegativeAnim::AnimNotify_NextLevel()
+{
+	misterNegative->NextLevel();
 }

@@ -37,6 +37,11 @@ public:
 	
 
 	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UUserWidget> EndUiFactory;
+	UPROPERTY(EditAnywhere)
+	class UFadeInOutUi* EndUi;
+
+	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent * Sword;
 	UPROPERTY(EditAnywhere)
 	class UMisterNegativeFSM * MisterFSM;
@@ -52,9 +57,15 @@ public:
 	TSubclassOf<class UCameraShakeBase> Cs_DemonAttack;
 
 	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UCameraShakeBase> Cs_NextShake;
+
+	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent * demonCol;
 	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent * SwordCol;
+
+	UPROPERTY(EditDefaultsOnly)
+	class AMonsterSpawner* SpawnMonster;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UNiagaraComponent * Naiagara;
@@ -63,12 +74,19 @@ public:
 
 	void SetMeshVisible(bool chek);
 
+	void NextFadeIn();
+
 	void CameraShake();
 
 	void DissolveAnim();
 
 	void SetDissolveInit();
 	
+	void NextLevel();
+
+	void NextShake();
+
+	void MonsterSpawn();
 	float dissolveAnimValue;
 
 	bool bisDissolve;

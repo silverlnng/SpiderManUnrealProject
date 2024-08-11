@@ -159,6 +159,7 @@ void UMisterNegativeFSM::idleState()
 	me->SetActorRotation(MeRotation);
 	if (curTime >= AttackDelayTime)
 	{
+		AttackDelayTime = 1;
 		SetState(EMisterNegativeState::Attack);
 		
 		curTime = 0;
@@ -289,6 +290,7 @@ void UMisterNegativeFSM::Dameged(float damge)
 
 	if (curHp <= 0)
 	{
+		MisterAnim->DeadAnim();
 		SetState(EMisterNegativeState::Die);
 	}
 	else
@@ -302,11 +304,16 @@ void UMisterNegativeFSM::DieState() // 죽음
 {
 	if (bisNextStage)
 	{
-		me->Destroy();
+		
+		MisterAnim->DeadAnim(); // 엔딩 UI 띄우기
 	}
 	else
 	{
-		UGameplayStatics::OpenLevel(GetWorld(), TEXT("SpiderWhitebox1"));// 스테이지 변경
+
+		
+		//	죽는 애니메이션 anim Last Notifiy =to Camera Shake and Fade Out
+		// 카메라 쉐이크 + 페이드 아웃
+		//
 	}
 }
 
@@ -425,7 +432,6 @@ void UMisterNegativeFSM::LightningstepAttack_IdleState()
 
 	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
 	me->SetActorRotation(MeRotation);
-	me->SetActorRotation(MeRotation);
 
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
 	EndLoc = StartLoc + Dir * dist;
@@ -457,7 +463,6 @@ void UMisterNegativeFSM::SpinAttackState_IdleState()
 	Dir.Normalize();
 
 	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
-	me->SetActorRotation(MeRotation);
 	me->SetActorRotation(MeRotation);
 
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
@@ -502,7 +507,7 @@ void UMisterNegativeFSM::DemonAttack1_idleState()
 	Dir = TargetLoc - StartLoc; // 좌표에 방향
 	Dir.Normalize();
 
-	MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(), Target->GetActorLocation());
+	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
 	me->SetActorRotation(MeRotation);
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
 	EndLoc = StartLoc + Dir * dist;
@@ -559,7 +564,7 @@ void UMisterNegativeFSM::DemonAttack2_idleState()
 		Dir.Normalize();
 
 		//MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
-		MeRotation = UKismetMathLibrary::FindLookAtRotation(me->GetActorLocation(),Target->GetActorLocation());
+		MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
 		me->SetActorRotation(MeRotation);
 
 		dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
