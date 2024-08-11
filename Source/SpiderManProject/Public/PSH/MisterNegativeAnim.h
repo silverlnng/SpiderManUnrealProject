@@ -27,9 +27,14 @@ public:
 	EMisterNegativeState AnimState;
 
 	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage* Dead;
+
+	UPROPERTY(EditDefaultsOnly)
 	class UAnimMontage * RightHit;
 	
 	void HitAnim();
+
+	void DeadAnim();
 
 	UFUNCTION()
 	void AnimNotify_SpawnLightning();
@@ -49,4 +54,17 @@ public:
 	void AnimNotify_MisterSwordPower();
 	UFUNCTION()
 	void AnimNotify_MisterNextAnim();
+
+
+	// 1. 카메라 쉐이크 시작
+	UFUNCTION()
+	void AnimNotify_NextShake();
+	
+	// 2. 페이드 아웃 시작
+	UFUNCTION()
+	void AnimNotify_NextFadeIn();
+	
+	// 3. 레벨 이동
+	UFUNCTION()
+	void AnimNotify_NextLevel();
 };

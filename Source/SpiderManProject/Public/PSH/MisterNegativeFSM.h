@@ -72,7 +72,7 @@ private:
 
 	float curTime =0;
 
-	float AttackDelayTime =1;
+	float AttackDelayTime = 5;
 
 	int curPage = 0;
 
@@ -121,11 +121,10 @@ private:
 	void DemonAttack2_AttackState();
 		
 	
-
 	void SetState(EMisterNegativeState NewState);
 
 	UPROPERTY(EditAnywhere, Category = State)
-	float maxHp = 10;
+	float maxHp = 2;
 
 	UPROPERTY(EditAnywhere, Category = State)
 	int stamina = 0;

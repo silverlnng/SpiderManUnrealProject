@@ -6,6 +6,10 @@
 #include "Components/CapsuleComponent.h"
 #include "YJ/SpiderMan.h"
 #include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
+#include "PSH/SpawnMonsterAnim.h"
+#include "Kismet/GameplayStatics.h"
+#include "PSH/MonsterSpawner.h"
+#include "PSH/FadeInOutUi.h"
 
 // Sets default values
 AMisterNegative::AMisterNegative()
@@ -86,9 +90,16 @@ void AMisterNegative::BeginPlay()
 	Super::BeginPlay();
 	Naiagara->SetVisibility(false);
 	Demon->SetVisibility(false);
+
+
+	EndUi = Cast<UFadeInOutUi>(CreateWidget(GetWorld(), EndUiFactory));
+
+	SpawnMonster = Cast<AMonsterSpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AMonsterSpawner::StaticClass()));
 	demonCol->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::DemonComponentBeginOverlap);
 
 	SwordCol->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::SwordComponentBeginOverlap);
+	if(EndUi)
+	EndUi->AddToViewport(0);
 }
 
 // Called every frame
@@ -148,6 +159,14 @@ void AMisterNegative::SetMeshVisible(bool chek)
 	SetDissolveInit();
 }
 
+void AMisterNegative::NextFadeIn()
+{
+	if (EndUi)
+	{
+		EndUi->OnAnimStart();
+	}	
+}	
+
 void AMisterNegative::CameraShake()
 {
 	GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(Cs_DemonAttack, 0.5f);
@@ -162,6 +181,24 @@ void AMisterNegative::SetDissolveInit()
 {
 	dissolveAnimValue = 0;
 	Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), 0);
+}
+
+void AMisterNegative::NextLevel()
+{
+	UGameplayStatics::OpenLevel(GetWorld(), TEXT("SpiderWhitebox1"));// 스테이지 변경
+}
+
+void AMisterNegative::NextShake()
+{
+	GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(Cs_NextShake,1);
+}
+
+void AMisterNegative::MonsterSpawn()
+{
+	int random = FMath::RandRange(1, 3);
+
+	if(random == 1)
+	SpawnMonster->MonsterSpawn();
 }
 
 void AMisterNegative::SwordComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

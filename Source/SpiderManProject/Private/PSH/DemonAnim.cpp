@@ -22,6 +22,7 @@ void UDemonAnim::AnimNotify_BossDissolve()
 void UDemonAnim::AnimNotify_BossCameraShake()
 {
 	misterNegative->CameraShake();
+	misterNegative->MonsterSpawn();
 	UE_LOG(LogTemp, Warning, TEXT(" Boss : CameraShake"));
 
 }

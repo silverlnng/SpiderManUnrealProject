@@ -26,15 +26,57 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(EditDefaultsOnly)
+	class UNiagaraComponent * Naiagara;
+
 	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent * Sword;
 
 	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent * SwordCol;
 
+	UPROPERTY(EditAnywhere)
+	class UCapsuleComponent * LeftCol;
+
+	UPROPERTY(EditAnywhere)
+	class UCapsuleComponent * RightCol;
+
 	UPROPERTY(EditDefaultsOnly)
 	class USpawnMonsterFSM * FSM;
 
 	void Setvisble(bool chek);
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AActor>  Lightning;
+
+
+	void SpawnLightning(); // LightningAttack Spawn
+
+	void SwordAttack();
+
+	void RightAttack();
+	void LeftAttack();
+
+	void EndAttack();
+
+	void SetDissolveAnim();
+	void SetDissolveInit();
+
+	void StopEffect();
+
+	float dissolveAnimValue = 1;
+
+	bool bisDissolve = false;
+
+	bool SetisDissolve = false;
+
+	UFUNCTION()
+	void SwordComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void LeftComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void RightComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
 
 };
