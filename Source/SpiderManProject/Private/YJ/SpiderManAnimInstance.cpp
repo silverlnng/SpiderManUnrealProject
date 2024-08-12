@@ -142,6 +142,7 @@ void USpiderManAnimInstance::PlayAirAttackMontage()
 	}
 }
 
+
 void USpiderManAnimInstance::JumpToAttackMontageSection(int32 NewSection)
 {
 	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), ComboAttackMontage);
@@ -178,6 +179,15 @@ void USpiderManAnimInstance::AnimNotify_AirComboAttackEnded()
 void USpiderManAnimInstance::AnimNotify_DropKickEnded()
 {
 	DoubleJumpEnded =false;
+}
+
+void USpiderManAnimInstance::PlayDamagedMontage()
+{
+	if(IsAnyMontagePlaying())
+	{
+		StopAllMontages(0.f);
+	}
+	Montage_Play(damageMontage,1.f);
 }
 
 #pragma endregion ComboAttack

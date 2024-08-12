@@ -117,5 +117,15 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UAnimMontage* dodgeMontage;
+
+/////////////// DAMAGE//////////////
+	UFUNCTION()
+	void PlayDamagedMontage();
+
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage* damageMontage;
+	
 	
 };
+
+

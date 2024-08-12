@@ -349,42 +349,46 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 		StartPointActor->SetActorLocation(hookPoint);
 
-		LaunchCharacter(GetActorUpVector()*1000.f,false,false);
-		
-		//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
-		FVector offset = GetActorLocation() + GetActorUpVector() * 100.f;
+		this->LaunchCharacter(GetActorUpVector()*1000.f,false,false);
 
-		EndPointActor->SetActorLocation(offset);
-		EndPointActor->meshComp->SetWorldLocation(offset);
-		// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
+		FTimerHandle Timer2;
+		GetWorld()->GetTimerManager().SetTimer(Timer2, ([this]()-> void
+		{
+			//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
+			FVector offset = GetActorLocation() + GetActorUpVector() * 10.f;
 
-		//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
-		//CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
+			EndPointActor->SetActorLocation(offset);
+			EndPointActor->meshComp->SetWorldLocation(offset);
+			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
 
-		CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"), TEXT("hand_rSocket"));
-		
-		//Physics Constraint도 위치시키고 연결 시켜주기 
-		PConstraintActor->SetActorLocation(hookPoint);
+			//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
+			//CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
 
-		//PConstraintActor 자체를 위로 조금만 올리기
+			CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"), TEXT("hand_rSocket"));
 
-		PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(
-			StartPointActor->meshComp, NAME_None, EndPointActor->meshComp, NAME_None);
+			//Physics Constraint도 위치시키고 연결 시켜주기 
+			PConstraintActor->SetActorLocation(hookPoint);
 
-		//나자신 (캐릭터를) 끝점에 부착
-		this->AttachToComponent(EndPointActor->meshComp, FAttachmentTransformRules::KeepWorldTransform,
-		                        TEXT("hand_rSocket"));
-		this->SetActorRelativeLocation(FVector(0, 0, 0));
+			//PConstraintActor 자체를 위로 조금만 올리기
 
-		// 매달리는 애니메이션 실행 
+			PConstraintActor->PhysicsConstraintComponent->SetConstrainedComponents(
+				StartPointActor->meshComp, NAME_None, EndPointActor->meshComp, NAME_None);
+
+			//나자신 (캐릭터를) 끝점에 부착
+			this->AttachToComponent(EndPointActor->meshComp, FAttachmentTransformRules::KeepWorldTransform,
+			                        TEXT("hand_rSocket"));
+			this->SetActorRelativeLocation(FVector(0, 0, 0));
+
+			// 매달리는 애니메이션 실행 
 
 
-		//newforce = GetVelocity() * 100.f + GetActorLocation();
-		newforce = hookPoint-GetActorLocation();
-		 
-		this->GetCapsuleComponent()->SetCapsuleRadius(1);
-		this->GetCapsuleComponent()->SetCapsuleHalfHeight(1);
-		FSMComp->SetState(EState::SWING);
+			//newforce = GetVelocity() * 100.f + GetActorLocation();
+			newforce = hookPoint - GetActorLocation();
+
+			this->GetCapsuleComponent()->SetCapsuleRadius(1);
+			this->GetCapsuleComponent()->SetCapsuleHalfHeight(1);
+			FSMComp->SetState(EState::SWING);
+		}), 0.3f, false);
 
 		
 		FTimerHandle physicsTimer;
@@ -400,7 +404,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 			
 			EndPointActor->meshComp->AddForce(camForce * 100, NAME_None, true);
 			
-		}), 0.01f, false);
+		}), 0.4f, false);
 
 		GetWorld()->GetTimerManager().SetTimer(addforceTimer, ([this]()-> void
 		{
@@ -760,12 +764,9 @@ void ASpiderMan::ThrowCatchActor()
 	
 	temp->SetSimulatePhysics(true);
 
-	//GetWorldTimerManager().SetTimer(addforceCatchItemTimer,([temp,this]()->void
-	//{
-	////temp->AddForce(this->GetActorForwardVector()*10000.f);
-	//
-	//}), 1.f, false, 1.f);
-	temp->AddImpulse(this->GetActorForwardVector() * 10000.f);
+	FVector tempDir = BossEnemy->GetActorLocation()-this->GetActorLocation();
+
+	temp->AddImpulse(tempDir * 10000.f);
 	CatchableObj=nullptr;
 	
 }
@@ -868,7 +869,7 @@ void ASpiderMan::DoubleJump()
 
 		CableActor->CableComp->SetWorldLocation(DoubleTargetVector); //케이블의 시작점을 히트지점으로 설정
 
-		StartPointActor->SetActorLocation(DoubleTargetVector);
+		//StartPointActor->SetActorLocation(DoubleTargetVector);
 			
 		
 		//끝점(EndPointActor)의 component를 메쉬의 끝점
@@ -970,7 +971,7 @@ void ASpiderMan::Damaged(float value)
 	CurHP-=value;
 	
 	//Damage 애니 실행
-	
+	SpiderManAnim->PlayDamagedMontage();
 	// 콤보공격 멈추고 초기화
 	
 	AttackEndComboState();
