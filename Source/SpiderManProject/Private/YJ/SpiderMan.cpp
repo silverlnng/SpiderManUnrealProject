@@ -355,7 +355,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 		GetWorld()->GetTimerManager().SetTimer(Timer2, ([this]()-> void
 		{
 			//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
-			FVector offset = GetActorLocation() + GetActorUpVector() * 10.f;
+			FVector offset = GetActorLocation() + GetActorUpVector() * 200.f;
 
 			EndPointActor->SetActorLocation(offset);
 			EndPointActor->meshComp->SetWorldLocation(offset);
