@@ -27,6 +27,8 @@
 #include "Camera/PlayerCameraManager.h"
 #include "PSH/MisterNegative.h"
 #include "PSH/MisterNegativeFSM.h"
+#include "PSH/SpawnMonster.h"
+#include "PSH/SpawnMonsterFSM.h"
 
 
 // Sets default values
@@ -1037,13 +1039,13 @@ void ASpiderMan::ComboAttackCheck()
 {
 	// 애니메이션 실행중 
 	// sweep 으로 내가 enemy를 damage를 주는지 체크
-	FHitResult HitResult_Hand_R;
+	TArray<struct FHitResult> HitResults;
 	
 	FCollisionQueryParams Params;
 	//Params.AddIgnoredActor(Me);
 	
-	bool bResult = GetWorld()->SweepSingleByChannel(
-		HitResult_Hand_R,
+	bool bResult = GetWorld()->SweepMultiByChannel(
+		HitResults,
 		GetActorLocation(),
 		GetActorLocation() + GetActorForwardVector() * AttackRange,
 		FQuat::Identity,
@@ -1070,17 +1072,30 @@ void ASpiderMan::ComboAttackCheck()
 
 #endif
 	if (bResult) {
-		if (::IsValid(HitResult_Hand_R.GetActor()))
+		for (const FHitResult& Result : HitResults)
 		{
-			UE_LOG(LogTemp,Warning, TEXT("Hit Actor Name : %s"), *HitResult_Hand_R.GetActor()->GetName());
-			AMisterNegative* MisterNegative = Cast<AMisterNegative>(HitResult_Hand_R.GetActor());
+			AActor* Actor = Result.GetActor();
+			ASpawnMonster* SpawnMonster = Cast<ASpawnMonster>(Actor);
+			AMisterNegative* MisterNegative = Cast<AMisterNegative>(Actor);
 			if(MisterNegative)
 			{
 				
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
 				NegativeFSM->Dameged(1);
 			}
+			if(SpawnMonster)
+			{
+				auto SpawnMonsterFSM = SpawnMonster->GetComponentByClass<USpawnMonsterFSM>();
+
+				if(SpawnMonsterFSM)
+				{
+					SpawnMonsterFSM->Die();
+				}
+				
+			}
+			
 		}
+		
 	}
 	
 }
@@ -1089,24 +1104,24 @@ void ASpiderMan::AirAttackTriggerCheck()
 {
 	// 애니메이션 실행중 
 	// sweep 으로 내가 enemy를 damage를 주는지 체크
-	FHitResult HitResult_Hand_R;
+	TArray<struct FHitResult> HitResults;
 	
 	FCollisionQueryParams Params;
 	//Params.AddIgnoredActor(Me);
 	
-	bool bResult = GetWorld()->SweepSingleByChannel(
-		HitResult_Hand_R,
+	bool bResult = GetWorld()->SweepMultiByChannel(
+		HitResults,
 		GetActorLocation(),
-		GetActorLocation() + GetActorForwardVector() * (AttackRange),
+		GetActorLocation() + GetActorForwardVector() * (AttackRange+50),
 		FQuat::Identity,
 		ECollisionChannel::ECC_Visibility,
 		FCollisionShape::MakeSphere(AttackRadius+100.f),
 		Params);
 
 #if ENABLE_DRAW_DEBUG
-	FVector TraceVec = GetActorLocation() + GetActorForwardVector() * (AttackRange);
+	FVector TraceVec = GetActorForwardVector() * AttackRange;
 	FVector Center = GetActorLocation() + TraceVec * 0.5f;
-	float HalfHeight = (AttackRange) * 0.5f + AttackRadius+100.f;
+	float HalfHeight = AttackRange * 0.5f + AttackRadius+100.f;
 	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
 	FColor DrawColor = bResult ? FColor::Purple : FColor::Black;
 	float DebugLifeTime = 1.0f;
@@ -1122,24 +1137,32 @@ void ASpiderMan::AirAttackTriggerCheck()
 
 #endif
 	if (bResult) {
-		if (::IsValid(HitResult_Hand_R.GetActor()))
+		for (const FHitResult& Result : HitResults)
 		{
-			UE_LOG(LogTemp,Warning, TEXT("Hit Actor Name : %s"), *HitResult_Hand_R.GetActor()->GetName());
-			AMisterNegative* MisterNegative = Cast<AMisterNegative>(HitResult_Hand_R.GetActor());
-			if(MisterNegative)
+			AActor* Actor = Result.GetActor();
+			ASpawnMonster* SpawnMonster = Cast<ASpawnMonster>(Actor);
+			AMisterNegative* MisterNegative = Cast<AMisterNegative>(Actor);
+			if (MisterNegative)
 			{
-				
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
 				NegativeFSM->Dameged(1);
 				NegativeFSM->GroggyState();
 				NegativeFSM->Groggy_loopState();
 				// 적을 공중에 띄우고 -> 중력 0으로 해야 안떨어질듯 ??
-				MisterNegative->LaunchCharacter(GetActorUpVector()*1000.f,false,false);
+				MisterNegative->LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
 				// 에어콤보를 시작하기
-				bCanAirAttackStart=true;
-				LaunchCharacter(GetActorUpVector()*1000.f,false,false);
+				bCanAirAttackStart = true;
+				LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
 				GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-				
+			}
+			if (SpawnMonster)
+			{
+				auto SpawnMonsterFSM = SpawnMonster->GetComponentByClass<USpawnMonsterFSM>();
+				SpawnMonster->LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
+				if (SpawnMonsterFSM)
+				{
+					SpawnMonsterFSM->Die();
+				}
 			}
 		}
 	}
