@@ -41,10 +41,11 @@ void USpiderFSMComponent::BeginPlay()
 void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	FString mystate = UEnum::GetValueAsString(State);
+	
+	/*FString mystate = UEnum::GetValueAsString(State);
 
 	//위치에 문자 띄우기
-	DrawDebugString(GetWorld(),GetOwner()->GetActorLocation(),mystate, nullptr,FColor::Yellow,0,true);
+	DrawDebugString(GetWorld(),GetOwner()->GetActorLocation(),mystate, nullptr,FColor::Yellow,0,true);*/
 	// ...
 	switch ( State )
 	{

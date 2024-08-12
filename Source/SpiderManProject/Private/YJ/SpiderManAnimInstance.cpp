@@ -16,13 +16,13 @@ void USpiderManAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	FString mystate = UEnum::GetValueAsString(AnimState);
+	/*FString mystate = UEnum::GetValueAsString(AnimState);
 
 	//위치에 문자 띄우기
 	if (Me)
 	{
 	DrawDebugString(GetWorld(),Me->GetActorLocation(),mystate, nullptr,FColor::Black,0,true);
-	}
+	}*/
 
 	if ( nullptr == Me )
 	{
