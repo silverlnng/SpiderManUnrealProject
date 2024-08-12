@@ -64,6 +64,9 @@ public:
 	class UCapsuleComponent * SwordCol;
 
 	UPROPERTY(EditDefaultsOnly)
+	class USoundBase * HitSound;
+
+	UPROPERTY(EditDefaultsOnly)
 	class AMonsterSpawner* SpawnMonster;
 
 	UPROPERTY(EditDefaultsOnly)

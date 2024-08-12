@@ -241,18 +241,20 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 	else // 그로기 스테이트 이후
 	{
 		// 시간이 지나면 move스테이트로
-		if (curTime >= 5)
+		if (curTime >= 8)
 		{
-			bisDamagedAnim = false;
 			StartLoc = me->GetActorLocation();
 			TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
-			Dir = TargetLoc - StartLoc; // 월드 정 가운데 방향
+			Dir = TargetLoc - StartLoc; // 타겟에 방향
 			Dir.Normalize();
-			dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치 거리
-			EndLoc = StartLoc + Dir * dist;  // 최종 돌진 위치
-			EndLoc.Z = StartLoc.Z; // 위 방향으로는 이동하지 않기때문에 시작 위치로 고정.
-			SetState(EMisterNegativeState::Move); // 정가운데로 이동
-			hitcount = 0;
+
+			dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
+			EndLoc = StartLoc + Dir * dist;
+			EndLoc.Z = StartLoc.Z;
+			SetState(EMisterNegativeState::Move);
+			bisMaxPowerMode = true;
+			bisDamagedAnim = false;
+			me->SetUiVisble(false);
 			curTime = 0;
 		}
 	}
@@ -308,11 +310,13 @@ void UMisterNegativeFSM::Dameged(float damge)
 		curTime = 0;
 		if (bisNextStage)
 		{
+			me->SetUiVisble(false);
 			MisterAnim->RealDeadAnim();
 			DeadSpawnMonster();
 		}
 		else
 		{
+			me->SetUiVisble(false);
 			MisterAnim->DeadAnim();
 		}
 		SetState(EMisterNegativeState::Die);
@@ -410,27 +414,27 @@ void UMisterNegativeFSM::RandomAttackCheak1()
 }
 void UMisterNegativeFSM::RandomAttackCheak2() // 데몬 페이즈 때 사용
 {
-	int RandemNum = FMath::RandRange(1, 2);
+	int RandemNum = FMath::RandRange(1, 5);
 	switch (RandemNum)
 	{
-// 	case 1:
-// 		SetState(EMisterNegativeState::LightningstepAttack); // 종료
-// 		break;
-// 
-// 	case 2:
-// 		SetState(EMisterNegativeState::SpinAttack_idle);
-// 		break;
-// 
-// 	case 3:
-// 		SetState(EMisterNegativeState::ChargingAttack_idle);
-// 		break;
 	case 1:
+		SetState(EMisterNegativeState::LightningstepAttack); // 종료
+		break;
+
+	case 2:
+		SetState(EMisterNegativeState::SpinAttack_idle);
+		break;
+
+	case 3:
+		SetState(EMisterNegativeState::ChargingAttack_idle);
+		break;
+	case 4:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
 		me->Demon->SetRelativeLocation(FVector(-1, -1.9f, -7.6f));
 		/*me->Demon->SetRelativeRotation(FRotator(0, 0, 10));*/
 
 		break;
-	case 2:
+	case 5:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
 		me->Demon->SetRelativeLocation(FVector(0, -1.9f, -2));
 		/*me->Demon->SetRelativeRotation(FRotator(0, 0, 0));*/

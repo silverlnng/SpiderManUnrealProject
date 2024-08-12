@@ -235,6 +235,7 @@ void AMisterNegative::SwordComponentBeginOverlap(UPrimitiveComponent* Overlapped
 	{
 		SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
 		player->Damaged(1);
 	}
 }
@@ -247,6 +248,7 @@ void AMisterNegative::DemonComponentBeginOverlap(UPrimitiveComponent* Overlapped
 	{
 		demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
 		player->Damaged(1);
 	}
 }
