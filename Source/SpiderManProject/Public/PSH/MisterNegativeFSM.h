@@ -151,6 +151,7 @@ public:
 	TArray<class ASpawnMonster*> Monsters;
 	
 	void SetMonster(ASpawnMonster * monster);
+	void DeleteMonster(ASpawnMonster * monster);
 	
 	void Dameged(float damge);
 	void EndState(EMisterNegativeState endState);

@@ -204,6 +204,7 @@ void UMisterNegativeFSM::evasionState() // 회피
 	TargetLoc = me->GetActorRightVector() * 150;; // 월드 가운데를 타겟으로 지정
 	Dir = TargetLoc - StartLoc; // 월드 정 가운데 방향
 	Dir.Normalize();
+	me->SetUiVisble(false);
 
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치 거리
 	EndLoc = StartLoc + Dir * dist;  // 최종 돌진 위치
@@ -241,7 +242,7 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 	else // 그로기 스테이트 이후
 	{
 		// 시간이 지나면 move스테이트로
-		if (curTime >= 8)
+		if (curTime >= 10)
 		{
 			StartLoc = me->GetActorLocation();
 			TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
@@ -254,6 +255,7 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 			SetState(EMisterNegativeState::Move);
 			bisMaxPowerMode = true;
 			bisDamagedAnim = false;
+			stamina = 100;
 			me->SetUiVisble(false);
 			curTime = 0;
 		}
@@ -270,7 +272,13 @@ void UMisterNegativeFSM::DeadSpawnMonster()
 
 void UMisterNegativeFSM::SetMonster(ASpawnMonster* monster)
 {
-	Monsters.Add(monster);
+	Monsters.Emplace(monster);
+	
+}
+
+void UMisterNegativeFSM::DeleteMonster(ASpawnMonster* monster)
+{
+	Monsters.RemoveSingle(monster);
 }
 
 void UMisterNegativeFSM::Dameged(float damge)
@@ -353,12 +361,13 @@ void UMisterNegativeFSM::GroggyState() // 스턴
 	bisMaxPowerMode = false;
 	bisDamagedAnim = true;
 	me->SetUiVisble(true);
+	stamina = 100;
 }
 
 void UMisterNegativeFSM::Groggy_loopState()
 {
 	curTime += GetWorld()->DeltaTimeSeconds;
-	if (curTime >= 8)
+	if (curTime >= 10)
 	{
 		StartLoc = me->GetActorLocation();
 		TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
@@ -660,7 +669,6 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::Damage:
 		break;
 	case EMisterNegativeState::Groggy:
-		stamina = 100;
 		SetState(EMisterNegativeState::Groggy_loop);
 		break;
 	case EMisterNegativeState::Groggy_loop:

@@ -8,6 +8,8 @@
 #include "PSH/SpawnMonsterAnim.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "PSH/MisterNegative.h"
+#include "PSH/MisterNegativeFSM.h"
 
 // Sets default values for this component's properties
 USpawnMonsterFSM::USpawnMonsterFSM()
@@ -274,6 +276,7 @@ void USpawnMonsterFSM::RollAttack_EndState()
 
 void USpawnMonsterFSM::Die()
 {
+	me->MisterNegative->MisterFSM->DeleteMonster(me);
 	anim->Die_Montage();
 	// 피격 애니메이션 실행 
 }

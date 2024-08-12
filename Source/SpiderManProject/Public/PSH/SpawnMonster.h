@@ -29,6 +29,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	class UNiagaraComponent * Naiagara;
 
+	UPROPERTY()
+	class AMisterNegative * MisterNegative;
+
 	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent * Sword;
 
