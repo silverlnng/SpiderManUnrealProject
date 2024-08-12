@@ -25,6 +25,11 @@ void UMisterNegativeAnim::DeadAnim()
 }
 
 
+void UMisterNegativeAnim::RealDeadAnim()
+{
+	Montage_Play(RealDead);
+}
+
 void UMisterNegativeAnim::AnimNotify_SpawnLightning()
 {
 	misterNegative->SpawnLightning();

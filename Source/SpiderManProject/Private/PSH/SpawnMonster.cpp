@@ -8,6 +8,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "YJ/SpiderMan.h"
 #include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
+#include "PSH/MisterNegative.h"
+#include "Kismet/GameplayStatics.h"
+#include "PSH/MisterNegativeFSM.h"
 
 // Sets default values
 ASpawnMonster::ASpawnMonster()
@@ -69,6 +72,9 @@ void ASpawnMonster::BeginPlay()
 	Super::BeginPlay();
 	EndAttack();
 
+	auto * MisterNegative = Cast<AMisterNegative>(UGameplayStatics::GetActorOfClass(GetWorld(),AMisterNegative::StaticClass()));
+
+	MisterNegative->MisterFSM->SetMonster(this);
 	
 	LeftCol->OnComponentBeginOverlap.AddDynamic(this, &ASpawnMonster::LeftComponentBeginOverlap);
 

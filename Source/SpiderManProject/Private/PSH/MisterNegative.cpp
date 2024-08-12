@@ -10,6 +10,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "PSH/MonsterSpawner.h"
 #include "PSH/FadeInOutUi.h"
+#include "PSH/NagetiveGameModeBase.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 AMisterNegative::AMisterNegative()
@@ -82,6 +84,10 @@ AMisterNegative::AMisterNegative()
 	Naiagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
 	Naiagara->SetupAttachment(Sword);
 	Naiagara->SetRelativeLocationAndRotation(FVector(0,0,30),FRotator(-90,0,0));
+
+	SturnUi = CreateDefaultSubobject<UWidgetComponent>(TEXT("SturnUi"));
+	SturnUi->SetupAttachment(RootComponent);
+	SturnUi->SetRelativeLocation(FVector(0,0,150));
 }
 
 // Called when the game starts or when spawned
@@ -91,15 +97,15 @@ void AMisterNegative::BeginPlay()
 	Naiagara->SetVisibility(false);
 	Demon->SetVisibility(false);
 
+	SetUiVisble(false);
 
-	EndUi = Cast<UFadeInOutUi>(CreateWidget(GetWorld(), EndUiFactory));
+	Gmb = Cast<ANagetiveGameModeBase>(GetWorld()->GetAuthGameMode());
+	/*Gmb->SetFadeInOutUI();*/
 
 	SpawnMonster = Cast<AMonsterSpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AMonsterSpawner::StaticClass()));
 	demonCol->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::DemonComponentBeginOverlap);
 
 	SwordCol->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::SwordComponentBeginOverlap);
-	if(EndUi)
-	EndUi->AddToViewport(0);
 }
 
 // Called every frame
@@ -113,6 +119,16 @@ void AMisterNegative::Tick(float DeltaTime)
 		dissolveAnimValue += DeltaTime / 4;
 		Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), dissolveAnimValue);
 	}
+
+	FVector TargetLoc = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->GetCameraLocation();
+	FVector WdigetLoc = SturnUi->GetComponentLocation();
+
+	FVector dir = TargetLoc - WdigetLoc;
+	dir.Normalize();
+
+	FRotator rot = dir.ToOrientationRotator(); // 현재의 벡터가 향한 방향을 로테이션으로 반환
+
+	SturnUi->SetWorldRotation(rot);
 	
 }
 
@@ -161,9 +177,9 @@ void AMisterNegative::SetMeshVisible(bool chek)
 
 void AMisterNegative::NextFadeIn()
 {
-	if (EndUi)
+	if (Gmb)
 	{
-		EndUi->OnAnimStart();
+		Gmb->OnFadeIn();
 	}	
 }	
 
@@ -185,7 +201,7 @@ void AMisterNegative::SetDissolveInit()
 
 void AMisterNegative::NextLevel()
 {
-	UGameplayStatics::OpenLevel(GetWorld(), TEXT("SpiderWhitebox1"));// 스테이지 변경
+	UGameplayStatics::OpenLevel(GetWorld(), TEXT("SpiderPhase2"));// 스테이지 변경
 }
 
 void AMisterNegative::NextShake()
@@ -199,6 +215,16 @@ void AMisterNegative::MonsterSpawn()
 
 	if(random == 1)
 	SpawnMonster->MonsterSpawn();
+}
+
+void AMisterNegative::Ending()
+{
+	Gmb->SetNegativeUI();
+}
+
+void AMisterNegative::SetUiVisble(bool chek)
+{
+	SturnUi->SetVisibility(chek);
 }
 
 void AMisterNegative::SwordComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

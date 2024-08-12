@@ -33,13 +33,10 @@ public:
 	void SpawnCharging(); // ChargingAttack Spawn
 
 	UPROPERTY(EditAnywhere)
-	class USkeletalMeshComponent * Demon;
-	
+	class ANagetiveGameModeBase * Gmb;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UUserWidget> EndUiFactory;
-	UPROPERTY(EditAnywhere)
-	class UFadeInOutUi* EndUi;
+	class USkeletalMeshComponent * Demon;
 
 	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent * Sword;
@@ -59,6 +56,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UCameraShakeBase> Cs_NextShake;
 
+	UPROPERTY(EditAnywhere)
+	class UWidgetComponent * SturnUi;
 	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent * demonCol;
 	UPROPERTY(EditAnywhere)
@@ -87,6 +86,10 @@ public:
 	void NextShake();
 
 	void MonsterSpawn();
+
+	void Ending();
+
+	void SetUiVisble(bool chek);
 	float dissolveAnimValue;
 
 	bool bisDissolve;
