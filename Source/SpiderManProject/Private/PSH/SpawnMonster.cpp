@@ -72,7 +72,7 @@ void ASpawnMonster::BeginPlay()
 	Super::BeginPlay();
 	EndAttack();
 
-	auto * MisterNegative = Cast<AMisterNegative>(UGameplayStatics::GetActorOfClass(GetWorld(),AMisterNegative::StaticClass()));
+	MisterNegative = Cast<AMisterNegative>(UGameplayStatics::GetActorOfClass(GetWorld(),AMisterNegative::StaticClass()));
 
 	MisterNegative->MisterFSM->SetMonster(this);
 	
