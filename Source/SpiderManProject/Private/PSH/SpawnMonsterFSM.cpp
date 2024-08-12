@@ -61,11 +61,11 @@ void USpawnMonsterFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FString myState = UEnum::GetValueAsString(State);
-	FString EnemyJobState = UEnum::GetValueAsString(jobState);
-
-	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation(), myState, nullptr, FColor::Yellow, 0, true, 1);
-	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation() + FVector(0,0,50), EnemyJobState, nullptr, FColor::Red, 0, true, 1);
+// 	FString myState = UEnum::GetValueAsString(State);
+// 	FString EnemyJobState = UEnum::GetValueAsString(jobState);
+// 
+// 	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation(), myState, nullptr, FColor::Yellow, 0, true, 1);
+// 	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation() + FVector(0, 0, 50), EnemyJobState, nullptr, FColor::Red, 0, true, 1);
 
 	switch (State)
 	{

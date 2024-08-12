@@ -125,7 +125,7 @@ public:
 	void SetState(EMisterNegativeState NewState);
 
 	UPROPERTY(EditAnywhere, Category = State)
-	float maxHp = 2;
+	float maxHp = 20;
 
 	UPROPERTY(EditAnywhere, Category = State)
 	int stamina = 0;
@@ -142,8 +142,16 @@ public:
 
 	bool bisDamagedAnim;
 
-public:
 
+
+	
+	void DeadSpawnMonster();
+	
+public:
+	TArray<class ASpawnMonster*> Monsters;
+	
+	void SetMonster(ASpawnMonster * monster);
+	
 	void Dameged(float damge);
 	void EndState(EMisterNegativeState endState);
 	void StartState(EMisterNegativeState staertState);

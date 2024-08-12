@@ -10,6 +10,7 @@
 #include "../SpiderManProjectCharacter.h"
 #include "PSH/DemonAnim.h"
 #include "Components/CapsuleComponent.h"
+#include "PSH/SpawnMonster.h"
 
 
 // Sets default values for this component's properties
@@ -37,7 +38,7 @@ void UMisterNegativeFSM::BeginPlay()
 	}
 
 	FString mapName = UGameplayStatics::GetCurrentLevelName(GetWorld()); // 현재 맵 이름 가져오기
-	if (mapName == "SpiderWhitebox") // 1페이지 맵이면
+	if (mapName == "SpiderPhase1") // 1페이지 맵이면
 	{
 		bisNextStage = false;
 	}
@@ -256,6 +257,20 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 		}
 	}
 }
+
+void UMisterNegativeFSM::DeadSpawnMonster()
+{
+	for (int i = 0; i < Monsters.Num(); i++)
+	{
+		Monsters[i]->FSM->Die();
+	}
+}
+
+void UMisterNegativeFSM::SetMonster(ASpawnMonster* monster)
+{
+	Monsters.Add(monster);
+}
+
 void UMisterNegativeFSM::Dameged(float damge)
 {
 	curHp -= damge;
@@ -290,7 +305,16 @@ void UMisterNegativeFSM::Dameged(float damge)
 
 	if (curHp <= 0)
 	{
-		MisterAnim->DeadAnim();
+		curTime = 0;
+		if (bisNextStage)
+		{
+			MisterAnim->RealDeadAnim();
+			DeadSpawnMonster();
+		}
+		else
+		{
+			MisterAnim->DeadAnim();
+		}
 		SetState(EMisterNegativeState::Die);
 	}
 	else
@@ -302,25 +326,29 @@ void UMisterNegativeFSM::Dameged(float damge)
 
 void UMisterNegativeFSM::DieState() // 죽음
 {
+	
 	if (bisNextStage)
 	{
-		
-		MisterAnim->DeadAnim(); // 엔딩 UI 띄우기
+		curTime += GetWorld()->DeltaRealTimeSeconds;
+		if (curTime >= 5)
+		{
+			me->Ending();
+			curTime = 0;
+			me->Destroy();
+		}
 	}
 	else
 	{
-
-		
-		//	죽는 애니메이션 anim Last Notifiy =to Camera Shake and Fade Out
-		// 카메라 쉐이크 + 페이드 아웃
-		//
+		return;
 	}
+	
 }
 
 void UMisterNegativeFSM::GroggyState() // 스턴
 {
 	bisMaxPowerMode = false;
 	bisDamagedAnim = true;
+	me->SetUiVisble(true);
 }
 
 void UMisterNegativeFSM::Groggy_loopState()
@@ -339,6 +367,7 @@ void UMisterNegativeFSM::Groggy_loopState()
 		SetState(EMisterNegativeState::Move);
 		bisMaxPowerMode = true;
 		bisDamagedAnim = false;
+		me->SetUiVisble(false);
 		curTime = 0;
 	}
 }
@@ -398,13 +427,13 @@ void UMisterNegativeFSM::RandomAttackCheak2() // 데몬 페이즈 때 사용
 	case 1:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
 		me->Demon->SetRelativeLocation(FVector(-1, -1.9f, -7.6f));
-		me->Demon->SetRelativeRotation(FRotator(0, 0, 10));
+		/*me->Demon->SetRelativeRotation(FRotator(0, 0, 10));*/
 
 		break;
 	case 2:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
 		me->Demon->SetRelativeLocation(FVector(0, -1.9f, -2));
-		me->Demon->SetRelativeRotation(FRotator(0, 0, 0));
+		/*me->Demon->SetRelativeRotation(FRotator(0, 0, 0));*/
 		break;
 	default:
 		break;
@@ -507,8 +536,9 @@ void UMisterNegativeFSM::DemonAttack1_idleState()
 	Dir = TargetLoc - StartLoc; // 좌표에 방향
 	Dir.Normalize();
 
-	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
-	me->SetActorRotation(MeRotation);
+// 	MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
+// 	me->SetActorRotation(MeRotation);
+
 	dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
 	EndLoc = StartLoc + Dir * dist;
 	EndLoc.Z = StartLoc.Z;
@@ -564,8 +594,8 @@ void UMisterNegativeFSM::DemonAttack2_idleState()
 		Dir.Normalize();
 
 		//MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
-		MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
-		me->SetActorRotation(MeRotation);
+// 		MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir);
+// 		me->SetActorRotation(MeRotation);
 
 		dist = FVector::Dist(StartLoc, TargetLoc); // 돌진 최종 위치
 		EndLoc = StartLoc + Dir * dist;

@@ -27,6 +27,8 @@ public:
 	EMisterNegativeState AnimState;
 
 	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage* RealDead;
+	UPROPERTY(EditDefaultsOnly)
 	class UAnimMontage* Dead;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -35,6 +37,7 @@ public:
 	void HitAnim();
 
 	void DeadAnim();
+	void RealDeadAnim();
 
 	UFUNCTION()
 	void AnimNotify_SpawnLightning();
