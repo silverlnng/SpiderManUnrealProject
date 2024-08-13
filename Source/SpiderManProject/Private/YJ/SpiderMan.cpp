@@ -25,6 +25,7 @@
 #include "YJ/SpiderFSMComponent.h"
 #include "YJ/SpiderManAnimInstance.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Kismet/KismetStringLibrary.h"
 #include "PSH/MisterNegative.h"
 #include "PSH/MisterNegativeFSM.h"
 #include "PSH/SpawnMonster.h"
@@ -191,6 +192,12 @@ void ASpiderMan::Tick(float DeltaTime)
 	}
 	
 	camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
+
+	FString text = UKismetStringLibrary::Conv_BoolToString(bCanAirAttackStart);
+	FString append = UKismetStringLibrary::Concat_StrStr(text,TEXT("bCanAirAttackStart"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, append);
+
+
 }
 
 #pragma region BasicMove
@@ -1156,8 +1163,10 @@ void ASpiderMan::AirAttackTriggerCheck()
 				
 				// 에어콤보를 시작하기
 				bCanAirAttackStart = true;
-				LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
+				this->LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
 				GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+				this->GetCharacterMovement()->GravityScale=0.f;
+				
 			}
 			if (SpawnMonster)
 			{
@@ -1176,14 +1185,12 @@ void ASpiderMan::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	IsAttacking = false;
 	AttackEndComboState();
-	/*if(GetCharacterMovement()->MovementMode == MOVE_Flying)
-	{
-		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	}*/
-	/*if(bCanAirAttackStart)
+	if(bCanAirAttackStart)
 	{
 		bCanAirAttackStart=false;
-	}*/
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		this->GetCharacterMovement()->GravityScale =1.75f;
+	}
 }
 
 void ASpiderMan::AttackStartComboState() //공격 시작할때 속성 설정
