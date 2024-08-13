@@ -1032,6 +1032,7 @@ void ASpiderMan::AirComboAttack()
 void ASpiderMan::AirComboAttackEnded()
 {
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	bCanAirAttackStart=false;
 	//GetCharacterMovement()->GravityScale =1.75f;
 }
 
@@ -1146,11 +1147,13 @@ void ASpiderMan::AirAttackTriggerCheck()
 			if (MisterNegative)
 			{
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
-				NegativeFSM->Dameged(1);
-				NegativeFSM->GroggyState();
-				NegativeFSM->Groggy_loopState();
+				//NegativeFSM->Dameged(1);
+				NegativeFSM->SetState(EMisterNegativeState::Groggy);
+				
 				// 적을 공중에 띄우고 -> 중력 0으로 해야 안떨어질듯 ??
-				MisterNegative->LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
+				MisterNegative->LaunchCharacter(GetActorUpVector() * 350.f, false, true);
+				// 캐릭터와 부딪히면서 앞으로 이동도 하게됨.
+				
 				// 에어콤보를 시작하기
 				bCanAirAttackStart = true;
 				LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
@@ -1173,14 +1176,14 @@ void ASpiderMan::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	IsAttacking = false;
 	AttackEndComboState();
-	if(GetCharacterMovement()->MovementMode == MOVE_Flying)
+	/*if(GetCharacterMovement()->MovementMode == MOVE_Flying)
 	{
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	}
-	if(bCanAirAttackStart)
+	}*/
+	/*if(bCanAirAttackStart)
 	{
 		bCanAirAttackStart=false;
-	}
+	}*/
 }
 
 void ASpiderMan::AttackStartComboState() //공격 시작할때 속성 설정

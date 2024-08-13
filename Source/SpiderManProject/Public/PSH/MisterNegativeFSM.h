@@ -72,7 +72,7 @@ private:
 
 	float curTime =0;
 
-	float AttackDelayTime = 5;
+	float AttackDelayTime = 100;
 
 	int curPage = 0;
 

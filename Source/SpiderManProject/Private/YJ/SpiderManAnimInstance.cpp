@@ -145,7 +145,14 @@ void USpiderManAnimInstance::PlayAirAttackMontage()
 
 void USpiderManAnimInstance::JumpToAttackMontageSection(int32 NewSection)
 {
-	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), ComboAttackMontage);
+	if (Me->bCanAirAttackStart)
+	{
+		Montage_JumpToSection(GetAttackMontageSectionName(NewSection), AirComboAttackMontage);
+	}
+	else
+	{
+		Montage_JumpToSection(GetAttackMontageSectionName(NewSection), ComboAttackMontage);
+	}
 	
 	// 애니메이션 몽타주의  해당 세션으로 바로 플레이하는 내부함수 
 }
@@ -173,7 +180,7 @@ void USpiderManAnimInstance::AnimNotify_AirAttackTriggerCheck()
 
 void USpiderManAnimInstance::AnimNotify_AirComboAttackEnded()
 {
-	OnAirAttackTriggerCheck.Broadcast();
+	OnAirAttackEnded.Broadcast();
 }
 
 void USpiderManAnimInstance::AnimNotify_DropKickEnded()

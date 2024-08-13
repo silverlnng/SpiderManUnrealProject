@@ -11,6 +11,7 @@
 #include "PSH/DemonAnim.h"
 #include "Components/CapsuleComponent.h"
 #include "PSH/SpawnMonster.h"
+#include "PSH/SpawnMonsterFSM.h"
 
 
 // Sets default values for this component's properties
@@ -216,7 +217,7 @@ void UMisterNegativeFSM::evasionState() // 회피
 void UMisterNegativeFSM::DamageState() // 맞았을때
 {
 
-	curTime += GetWorld()->DeltaTimeSeconds;
+	//curTime += GetWorld()->DeltaTimeSeconds;
 	
 	UE_LOG(LogTemp, Warning, TEXT("DamageState"));
 	if (bisMaxPowerMode) // 그로기 x 상태
@@ -367,7 +368,7 @@ void UMisterNegativeFSM::GroggyState() // 스턴
 void UMisterNegativeFSM::Groggy_loopState()
 {
 	curTime += GetWorld()->DeltaTimeSeconds;
-	if (curTime >= 10)
+	if (curTime >= 100.f)
 	{
 		StartLoc = me->GetActorLocation();
 		TargetLoc = worldCenter; // 월드 가운데를 타겟으로 지정
