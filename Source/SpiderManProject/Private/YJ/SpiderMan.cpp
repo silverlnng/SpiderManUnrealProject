@@ -16,15 +16,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "PhysicsEngine/PhysicsConstraintActor.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
-#include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "YJ/Cable.h"
 #include "YJ/PhyConstraintActor.h"
 #include "YJ/PointActor.h"
 #include "YJ/SpiderFSMComponent.h"
 #include "YJ/SpiderManAnimInstance.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Components/ArrowComponent.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "PSH/MisterNegative.h"
 #include "PSH/MisterNegativeFSM.h"
@@ -76,7 +75,9 @@ ASpiderMan::ASpiderMan()
 	
 	FSMComp = CreateDefaultSubobject<USpiderFSMComponent>(TEXT("FSMComp"));
 
-	PhysicsHandle = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandle"));
+	ArrowComp = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComp"));
+
+	ArrowComp->SetupAttachment(RootComponent);
 
 	IsAttacking = false;
 	MaxCombo = 4;
@@ -128,9 +129,6 @@ void ASpiderMan::BeginPlay()
 	EndPointActor =GetWorld()->SpawnActor<APointActor>(BP_EndPoint);
 	
 	
-
-	//피직스 핸들을 만들고 항상 나의 위치에 오도록 만든다
-	PhysicsHandle->SetTargetLocation(GetActorLocation());
 
 	CableComp->SetVisibility(false);
 
@@ -575,16 +573,18 @@ void ASpiderMan::DetectWall(FVector Direction)
 	FHitResult OutHit;
 	FVector Start = GetActorLocation();
 	FVector End = Start + Direction * DetectTraceLength;
-
-	ECollisionChannel TraceChannel = ECC_Visibility; 
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, TraceChannel, Params);
-	//허공
-	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Red : FColor::Green, false, 1);
 	
-	if (bHit)
+	//Params.AddIgnoredActor(Me);
+	
+	bool bResult = GetWorld()->SweepSingleByChannel(
+		OutHit,
+		GetActorLocation(),
+		GetActorLocation() + GetActorForwardVector() * DetectTraceLength,
+		FQuat::Identity,
+		ECollisionChannel::ECC_Visibility,
+		FCollisionShape::MakeSphere(AttackRadius));
+	
+	if (bResult)
 	{
 		//OutHit 결과물이 Wall , boss
 		if(OutHit.GetActor()->ActorHasTag(TEXT("Wall")) || OutHit.GetActor()->ActorHasTag(TEXT("Boss")) )
@@ -593,6 +593,7 @@ void ASpiderMan::DetectWall(FVector Direction)
 			DetctedWall=true;
 			hooked =false;
 			CableActor->CableComp->SetVisibility(false);
+			this->GetCharacterMovement()->StopMovementImmediately();
 			if(FSMComp)
 			{
 				FSMComp->SetState(EState::IDLE);
@@ -602,16 +603,11 @@ void ASpiderMan::DetectWall(FVector Direction)
 			// 속도도 느리게
 			// 클라이밍 되도록 만들기
 		}
-		
-		
-		
 	}
 	else
 	{
 		DetctedWall = false;
 	}
-
-	
 }
 
 void ASpiderMan::ClimbingMode()
@@ -980,8 +976,9 @@ void ASpiderMan::Damaged(float value)
 	//Damage 애니 실행
 	SpiderManAnim->PlayDamagedMontage();
 	// 콤보공격 멈추고 초기화
-	
+	FSMComp->SetState(EState::IDLE);
 	AttackEndComboState();
+	
 	UE_LOG(LogTemp,Warning, TEXT("Spider Damaged, curHP : %f"), CurHP);
 }
 
@@ -1012,7 +1009,7 @@ void ASpiderMan::ComboAttack()
 	}
 	else // 에어콤보 가능
 	{
-		if (IsAttacking) // 공격이 진행중에 들어온 입력이라면  
+		if (IsAirAttacking) // 공격이 진행중에 들어온 입력이라면  
 		{
 			if (CanNextCombo)
 			{
@@ -1024,7 +1021,7 @@ void ASpiderMan::ComboAttack()
 			AttackStartComboState();
 			SpiderManAnim->PlayAirAttackMontage();
 			SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
-			IsAttacking = true;
+			IsAirAttacking = true;
 		}
 	}
 }
@@ -1164,8 +1161,15 @@ void ASpiderMan::AirAttackTriggerCheck()
 				// 에어콤보를 시작하기
 				bCanAirAttackStart = true;
 				this->LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
-				GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-				this->GetCharacterMovement()->GravityScale=0.f;
+				
+				FTimerHandle timerHandle;
+				GetWorld()->GetTimerManager().SetTimer(timerHandle,([this]()
+				{
+					this->GetCharacterMovement()->StopMovementImmediately();
+					this->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+				}),0.2f,false);
+				
+				//this->GetCharacterMovement()->GravityScale=0.f;
 				
 			}
 			if (SpawnMonster)
@@ -1185,11 +1189,13 @@ void ASpiderMan::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	IsAttacking = false;
 	AttackEndComboState();
-	if(bCanAirAttackStart)
+
+	if(IsAirAttacking)
 	{
 		bCanAirAttackStart=false;
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-		this->GetCharacterMovement()->GravityScale =1.75f;
+		//this->GetCharacterMovement()->GravityScale =1.75f;
+		IsAirAttacking=false;
 	}
 }
 

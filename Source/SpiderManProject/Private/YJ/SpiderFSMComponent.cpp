@@ -67,7 +67,6 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 {
 	//Me 를 타겟점으로 lerp하게 이동 => 이렇게 하는동안 은 중력영향안받게
 	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime*5.f);
-	Me->GetCharacterMovement()->GravityScale =0.1f;
 	Me->SetActorLocation(CurrentLocation);
 	float dist = FVector::Dist(Me->GetActorLocation(),Me->DoubleTargetVector);
 
@@ -75,7 +74,14 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	Me->CableActor->CableComp->CableLength = length - 500;
 
 	//다 도착하면 idle으로 다시 => 그냥 시간이 지나면 idle상태로 돌아가도록
+	FVector start = Me->GetActorLocation();
+	FVector end = BossEnemy->GetActorLocation();
+	
+	FRotator rot = UKismetMathLibrary::FindLookAtRotation(start,end);
 
+	FRotator interpRot = UKismetMathLibrary::RInterpTo_Constant(Me->GetActorRotation(),rot,DeltaTime,100.f);
+	FRotator newRot = FRotator(0,interpRot.Yaw,0);
+	Me->SetActorRotation(newRot);
 	
 	FTimerHandle TimerHandle0;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle0,([this]()->void
@@ -87,12 +93,12 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle1,([this]()->void
 	{
 		IdleState();
-	}),0.3f,false);
+	}),1.0f,false);
 	
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle,([this]()->void
 	{
-		State=EState::IDLE;
+		SetState(EState::IDLE);
 	
 	}),1.0f,false);
 	
@@ -144,7 +150,6 @@ void USpiderFSMComponent::SetState(EState NextState)
 void USpiderFSMComponent::IdleState()
 {
 	//IdleState 가 될때 한번만 실행할 것들.
-	Me->GetCharacterMovement()->GravityScale=1.75f;
 	Me->CableActor->CableComp->SetVisibility(false);
 }
 
