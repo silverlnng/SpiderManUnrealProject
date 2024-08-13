@@ -72,7 +72,7 @@ private:
 
 	float curTime =0;
 
-	float AttackDelayTime = 100;
+	
 
 	int curPage = 0;
 
@@ -157,4 +157,13 @@ public:
 	void EndState(EMisterNegativeState endState);
 	void StartState(EMisterNegativeState staertState);
 	void beforebeforeState(EMisterNegativeState currentState);
+
+	UPROPERTY(EditAnywhere, Category = Test)
+	float AttackDelayTime = 5;
+
+	UPROPERTY(EditAnywhere, Category = Test)
+	bool bisTest;
+
+	UPROPERTY(EditAnywhere, Category = Test)
+	float GroggyTime = 10;
 };

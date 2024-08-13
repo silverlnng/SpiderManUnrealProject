@@ -27,7 +27,10 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
+	UPROPERTY(EditAnywhere)
+	class UMisterNegativeFSM* MisterFSM;
 	
+
 	void SpawnLightning(); // LightningAttack Spawn
 	void SpawnSpin(); // SpinAttack Spawn
 	void SpawnCharging(); // ChargingAttack Spawn
@@ -40,8 +43,6 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	class USkeletalMeshComponent * Sword;
-	UPROPERTY(EditAnywhere)
-	class UMisterNegativeFSM * MisterFSM;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AActor>  Lightning;
