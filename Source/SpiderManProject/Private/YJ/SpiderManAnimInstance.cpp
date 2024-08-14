@@ -188,6 +188,11 @@ void USpiderManAnimInstance::AnimNotify_DropKickEnded()
 	DoubleJumpEnded =false;
 }
 
+void USpiderManAnimInstance::AnimNotify_GrabWebEnded()
+{
+	Me->FSMComp->SetState(EState::DoubleJump);
+}
+
 void USpiderManAnimInstance::PlayDamagedMontage()
 {
 	if(IsAnyMontagePlaying())

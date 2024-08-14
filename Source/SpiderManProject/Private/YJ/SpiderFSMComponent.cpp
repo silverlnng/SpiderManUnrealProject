@@ -65,15 +65,7 @@ void USpiderFSMComponent::TickIdle(const float& DeltaTime)
 
 void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 {
-	//Me 를 타겟점으로 lerp하게 이동 => 이렇게 하는동안 은 중력영향안받게
-	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime*5.f);
-	Me->SetActorLocation(CurrentLocation);
-	float dist = FVector::Dist(Me->GetActorLocation(),Me->DoubleTargetVector);
-
-	float length = (Me->GetActorLocation() - Me->DoubleTargetVector).Size();
-	Me->CableActor->CableComp->CableLength = length - 500;
-
-	//다 도착하면 idle으로 다시 => 그냥 시간이 지나면 idle상태로 돌아가도록
+	//회전
 	FVector start = Me->GetActorLocation();
 	FVector end = BossEnemy->GetActorLocation();
 	
@@ -82,6 +74,21 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	FRotator interpRot = UKismetMathLibrary::RInterpTo_Constant(Me->GetActorRotation(),rot,DeltaTime,100.f);
 	FRotator newRot = FRotator(0,interpRot.Yaw,0);
 	Me->SetActorRotation(newRot);
+
+	// 이동하기 전에 줄을 당기는 애니메이션 실행
+	
+
+	// 애니메이션 실행을 다끝내는 신호 받고 
+		// Me 를 타겟점으로 lerp하게 이동 
+	FVector CurrentLocation = FMath::Lerp(Me->GetActorLocation(), Me->DoubleTargetVector, DeltaTime*5.f);
+	Me->SetActorLocation(CurrentLocation);
+	float dist = FVector::Dist(Me->GetActorLocation(),Me->DoubleTargetVector);
+
+	float length = (Me->GetActorLocation() - Me->DoubleTargetVector).Size();
+	Me->CableActor->CableComp->CableLength = length - 500;
+
+	//다 도착하면 idle으로 다시 => 그냥 시간이 지나면 idle상태로 돌아가도록
+	
 	
 	FTimerHandle TimerHandle0;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle0,([this]()->void

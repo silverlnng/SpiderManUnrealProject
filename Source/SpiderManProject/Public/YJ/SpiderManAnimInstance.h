@@ -110,8 +110,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DropKick");
 	bool DoubleJumpEnded =false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DropKick");
+	bool DoubleStarted =false;
+
 	UFUNCTION()
 	void AnimNotify_DropKickEnded();
+
+	UFUNCTION()
+	void AnimNotify_GrabWebEnded();
 
 /////////////// Dodge /////////////////////////////
 

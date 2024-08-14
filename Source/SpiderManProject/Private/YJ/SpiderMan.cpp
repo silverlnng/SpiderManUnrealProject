@@ -864,7 +864,7 @@ void ASpiderMan::DoubleJump()
 		// 
 		// 나의 앞방향으로 ray 발사 그지점으로 내가 앞으로 쭉 lerp 이동 
 
-	if(FSMComp->LevelState == ELevelState::BOSSENEMY) //보스에게 
+	if(FSMComp->LevelState == ELevelState::BOSSENEMY) //보스가 있는 state
 	{
 		CableActor->CableComp->SetVisibility(true);
 
@@ -878,12 +878,10 @@ void ASpiderMan::DoubleJump()
 		//끝점(EndPointActor)의 component를 메쉬의 끝점
 		CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
 
-		//lerp이동 처리를 여기서 하기
-		if(FSMComp)
-		{
-			FSMComp->SetState(EState::DoubleJump);
-		}
-
+			// 애니메이션을 실행시키고 , 애니메이션이 끝날떄 상태를 SetState(EState::DoubleJump) 으로 
+				//lerp이동 처리를 fsm 에서 
+		SpiderManAnim->DoubleStarted = true;
+		
 	
 	}
 	else // 보스에네미 상태가 아닐때 
@@ -1151,8 +1149,8 @@ void ASpiderMan::AirAttackTriggerCheck()
 			if (MisterNegative)
 			{
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
-				//NegativeFSM->Dameged(1);
-				NegativeFSM->SetState(EMisterNegativeState::Groggy);
+				NegativeFSM->Dameged(1);
+				//NegativeFSM->SetState(EMisterNegativeState::Groggy);
 				
 				// 적을 공중에 띄우고 -> 중력 0으로 해야 안떨어질듯 ??
 				MisterNegative->LaunchCharacter(GetActorUpVector() * 350.f, false, true);
