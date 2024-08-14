@@ -66,62 +66,6 @@ void USpiderManAnimInstance::AnimNotify_SpiderAnimEnd()
 	
 }
 
-void USpiderManAnimInstance::AnimNotify_SpiderAttack_Start()
-{
-	USkeletalMeshComponent* SkeletalMeshComp =Me-> FindComponentByClass<USkeletalMeshComponent>();
-
-	// 손 본 이름을 설정합니다.
-	FName HandBoneName_R = TEXT("hand_r");
-	//FVector HandLocation_R = SkeletalMeshComp->GetBoneLocation(HandBoneName_R,EBoneSpaces::WorldSpace);
-	FVector HandLocation_R = SkeletalMeshComp->GetSocketLocation(FName("hand_rSocket"));
-	//
-	
-	FHitResult HitResult_Hand_R;
-	
-	FCollisionQueryParams Params;
-	//Params.AddIgnoredActor(Me);
-	
-	bool bResult = GetWorld()->SweepSingleByChannel(
-		HitResult_Hand_R,
-		Me->GetActorLocation(),
-		Me->GetActorLocation() + Me->GetActorForwardVector() * AttackRange,
-		FQuat::Identity,
-		ECollisionChannel::ECC_Visibility,
-		FCollisionShape::MakeSphere(AttackRadius),
-		Params);
-
-#if ENABLE_DRAW_DEBUG
-	FVector TraceVec = Me-> GetActorForwardVector() * AttackRange;
-	FVector Center = Me->GetActorLocation() + TraceVec * 0.5f;
-	float HalfHeight = AttackRange * 0.5f + AttackRadius;
-	FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVec).ToQuat();
-	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
-	float DebugLifeTime = 5.0f;
-
-	DrawDebugCapsule(GetWorld(),
-		Center,
-		HalfHeight,
-		AttackRadius,
-		CapsuleRot,
-		DrawColor,
-		false,
-		DebugLifeTime);
-
-#endif
-	if (bResult) {
-		if (::IsValid(HitResult_Hand_R.GetActor()))
-		{
-			UE_LOG(LogTemp,Warning, TEXT("Hit Actor Name : %s"), *HitResult_Hand_R.GetActor()->GetName());
-			AMisterNegative* MisterNegative = Cast<AMisterNegative>(HitResult_Hand_R.GetActor());
-			if(MisterNegative)
-			{
-				
-				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
-				NegativeFSM->Dameged(1, 1, 1000, MisterNegative->GetActorForwardVector() * -1);
-			}
-		}
-	}
-}
 
 
 #pragma region ComboAttack

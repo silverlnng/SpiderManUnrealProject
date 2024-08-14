@@ -61,8 +61,7 @@ public:
 
 	UFUNCTION()
 	void AnimNotify_SpiderAnimEnd();
-	UFUNCTION()
-	void AnimNotify_SpiderAttack_Start();
+	
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
 	float AttackRange =50.f ;

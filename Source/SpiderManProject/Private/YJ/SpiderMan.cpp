@@ -354,7 +354,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 		StartPointActor->SetActorLocation(hookPoint);
 
-		this->LaunchCharacter(GetActorUpVector()*1000.f,false,false);
+		this->LaunchCharacter(GetActorUpVector()*2000.f,false,true);
 
 		FTimerHandle Timer2;
 		GetWorld()->GetTimerManager().SetTimer(Timer2, ([this]()-> void
@@ -392,6 +392,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 			this->GetCapsuleComponent()->SetCapsuleRadius(1);
 			this->GetCapsuleComponent()->SetCapsuleHalfHeight(1);
+			this->GetMesh()->SetRelativeLocation(FVector(0, 0, -200.f));
 			FSMComp->SetState(EState::SWING);
 		}), 0.3f, false);
 
@@ -552,6 +553,7 @@ void ASpiderMan::CompletedHook()
 	EndPointActor->meshComp->SetRelativeLocation(FVector(0, 0, 0));
 	this->GetCapsuleComponent()->SetCapsuleHalfHeight(90);
 	this->GetCapsuleComponent()->SetCapsuleRadius(35);
+	this->GetMesh()->SetRelativeLocation(FVector(0, 0, -90.f));
 	FSMComp->SetState(EState::IDLE);
 	FSMComp->IdleState();
 	GetWorldTimerManager().ClearTimer(addforceTimer);
@@ -1087,7 +1089,12 @@ void ASpiderMan::ComboAttackCheck()
 			{
 				
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
+				//여기서 콤보공격 넘버 보내서 -조금씩 다른 애니메이션 실행되도록 하기
+				
 				NegativeFSM->Dameged(1,1,1000, MisterNegative->GetActorForwardVector()*-1);
+				//NegativeFSM->Dameged(1,1,1000, MisterNegative->GetActorForwardVector()*-1);
+
+				
 			}
 			if(SpawnMonster)
 			{
