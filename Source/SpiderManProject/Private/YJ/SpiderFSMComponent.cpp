@@ -47,6 +47,9 @@ void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	//위치에 문자 띄우기
 	DrawDebugString(GetWorld(),GetOwner()->GetActorLocation(),mystate, nullptr,FColor::Yellow,0,true);*/
 	// ...
+
+	//거리좀 출력하고싶다
+	
 	switch ( State )
 	{
 	case EState::IDLE:		TickIdle(DeltaTime);		break;
@@ -90,6 +93,7 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	//다 도착하면 idle으로 다시 => 그냥 시간이 지나면 idle상태로 돌아가도록
 	
 	
+	/*
 	FTimerHandle TimerHandle0;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle0,([this]()->void
 	{
@@ -107,13 +111,14 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	{
 		SetState(EState::IDLE);
 	
-	}),1.0f,false);
+	}),1.0f,false);*/
 	
-	/*if(dist<=30.f)
+	if(dist<=200.f)
 	{
-		State=EState::IDLE;
+		Me->GetCharacterMovement()->StopMovementImmediately();
+		SetState(EState::IDLE);
 		IdleState();
-	}*/
+	}
 	
 }
 

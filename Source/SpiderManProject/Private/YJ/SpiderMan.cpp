@@ -194,7 +194,7 @@ void ASpiderMan::Tick(float DeltaTime)
 	FString text = UKismetStringLibrary::Conv_BoolToString(bCanAirAttackStart);
 	FString append = UKismetStringLibrary::Concat_StrStr(text,TEXT("bCanAirAttackStart"));
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, append);
-
+	
 
 }
 
@@ -866,6 +866,8 @@ void ASpiderMan::DoubleJump()
 
 	if(FSMComp->LevelState == ELevelState::BOSSENEMY) //보스가 있는 state
 	{
+		SpiderManAnim->DoubleJumpEnded =false; // 다시 초기화
+		
 		CableActor->CableComp->SetVisibility(true);
 
 		DoubleTargetVector=BossEnemy->GetActorLocation();

@@ -185,11 +185,13 @@ void USpiderManAnimInstance::AnimNotify_AirComboAttackEnded()
 
 void USpiderManAnimInstance::AnimNotify_DropKickEnded()
 {
-	DoubleJumpEnded =false;
+	DoubleJumpEnded =true;
+	Me->FSMComp->SetState(EState::IDLE);
 }
 
 void USpiderManAnimInstance::AnimNotify_GrabWebEnded()
 {
+	DoubleStarted =false;
 	Me->FSMComp->SetState(EState::DoubleJump);
 }
 

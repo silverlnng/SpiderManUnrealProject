@@ -103,7 +103,7 @@ public:
 	void AnimNotify_AirAttackTriggerCheck();
 	void AnimNotify_AirComboAttackEnded();
 
-	////////////////// DropKick //////////////////////////	
+///////////////////// DropKick //////////////////////////	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DropKick");
 	class UAnimMontage* DoubleJumpAttackMontage;
 	
