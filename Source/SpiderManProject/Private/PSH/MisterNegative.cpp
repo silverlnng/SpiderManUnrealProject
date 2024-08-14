@@ -127,7 +127,6 @@ void AMisterNegative::Tick(float DeltaTime)
 	dir.Normalize();
 
 	FRotator rot = dir.ToOrientationRotator(); // 현재의 벡터가 향한 방향을 로테이션으로 반환
-
 	SturnUi->SetWorldRotation(rot);
 	
 }
@@ -167,7 +166,7 @@ void AMisterNegative::SwordNiagaraVisible(bool chek)
 	Naiagara->SetVisibility(chek);
 }
 
-void AMisterNegative::SetMeshVisible(bool chek)
+void AMisterNegative::SetDemonMeshVisible(bool chek)
 {
 	Sword->SetVisibility(!chek);
 	Demon->SetVisibility(chek);

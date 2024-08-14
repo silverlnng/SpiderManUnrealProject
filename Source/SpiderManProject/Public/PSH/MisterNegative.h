@@ -75,7 +75,7 @@ public:
 
 	void SwordNiagaraVisible(bool chek);
 
-	void SetMeshVisible(bool chek);
+	void SetDemonMeshVisible(bool chek);
 
 	void NextFadeIn();
 
@@ -93,11 +93,13 @@ public:
 
 	void Ending();
 
-	void SetUiVisble(bool chek);
+	void SetUiVisble(bool chek); // SturnUi visible
+
 	float dissolveAnimValue;
 
 	bool bisDissolve;
-	bool bisDemonAttack;
+
+	bool bisDemonAttack; // Up 애니메이션 재생
 private:
 	
 	UFUNCTION()
