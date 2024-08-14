@@ -13,7 +13,7 @@ ASh_SpinActor::ASh_SpinActor()
 
 	col = CreateDefaultSubobject<UBoxComponent>(TEXT("Col"));
 	SetRootComponent(col);
-	col->SetBoxExtent(FVector(20,150,20));
+	col->SetBoxExtent(FVector(25,230,20));
 	col->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));

@@ -16,8 +16,7 @@ ASh_ChargingActor::ASh_ChargingActor()
 
 	col = CreateDefaultSubobject<UBoxComponent>(TEXT("Col"));
 	SetRootComponent(col);
-	col->SetBoxExtent(FVector(30, 300
-	, 40));
+	col->SetBoxExtent(FVector(30, 700, 40));
 	col->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));

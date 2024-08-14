@@ -1082,7 +1082,7 @@ void ASpiderMan::ComboAttackCheck()
 			{
 				
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
-				NegativeFSM->Dameged(1);
+				NegativeFSM->Dameged(1,1,1000, MisterNegative->GetActorForwardVector()*-1);
 			}
 			if(SpawnMonster)
 			{
@@ -1146,9 +1146,7 @@ void ASpiderMan::AirAttackTriggerCheck()
 			if (MisterNegative)
 			{
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
-				NegativeFSM->Dameged(1);
-				NegativeFSM->GroggyState();
-				NegativeFSM->Groggy_loopState();
+				NegativeFSM->Dameged(1, 1, 1000, MisterNegative->GetActorForwardVector() * -1);
 				// 적을 공중에 띄우고 -> 중력 0으로 해야 안떨어질듯 ??
 				MisterNegative->LaunchCharacter(GetActorUpVector() * 1000.f, false, false);
 				// 에어콤보를 시작하기

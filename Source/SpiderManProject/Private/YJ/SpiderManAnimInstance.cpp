@@ -117,7 +117,7 @@ void USpiderManAnimInstance::AnimNotify_SpiderAttack_Start()
 			{
 				
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
-				NegativeFSM->Dameged(1);
+				NegativeFSM->Dameged(1, 1, 1000, MisterNegative->GetActorForwardVector() * -1);
 			}
 		}
 	}

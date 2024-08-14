@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Containers/EnumAsByte.h"
 #include "MisterNegativeFSM.generated.h"
 
 
@@ -12,23 +13,32 @@ enum class EMisterNegativeState : uint8
 {
 	Idle,
 	Move,
+	
 	Damage,
-	Groggy, 
-	Groggy_loop, 
-	Attack,
 	evasion, 
 	Die,
+
+	Groggy, 
+	Groggy_loop, 
+	Groggy_end,
+
+	Attack,
+
 	LightningAttack,
-	LightningstepAttack,
-	LightningstepAttack_Idle,
-	LightningstepAttack_Attack,
+
+	stepAttack_Idle,
+	stepAttack_Attack,
+
 	SpinAttack_idle,
 	SpinAttack_Attack,
+	
 	ChargingAttack_idle,
 	ChargingAttack_Attack,
+	
 	DemonAttack1_idle,
 	DemonAttack1_Move,
 	DemonAttack1_Attack,
+	
 	DemonAttack2_idle,
 	DemonAttack2_Move,
 	DemonAttack2_Attack,
@@ -51,113 +61,83 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY()
-	EMisterNegativeState State = EMisterNegativeState::Idle;
-	UPROPERTY()
-	EMisterNegativeState curState = EMisterNegativeState::Idle;
-
-// 	UPROPERTY()
-// 	class ASpiderMan* Target;
-	UPROPERTY()
-	class ASpiderMan* Target;
-
+	float curTime = 0;
+public: // 기본 퍼블릭 변수
+// 애니메이션
 	UPROPERTY()
 	class UMisterNegativeAnim* MisterAnim;
+
 	UPROPERTY()
 	class UDemonAnim* DemonAnim;
 
 	UPROPERTY()
 	class AMisterNegative* me;
-private:
 
-	float curTime =0;
+	UPROPERTY()
+	class ASpiderMan* Target;
 
-	
-
-	int curPage = 0;
-
-	FVector Dir;
-	FVector TargetLoc;
-	FVector StartLoc;
-	FVector CurLoc;
-	FVector EndLoc;
-	FVector MeLoc;
-	FRotator MeRotation;
-	
-	float curHp = maxHp;
-	
-	float dist;
-	float Alpha = 0;
-
-	void idleState();
-	void MoveState();
-	void DamageState();
-public:	
-	void GroggyState();// 
-	void Groggy_loopState();// 
-	void AttackState();
-	void evasionState();// ȸ��
-	void DieState();
-
-	void RandomAttackCheak1();
-	void RandomAttackCheak2();
-
-	void LightningAttackState();
-
-	void LightningStepAttackState();
-	void LightningstepAttack_IdleState();
-	void LightningStepAttackState_stepAttackState();
-
-	void SpinAttackState_IdleState();
-	void SpinAttackState_AttackState();
-	void ChargingAttack_IdleState();
-	void ChargingAttack_AttackState();
-
-	void DemonAttack1_idleState();
-	void DemonAttack1_MoveState();
-	void DemonAttack1_AttackState();
-
-	void DemonAttack2_idleState();
-	void DemonAttack2_MoveState();
-	void DemonAttack2_AttackState();
-		
-	
-	void SetState(EMisterNegativeState NewState);
-
+// 상태 변수
 	UPROPERTY(EditAnywhere, Category = State)
 	float maxHp = 20;
+	UPROPERTY(EditAnywhere, Category = State)
+	float GrggyHitTime = 1;
 
 	UPROPERTY(EditAnywhere, Category = State)
 	int stamina = 0;
 
 	UPROPERTY(EditAnywhere, Category = State)
-	bool bisNextStage = false;
+	bool bisNextStage = false; // 페이즈 구별 불값
 
-	bool bisMaxPowerMode = true;
+	bool bisGroggy; // Grrogy 중인지
+	bool bisAttack; // Attack 중인지
+	bool bisMaxPower; // 회피 상태를 들어가는 조건
 
-	int hitcount = 0;
+	// 데몬 매쉬 이동값
 	FVector demonMeshLocation;
+
+// 기본 보안 변수
+private:
+	float curHp = maxHp;
+
+	// 소환
+
+public:
+	TArray<class ASpawnMonster*> Monsters;
+	void SetMonster(ASpawnMonster* monster);
+	void DeadSpawnMonster();
+	void DeleteMonster(ASpawnMonster* monster);
+
+private:
+	// 이동
+	void GoForMove(float Time , EMisterNegativeState BeforState);
+	
+	void SetLocation(FVector TargetLocation);
+
 
 	FVector worldCenter; // �� �߾� ��ǥ
 
-	bool bisDamagedAnim;
+	FVector TargetLoc;
+	FVector MeLoc;
+	FVector Dir;
+	FVector StartLoc;
+	FVector CurLoc;
+	FVector EndLoc;
 
+	FRotator MeRotation;
 
-
+	float dist;
+	float Alpha = 0;
 	
-	void DeadSpawnMonster();
+		
+public: // 피격
+
+	int hitcount = 0;
+	void Dameged(float damge, int MontageNum, float LaunchPower, FVector Dirction);
 	
+
+// 테스트 변수
+
 public:
-	TArray<class ASpawnMonster*> Monsters;
-	
-	void SetMonster(ASpawnMonster * monster);
-	void DeleteMonster(ASpawnMonster * monster);
-	
-	void Dameged(float damge);
-	void EndState(EMisterNegativeState endState);
-	void StartState(EMisterNegativeState staertState);
-	void beforebeforeState(EMisterNegativeState currentState);
-
 	UPROPERTY(EditAnywhere, Category = Test)
 	float AttackDelayTime = 5;
 
@@ -165,5 +145,60 @@ public:
 	bool bisTest;
 
 	UPROPERTY(EditAnywhere, Category = Test)
-	float GroggyTime = 10;
+	float GroggyTime = 5;
+
+
+private: // 스테이트 관련 변수
+	UPROPERTY()
+	EMisterNegativeState State = EMisterNegativeState::Idle;
+
+	UPROPERTY()
+	EMisterNegativeState curState = EMisterNegativeState::Idle;
+
+	int curPage = 0;
+
+private: // 스테이트 관련 함수
+		void idleState();
+		void MoveState();
+
+		void DamageState();
+		void evasionState();//회피
+
+		void GroggyState();// 
+		void Groggy_loopState();// 
+		void Groggy_EndState();
+
+		void DieState();
+
+		void AttackState();
+	
+		void LightningAttackState();
+
+		void stepAttack_IdleState();
+		void StepAttackState_AttackState();
+
+		void SpinAttackState_IdleState();
+		void SpinAttackState_AttackState();
+
+		void ChargingAttack_IdleState();
+		void ChargingAttack_AttackState();
+
+		void DemonAttack1_idleState();
+		void DemonAttack1_MoveState();
+		void DemonAttack1_AttackState();
+
+		void DemonAttack2_idleState();
+		void DemonAttack2_MoveState();
+		void DemonAttack2_AttackState();
+
+		// 공격 체크
+		void RandomAttackCheak_1Page();
+		void RandomAttackCheak_1To2Page();
+		void RandomAttackCheak_2Page();
+
+public:
+		// 스테이트 전환
+		void SetState(EMisterNegativeState NewState);
+		void EndState(EMisterNegativeState endState);
+		void StartState(EMisterNegativeState startState);
 };
