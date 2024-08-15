@@ -344,6 +344,14 @@ public:
 	TSubclassOf<class USpiderInGameWidget> PlayerHPWidgetFactory;
 	UPROPERTY()
 	class USpiderInGameWidget* PlayerHPUI;
-	
-	
+
+///////////Sound /////////////////
+	UPROPERTY(EditDefaultsOnly)
+	class USoundBase * WebSound;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundBase * AttackHitSound;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundBase * AttackSound;
 };

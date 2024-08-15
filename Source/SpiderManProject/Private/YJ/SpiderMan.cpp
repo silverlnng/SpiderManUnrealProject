@@ -373,7 +373,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 		//보스를 찾아서 보스 위치 z 값만 올려서 hook point 잡기
 
-
+		UGameplayStatics::PlaySound2D(GetWorld(),WebSound);
 		hooked = true;
 
 		FVector BossPoint = BossEnemy->GetActorLocation();
@@ -986,7 +986,8 @@ void ASpiderMan::DoubleJump()
 			// 애니메이션을 실행시키고 , 애니메이션이 끝날떄 상태를 SetState(EState::DoubleJump) 으로 
 				//lerp이동 처리를 fsm 에서 
 		SpiderManAnim->DoubleStarted = true;
-		
+
+		UGameplayStatics::PlaySound2D(GetWorld(),WebSound);
 	
 	}
 	else // 보스에네미 상태가 아닐때 
@@ -1195,11 +1196,12 @@ void ASpiderMan::ComboAttackCheck()
 				
 				NegativeFSM->Dameged(1,CurrentCombo,1000, MisterNegative->GetActorForwardVector()*-1);
 				//NegativeFSM->Dameged(1,1,1000, MisterNegative->GetActorForwardVector()*-1);
-
+				UGameplayStatics::PlaySound2D(GetWorld(),AttackHitSound);
 				
 			}
 			if(SpawnMonster)
 			{
+				UGameplayStatics::PlaySound2D(GetWorld(),AttackHitSound);
 				auto SpawnMonsterFSM = SpawnMonster->GetComponentByClass<USpawnMonsterFSM>();
 
 				if(SpawnMonsterFSM)
@@ -1211,6 +1213,10 @@ void ASpiderMan::ComboAttackCheck()
 			
 		}
 		
+	}
+	else
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(),AttackSound);
 	}
 	
 }
