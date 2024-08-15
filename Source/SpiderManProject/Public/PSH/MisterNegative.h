@@ -60,7 +60,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UWidgetComponent * SturnUi;
 	UPROPERTY(EditAnywhere)
-	class UCapsuleComponent * demonCol;
+	class UCapsuleComponent * demonColL;
+	UPROPERTY(EditAnywhere)
+	class UCapsuleComponent * demonColR;
 	UPROPERTY(EditAnywhere)
 	class UCapsuleComponent * SwordCol;
 
@@ -75,15 +77,16 @@ public:
 
 	void SwordNiagaraVisible(bool chek);
 
-	void SetDemonMeshVisible(bool chek);
+	void SetSwordMeshVisible(bool chek);
 
 	void NextFadeIn();
 
 	void CameraShake();
 
 	void DissolveAnim();
+	void SetDissolveAnim();
 
-	void SetDissolveInit();
+	void SetDemonCollision(bool chek);
 	
 	void NextLevel();
 
@@ -95,9 +98,13 @@ public:
 
 	void SetUiVisble(bool chek); // SturnUi visible
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void Explosion();
+
 	float dissolveAnimValue;
 
-	bool bisDissolve;
+	bool bisDissolve = false;
+	bool bisSetDissolve = false;
 
 	bool bisDemonAttack; // Up 애니메이션 재생
 private:
@@ -106,6 +113,9 @@ private:
 	void SwordComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void DemonComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
+	void DemonRComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void DemonLComponentBeginOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex ,bool bFromSweep, const FHitResult& SweepResult);
 
 };

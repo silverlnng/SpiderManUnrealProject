@@ -12,6 +12,7 @@
 #include "PSH/FadeInOutUi.h"
 #include "PSH/NagetiveGameModeBase.h"
 #include "Components/WidgetComponent.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AMisterNegative::AMisterNegative()
@@ -74,12 +75,19 @@ AMisterNegative::AMisterNegative()
 		Demon->SetAnimInstanceClass(DemonAnimClass.Class);
 	}
 
-	demonCol = CreateDefaultSubobject<UCapsuleComponent>(TEXT("demonCol"));
-	demonCol->SetupAttachment(Demon,TEXT("arm-right-elbow"));
-	demonCol->SetRelativeLocationAndRotation(FVector(-0.4f,0.6,0.45f),FRotator(15,25,63.5));
-	demonCol->SetCollisionProfileName("NegativeWeapon");
-	demonCol->SetCapsuleRadius(0.45);
-	demonCol->SetCapsuleHalfHeight(3);
+	demonColR = CreateDefaultSubobject<UCapsuleComponent>(TEXT("demonRCol"));
+	demonColR->SetupAttachment(Demon,TEXT("arm-right-elbow"));
+	demonColR->SetRelativeLocationAndRotation(FVector(-0.4f,0.6,0.45f),FRotator(15,25,63.5));
+	demonColR->SetCollisionProfileName("NegativeWeapon");
+	demonColR->SetCapsuleRadius(0.45);
+	demonColR->SetCapsuleHalfHeight(3);
+
+	demonColL = CreateDefaultSubobject<UCapsuleComponent>(TEXT("demonLCol"));
+	demonColL->SetupAttachment(Demon,TEXT("arm-left-elbow"));
+	demonColL->SetRelativeLocationAndRotation(FVector(-0.2f,0.04f,0.2f),FRotator(0,0,63.5));
+	demonColL->SetCollisionProfileName("NegativeWeapon");
+	demonColL->SetCapsuleRadius(0.45);
+	demonColL->SetCapsuleHalfHeight(3);
 
 	Naiagara = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara"));
 	Naiagara->SetupAttachment(Sword);
@@ -95,7 +103,6 @@ void AMisterNegative::BeginPlay()
 {
 	Super::BeginPlay();
 	Naiagara->SetVisibility(false);
-	Demon->SetVisibility(false);
 
 	SetUiVisble(false);
 
@@ -103,9 +110,15 @@ void AMisterNegative::BeginPlay()
 	/*Gmb->SetFadeInOutUI();*/
 
 	SpawnMonster = Cast<AMonsterSpawner>(UGameplayStatics::GetActorOfClass(GetWorld(), AMonsterSpawner::StaticClass()));
-	demonCol->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::DemonComponentBeginOverlap);
+
+	demonColL->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::DemonLComponentBeginOverlap);
+
+	demonColR->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::DemonLComponentBeginOverlap);
 
 	SwordCol->OnComponentBeginOverlap.AddDynamic(this,&AMisterNegative::SwordComponentBeginOverlap);
+
+	SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetDemonCollision(false);
 }
 
 // Called every frame
@@ -113,11 +126,27 @@ void AMisterNegative::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bisDissolve)
+	UE_LOG(LogTemp,Warning,TEXT("dissolveAnimValue : %f"), dissolveAnimValue);
+	if (bisDissolve) // 사라지게
 	{
-		UE_LOG(LogTemp, Warning, TEXT("dissolve"));
 		dissolveAnimValue += DeltaTime / 4;
 		Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), dissolveAnimValue);
+
+		if (dissolveAnimValue > 1)
+		{
+			bisDissolve = false;
+			SetSwordMeshVisible(true);
+		}
+	}
+
+	if (bisSetDissolve) // 나타나게
+	{
+		dissolveAnimValue -= DeltaTime ;
+		Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), dissolveAnimValue);
+		if (dissolveAnimValue < 0)
+		{
+			bisSetDissolve = false;
+		}
 	}
 
 	FVector TargetLoc = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->GetCameraLocation();
@@ -166,12 +195,9 @@ void AMisterNegative::SwordNiagaraVisible(bool chek)
 	Naiagara->SetVisibility(chek);
 }
 
-void AMisterNegative::SetDemonMeshVisible(bool chek)
+void AMisterNegative::SetSwordMeshVisible(bool chek)
 {
-	Sword->SetVisibility(!chek);
-	Demon->SetVisibility(chek);
-	bisDissolve = false;
-	SetDissolveInit();
+	Sword->SetVisibility(chek);
 }
 
 void AMisterNegative::NextFadeIn()
@@ -190,12 +216,28 @@ void AMisterNegative::CameraShake()
 void AMisterNegative::DissolveAnim()
 {
 	bisDissolve = true;
+	bisSetDissolve = false;
 }
 
-void AMisterNegative::SetDissolveInit()
+void AMisterNegative::SetDissolveAnim()
 {
-	dissolveAnimValue = 0;
-	Demon->SetScalarParameterValueOnMaterials(TEXT("Animation"), 0);
+	bisSetDissolve = true;
+	bisDissolve = false;
+	SetSwordMeshVisible(false);
+}
+
+void AMisterNegative::SetDemonCollision(bool chek)
+{
+	if (chek)
+	{
+		demonColR->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		demonColL->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	else
+	{
+		demonColR->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		demonColL->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 void AMisterNegative::NextLevel()
@@ -226,6 +268,7 @@ void AMisterNegative::SetUiVisble(bool chek)
 	SturnUi->SetVisibility(chek);
 }
 
+
 void AMisterNegative::SwordComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ASpiderMan* player = Cast<ASpiderMan>(OtherActor);
@@ -239,13 +282,27 @@ void AMisterNegative::SwordComponentBeginOverlap(UPrimitiveComponent* Overlapped
 	}
 }
 
-void AMisterNegative::DemonComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AMisterNegative::DemonRComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ASpiderMan* player = Cast<ASpiderMan>(OtherActor);
 
 	if (player != nullptr)
 	{
-		demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SetDemonCollision(false);
+		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
+		player->Damaged(1);
+	}
+}
+
+void AMisterNegative::DemonLComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ASpiderMan* player = Cast<ASpiderMan>(OtherActor);
+
+	if (player != nullptr)
+	{
+		SetDemonCollision(false);
+		
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
 		player->Damaged(1);

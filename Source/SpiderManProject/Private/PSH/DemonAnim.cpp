@@ -13,10 +13,14 @@ void UDemonAnim::NativeUpdateAnimation(float DeltaSeconds)
 	misterNegative = Cast<AMisterNegative>(ownerPawn);
 }
 
+void UDemonAnim::AnimNotify_SetBossDissolve()
+{
+	misterNegative->SetDissolveAnim();
+}
+
 void UDemonAnim::AnimNotify_BossDissolve()
 {
 	misterNegative->DissolveAnim();
-	UE_LOG(LogTemp, Warning, TEXT("dissolveStart"));
 }
 
 void UDemonAnim::AnimNotify_BossCameraShake()

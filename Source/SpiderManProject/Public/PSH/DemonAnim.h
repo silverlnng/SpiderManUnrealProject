@@ -26,6 +26,9 @@ public:
 	EMisterNegativeState AnimState;
 
 	UFUNCTION()
+	void AnimNotify_SetBossDissolve();
+
+	UFUNCTION()
 	void AnimNotify_BossDissolve();
 
 	UFUNCTION()
