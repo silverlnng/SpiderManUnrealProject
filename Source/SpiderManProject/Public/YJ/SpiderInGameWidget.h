@@ -28,6 +28,9 @@ public:
 	void SetHealthBar(float val);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float hp_Origin;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float hp_before;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float hp_After;

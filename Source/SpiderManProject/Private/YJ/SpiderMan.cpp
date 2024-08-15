@@ -25,6 +25,7 @@
 #include "YJ/SpiderManAnimInstance.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/ArrowComponent.h"
+#include "Components/TextBlock.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "PSH/MisterNegative.h"
 #include "PSH/MisterNegativeFSM.h"
@@ -147,10 +148,20 @@ void ASpiderMan::BeginPlay()
 	if(PlayerHPUI)
 	{
 		PlayerHPUI->AddToViewport();
+		PlayerHPUI->hp_before=CurHP;
+		PlayerHPUI->hp_After=CurHP;
+		PlayerHPUI->hp_Origin=MaxHP;
 		PlayerHPUI->SetHealthBar(1);
+		int32 IntNumb = CurHP;
+		FString str =  FString::Printf(TEXT("%d"), IntNumb);
+		PlayerHPUI->Text_HP->SetText(FText::FromString(str));
 		PlayerHPUI->SetVisibility(ESlateVisibility::Hidden);
 	}
-	
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle,([this]()
+	{
+		PlayerHPUI->SetVisibility(ESlateVisibility::Visible);
+	}),5.0f,false);
 }
 
 

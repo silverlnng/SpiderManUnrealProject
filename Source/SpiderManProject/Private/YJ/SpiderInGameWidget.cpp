@@ -4,6 +4,7 @@
 #include "YJ/SpiderInGameWidget.h"
 
 #include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
 
 void USpiderInGameWidget::NativeConstruct()
 {
@@ -24,16 +25,19 @@ void USpiderInGameWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 
 	if(hp_before!=hp_After)
 	{
-		hp_before =FMath::Lerp(hp_before,hp_After,InDeltaTime*5);
+		hp_before =FMath::Lerp(hp_before,hp_After,InDeltaTime*2);
 		SetHealthBar(hp_before);
+		int32 IntNumb = hp_before;
+		FString str =  FString::Printf(TEXT("%d"), IntNumb);
+		Text_HP->SetText(FText::FromString(str));
 	}
 	
 }
 
 void USpiderInGameWidget::SetHealthBar(float val)
 {
-	PB_HP->SetPercent(val);
+	float rate = val/hp_Origin;
+	PB_HP->SetPercent(rate);
 	// 근데 lerp 하게
-
 	// 새롭게 받은 val 과 현재 hp를 
 }
