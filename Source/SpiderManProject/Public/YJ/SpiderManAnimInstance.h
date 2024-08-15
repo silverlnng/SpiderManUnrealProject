@@ -112,6 +112,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DropKick");
 	bool DoubleStarted =false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DropKick");
+	bool DoubleJumpingDistClose =false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DropKick");
+	bool DoubleJumpTargetIsBoss =false;
+
 	UFUNCTION()
 	void AnimNotify_DropKickEnded();
 

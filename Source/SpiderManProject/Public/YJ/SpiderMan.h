@@ -190,6 +190,9 @@ public:
 
 	FVector DoubleTargetVector;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	AActor* DoubleJumpTarget;
+
 	UFUNCTION(BlueprintCallable)
 	void Attack();
 

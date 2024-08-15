@@ -864,20 +864,67 @@ void ASpiderMan::DoubleJump()
 	//점프버튼을 두번눌렀을때 할일
 		// 살짝위로 점프
 		// 
-		// 나의 앞방향으로 ray 발사 그지점으로 내가 앞으로 쭉 lerp 이동 
-
+		// 나의 앞방향으로 ray 발사 그지점으로 내가 앞으로 쭉 lerp 이동
+	
+	SpiderManAnim->DoubleJumpEnded =false; // 다시 초기화
+	SpiderManAnim->DoubleJumpingDistClose=false;
+	SpiderManAnim->DoubleJumpTargetIsBoss =false;
+	
 	if(FSMComp->LevelState == ELevelState::BOSSENEMY) //보스가 있는 state
 	{
-		SpiderManAnim->DoubleJumpEnded =false; // 다시 초기화
+		//보스와의 각도계산
+		 // 이내에 있으면 DoubleTargetVector=BossEnemy->GetActorLocation();
+
+		// 플레이어의 Forward 벡터 얻기
+		FVector PlayerForwardVector = this->GetActorForwardVector();
+
+		// 타겟의 위치 벡터 얻기
+		FVector TargetLocation = BossEnemy->GetActorLocation();
+		FVector PlayerLocation = this->GetActorLocation();
+		
+		// 플레이어와 타겟 사이의 벡터 (방향 벡터)
+		FVector DirectionToTarget = (TargetLocation - PlayerLocation).GetSafeNormal();
+		
+		float DotProduct = FVector::DotProduct(PlayerForwardVector, DirectionToTarget);
+
+		float AngleDegrees = FMath::Acos(DotProduct) * (180.0f / PI);
+
+		// 시야각 범위 내에 있는지 확인 (-60 ~ 60도)
+		if (AngleDegrees <= 60.0f)
+		{
+			// 타겟이 시야각 내에 있음
+			SpiderManAnim->DoubleJumpTargetIsBoss=true;
+			DoubleTargetVector=BossEnemy->GetActorLocation();
+			DoubleJumpTarget=BossEnemy;
+		}
+		else // 타겟이 시야각 내에 없음
+		{
+			
+			FVector CameraLocation;
+			FRotator CameraRotation;
+			pc->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+			// Calculate end location
+			FVector EndLocation = CameraLocation + (CameraRotation.Vector() * MaxSwingTraceDistance);
+
+			// Perform line trace
+			FHitResult HitResult;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(this); // Ignore self in trace
+
+			bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, EndLocation, ECC_Visibility, Params);
+			
+			if (bHit)
+			{
+				SpiderManAnim->DoubleJumpTargetIsBoss=false;
+				DoubleTargetVector = HitResult.ImpactPoint;
+			}	
+		}
 		
 		CableActor->CableComp->SetVisibility(true);
-
-		DoubleTargetVector=BossEnemy->GetActorLocation();
-
+		
 		CableActor->CableComp->SetWorldLocation(DoubleTargetVector); //케이블의 시작점을 히트지점으로 설정
-
-		//StartPointActor->SetActorLocation(DoubleTargetVector);
-			
+		
 		
 		//끝점(EndPointActor)의 component를 메쉬의 끝점
 		CableActor->CableComp->SetAttachEndTo(this,TEXT("Mesh"),TEXT("hand_rSocket"));
