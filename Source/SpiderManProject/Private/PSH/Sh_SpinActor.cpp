@@ -61,6 +61,7 @@ void ASh_SpinActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCompo
 		player->LaunchCharacter(GetActorForwardVector()*1000, false, false);
 		player->Damaged(1);
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, SweepResult.ImpactPoint);
+		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
 		Destroy();
 	}
 }

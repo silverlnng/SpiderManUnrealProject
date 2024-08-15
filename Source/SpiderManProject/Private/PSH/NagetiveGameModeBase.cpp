@@ -21,6 +21,7 @@ void ANagetiveGameModeBase::OnFadeIn()
 void ANagetiveGameModeBase::SetNegativeUI()
 {
 	EndUi->AddToViewport(1);
+	EndUi->PlayerAnim();
 	auto* pc = GetWorld()->GetFirstPlayerController();
 	pc->SetShowMouseCursor(true);
 	pc->SetInputMode(FInputModeUIOnly());

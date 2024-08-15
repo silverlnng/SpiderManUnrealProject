@@ -94,7 +94,12 @@ public:
 
 	void MonsterSpawn();
 
+	void SetVisible(bool chek);
+
 	void Ending();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void EndinSequence();
 
 	void SetUiVisble(bool chek); // SturnUi visible
 

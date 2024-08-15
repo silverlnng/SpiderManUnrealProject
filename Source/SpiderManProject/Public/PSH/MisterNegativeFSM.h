@@ -83,7 +83,7 @@ public: // 기본 퍼블릭 변수
 	float GrggyHitTime = 1;
 
 	UPROPERTY(EditAnywhere, Category = State)
-	int stamina = 0;
+	int MaxStamina = 100;
 
 	UPROPERTY(EditAnywhere, Category = State)
 	bool bisNextStage = false; // 페이즈 구별 불값
@@ -98,7 +98,7 @@ public: // 기본 퍼블릭 변수
 // 기본 보안 변수
 private:
 	float curHp = maxHp;
-
+	int stamina = 0;
 	// 소환
 
 public:
@@ -149,6 +149,8 @@ public:
 
 
 private: // 스테이트 관련 변수
+
+	float AttackTime = 1;
 	UPROPERTY()
 	EMisterNegativeState State = EMisterNegativeState::Idle;
 

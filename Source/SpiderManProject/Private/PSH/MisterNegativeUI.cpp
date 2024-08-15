@@ -13,6 +13,11 @@ void UMisterNegativeUI::NativeConstruct()
 	RePlayButton->OnClicked.AddDynamic(this, &UMisterNegativeUI::OnRePlayWidget);
 }
 
+void UMisterNegativeUI::PlayerAnim()
+{
+	PlayAnimationForward(MissionClear);
+}
+
 void UMisterNegativeUI::OnMainWidget()
 {
 	UGameplayStatics::OpenLevel(GetWorld(), FName("Start_Level"));

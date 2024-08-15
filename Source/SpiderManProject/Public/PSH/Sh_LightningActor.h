@@ -33,6 +33,8 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	class UParticleSystem * hitEffect;
 
+		UPROPERTY(EditDefaultsOnly)
+	class USoundBase * HitSound;
 	UPROPERTY(EditDefaultsOnly)
 	class UNiagaraComponent * Naiagara;
 
