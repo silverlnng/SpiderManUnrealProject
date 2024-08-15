@@ -49,12 +49,7 @@ void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	// ...
 
 	//거리좀 출력하고싶다
-	if(BossEnemy)
-	{
-		float dist = FVector::Dist(Me->GetActorLocation(),BossEnemy->GetActorLocation());
-		FString distString = FString::Printf(TEXT("%f"),dist);
-		DrawDebugString(GetWorld(),GetOwner()->GetActorLocation(),distString, nullptr,FColor::Yellow,0,true);	
-	}
+	
 	
 	switch ( State )
 	{
@@ -99,31 +94,30 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 	//다 도착하면 idle으로 다시 => 그냥 시간이 지나면 idle상태로 돌아가도록
 
 
-		if(Me->SpiderManAnim->DoubleJumpTargetIsBoss)
+	if (Me->SpiderManAnim->DoubleJumpTargetIsBoss)
+	{
+		if (dist <= 400.f)
 		{
-			if (dist <= 400.f)
-			{
-				//타겟이 보스일때만
+			//타겟이 보스일때만
 
-				Me->GetCharacterMovement()->StopMovementImmediately();
-				Me->SpiderManAnim->DoubleJumpingDistClose = true;
-				SetState(EState::IDLE);
-				IdleState();
-			}
-			
+			Me->GetCharacterMovement()->StopMovementImmediately();
+			Me->SpiderManAnim->DoubleJumpingDistClose = true;
+			SetState(EState::IDLE);
+			IdleState();
 		}
-		else
+	}
+	else
+	{
+		if (dist <= 800.f)
 		{
-			if (dist <= 800.f)
-			{
-				//타겟이 보스일때만
+			//타겟이 보스일때만
 
-				Me->GetCharacterMovement()->StopMovementImmediately();
-				Me->SpiderManAnim->DoubleJumpingDistClose = true;
-				SetState(EState::IDLE);
-				IdleState();
-			}
+			Me->GetCharacterMovement()->StopMovementImmediately();
+			Me->SpiderManAnim->DoubleJumpingDistClose = true;
+			SetState(EState::IDLE);
+			IdleState();
 		}
+	}
 			
 	
 	

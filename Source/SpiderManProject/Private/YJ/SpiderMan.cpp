@@ -147,9 +147,17 @@ void ASpiderMan::BeginPlay()
 void ASpiderMan::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if(BossEnemy)
+	{
+		ToBossEnemyDist = FVector::Dist(GetActorLocation(),BossEnemy->GetActorLocation());
+		FString distString = FString::Printf(TEXT("%f"),ToBossEnemyDist);
+		DrawDebugString(GetWorld(),GetOwner()->GetActorLocation(),distString, nullptr,FColor::Yellow,0,true);	
+	}
+	
 	FVector Forward = GetActorForwardVector();
 	FVector Right = GetActorRightVector();
-	DetectWall(Forward);
+	//DetectWall(Forward);
 	//DetectWall(Right);
 	if(hooked&& !DetctedWall)
 	{
@@ -331,6 +339,10 @@ void ASpiderMan::FindHookPoint_pushShift()
 	// 버튼을 누르면 내 시야로 ray를 발사하여 hit지점을 구하고 ,
 		// 내 시야가 꼭 카메라의  ViewPoint는 아님
 	// hit지점을 endlocation 으로 정하기
+	if(!(GetCharacterMovement()->IsFalling()))
+	{
+		return;
+	}
 
 	// State 에 따라 다르게 작동하도록 하기
 	if(FSMComp->LevelState == ELevelState::BOSSENEMY)
@@ -346,7 +358,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 		BossPoint = FVector(BossPoint.X,BossPoint.Y,OffsetBoss);
 		hookPoint = BossPoint;
 
-		DrawDebugLine(GetWorld(), GetActorLocation(), hookPoint, FColor::Yellow, false, 1.0f, 0, 1.0f);
+		//DrawDebugLine(GetWorld(), GetActorLocation(), hookPoint, FColor::Yellow, false, 1.0f, 0, 1.0f);
 
 		CableActor->CableComp->SetVisibility(true);
 
@@ -354,17 +366,30 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 		StartPointActor->SetActorLocation(hookPoint);
 
-		this->LaunchCharacter(GetActorUpVector()*2000.f,false,true);
+		//보스와 거리에 따라서 이 발사 힘을 다르게 해야함
+		this->GetMesh()->SetRelativeLocation(FVector(0, 0, -200.f));
+		
+		if(ToBossEnemyDist<=1700.f)
+		{
+			this->LaunchCharacter(GetActorUpVector()*2000.f,false,true);
+			this->GetMesh()->SetRelativeLocation(FVector(0, 0, -200.f));
+		}
+		else
+		{
+			this->LaunchCharacter(GetActorUpVector()*3000.f,false,true);
+			this->GetMesh()->SetRelativeLocation(FVector(0, 0, -200.f));
+		}
 
+		
 		FTimerHandle Timer2;
 		GetWorld()->GetTimerManager().SetTimer(Timer2, ([this]()-> void
 		{
 			//좀 더 높은곳에서 스윙하고싶다 ==>스윙하면서 위로올라가야함....속도도 붙어야함
-			FVector offset = GetActorLocation() + GetActorUpVector() * 200.f;
+			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
+			FVector offset = GetActorLocation()+GetActorUpVector()*200.f;
 
 			EndPointActor->SetActorLocation(offset);
 			EndPointActor->meshComp->SetWorldLocation(offset);
-			// meshComp 가 계층구조 자식이긴한데 위치가 부모 안따라가서 얘도 위치 정해주기 
 
 			//끝점(EndPointActor)의 component를 케이블의 end으로 하고 
 			//CableActor->CableComp->SetAttachEndTo(EndPointActor,TEXT("meshComp"), NAME_None);
@@ -392,7 +417,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 			this->GetCapsuleComponent()->SetCapsuleRadius(1);
 			this->GetCapsuleComponent()->SetCapsuleHalfHeight(1);
-			this->GetMesh()->SetRelativeLocation(FVector(0, 0, -200.f));
+			
 			FSMComp->SetState(EState::SWING);
 		}), 0.3f, false);
 
@@ -414,7 +439,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 
 		GetWorld()->GetTimerManager().SetTimer(addforceTimer, ([this]()-> void
 		{
-			EndPointActor->meshComp->AddForce(camForce * 10000.f, NAME_None, true);
+			EndPointActor->meshComp->AddForce(camForce * 14000.f, NAME_None, true);
 			//EndPointActor->meshComp->AddForce(newforce*100.f, NAME_None, true);
 		}), 0.5f, true, 0.3f);
 		

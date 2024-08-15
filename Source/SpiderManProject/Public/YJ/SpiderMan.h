@@ -333,6 +333,9 @@ public:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
 	class AMisterNegative* BossEnemy;
 
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
+	float ToBossEnemyDist;
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class UArrowComponent* ArrowComp;
 	
