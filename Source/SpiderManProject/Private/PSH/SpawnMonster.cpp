@@ -94,7 +94,7 @@ void ASpawnMonster::Tick(float DeltaTime)
 		GetMesh()->SetScalarParameterValueOnMaterials(TEXT("Animation"), dissolveAnimValue);
 		Sword->SetScalarParameterValueOnMaterials(TEXT("Animation"), dissolveAnimValue);
 
-		if (dissolveAnimValue > 4)
+		if (dissolveAnimValue > 1)
 		{
 			bisDissolve = false;
 		}

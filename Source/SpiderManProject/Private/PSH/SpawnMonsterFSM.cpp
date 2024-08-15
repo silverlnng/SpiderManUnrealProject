@@ -196,10 +196,6 @@ void USpawnMonsterFSM::MoveState(const float& DeltaTime)
 	dist = Dir.Size();
 
 	me->AddMovementInput(Dir.GetSafeNormal());
-
-	UE_LOG(LogTemp,Warning,TEXT("%f"),dist);
-	UE_LOG(LogTemp,Warning,TEXT("Move"));
-	UE_LOG(LogTemp,Warning,TEXT("Target : %s"),*Target->GetName());
 	if (dist < AttackRange) // 어택 가능 범위라면
 	{
 		RandomAttack(); // 랜덤 어택

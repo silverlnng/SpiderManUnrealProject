@@ -78,7 +78,7 @@ public: // 기본 퍼블릭 변수
 
 // 상태 변수
 	UPROPERTY(EditAnywhere, Category = State)
-	float maxHp = 20;
+	float maxHp = 100;
 	UPROPERTY(EditAnywhere, Category = State)
 	float GrggyHitTime = 1;
 

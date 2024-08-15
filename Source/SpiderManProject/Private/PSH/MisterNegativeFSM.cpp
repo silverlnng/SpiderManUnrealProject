@@ -11,7 +11,6 @@
 #include "PSH/DemonAnim.h"
 #include "Components/CapsuleComponent.h"
 #include "PSH/SpawnMonster.h"
-#include "PSH/SpawnMonsterFSM.h"
 
 
 // Sets default values for this component's properties
@@ -199,11 +198,7 @@ void UMisterNegativeFSM::DamageState() // 맞았을때
 		}
 	}
 
-	if(bisGroggy) // 그로기 상태에서 진입
-	{
-		SetState(EMisterNegativeState::Groggy_loop);
-		
-	}
+	
 }
 
 	// damge = 말그대로 데미지 , MontageNum 몽타주 애니메이션 확인을 위해 , LaunchPower 밀어낼 힘
@@ -250,21 +245,22 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 		}
 		else   // 공격 중이 아님
 		{
-			//me->LaunchCharacter(Dirction * LaunchPower, false, false); // 뒤로 넉백
+			me->LaunchCharacter(Dirction * LaunchPower, false, false); // 뒤로 넉백
 			if (bisMaxPower) // 일반 상태 
 			{
 				hitcount++;
 			}
-			MisterAnim->HitAnim();
-			MisterAnim->JumpToAttackMontageSection(MontageNum);
-			//switch (MontageNum) // 애니메이션 재생
-			//{
-			//    case 1: //  현재 테스트용 레프트펀치
-			//	MisterAnim->HitAnim();
-				//me->LaunchCharacter(Dirction * LaunchPower, false, false);
-			//	break;
-			//}
-			SetState(EMisterNegativeState::Damage);
+			switch (MontageNum) // 애니메이션 재생
+			{
+			case 1: //  현재 테스트용 레프트펀치
+				MisterAnim->HitAnim();
+				break;
+			}
+			if (!bisGroggy) // 그로기 상태에서 진입
+			{
+				SetState(EMisterNegativeState::Damage);
+			}
+			
 		}
 		
 	}
@@ -302,8 +298,6 @@ void UMisterNegativeFSM::Groggy_loopState()
 	if (curTime >= GroggyTime)
 	{
 		SetState(EMisterNegativeState::Groggy_end);
-		
-		me->SetUiVisble(false);
 		curTime = 0;
 	}
 }
@@ -361,6 +355,7 @@ void UMisterNegativeFSM::DemonAttack1_idleState()
 	curTime += GetWorld()->DeltaTimeSeconds;
 	if (curTime >= 1)
 	{
+		demonMeshLocation = me->GetMesh()->GetRelativeLocation();
 		SetLocation(worldCenter);
 		SetState(EMisterNegativeState::DemonAttack1_Move);
 		curTime = 0;
@@ -369,20 +364,9 @@ void UMisterNegativeFSM::DemonAttack1_idleState()
 
 void UMisterNegativeFSM::DemonAttack1_MoveState()
 {
-	Alpha += GetWorld()->DeltaTimeSeconds * 4;
-	CurLoc = UKismetMathLibrary::VEase(StartLoc, EndLoc, Alpha, EEasingFunc::SinusoidalIn);
+	
+	GoForMove(GetWorld()->DeltaTimeSeconds * 3, State);
 
-	me->SetActorLocation(CurLoc); // 앞으로이동
-
-	if (Alpha >= 1)
-	{
-		me->SetDemonMeshVisible(true);
-		SetState(EMisterNegativeState::DemonAttack1_Attack);
-		DemonAnim->AnimState = EMisterNegativeState::DemonAttack1_Attack;
-		Alpha = 0;
-		demonMeshLocation = me->GetMesh()->GetRelativeLocation(); // 현재위치지정
-		me->bisDemonAttack = true;
-	}
 }
 
 void UMisterNegativeFSM::DemonAttack1_AttackState()
@@ -403,6 +387,7 @@ void UMisterNegativeFSM::DemonAttack2_idleState()
 	curTime += GetWorld()->DeltaTimeSeconds;
 	if (curTime >= 1)
 	{
+		demonMeshLocation = me->GetMesh()->GetRelativeLocation();
 		SetLocation(worldCenter);
 		SetState(EMisterNegativeState::DemonAttack2_Move);
 		curTime = 0;
@@ -416,6 +401,7 @@ void UMisterNegativeFSM::DemonAttack2_MoveState()
 
 void UMisterNegativeFSM::DemonAttack2_AttackState()
 {
+	
 	if (me->bisDemonAttack)
 	{
 		me->GetMesh()->SetRelativeLocation(me->GetMesh()->GetRelativeLocation() + me->GetActorUpVector() * 50 * GetWorld()->DeltaTimeSeconds); // 위이동	
@@ -428,13 +414,16 @@ void UMisterNegativeFSM::DemonAttack2_AttackState()
 
 void UMisterNegativeFSM::RandomAttackCheak_1Page()
 {
-	int RandemNum = FMath::RandRange(1, 2);
+	int RandemNum = FMath::RandRange(1, 3);
 	switch (RandemNum)
 	{
 	case 1:
 		SetState(EMisterNegativeState::LightningAttack);
 		break;
 	case 2:
+		SetState(EMisterNegativeState::stepAttack_Idle);
+		break;
+	case 3:
 		SetState(EMisterNegativeState::stepAttack_Idle);
 		break;
 	}
@@ -462,7 +451,7 @@ void UMisterNegativeFSM::RandomAttackCheak_1To2Page()
 
 void UMisterNegativeFSM::RandomAttackCheak_2Page()
 {
-	int RandemNum = FMath::RandRange(1, 6);
+	int RandemNum = FMath::RandRange(5, 6);
 	switch (RandemNum)
 	{
 	case 1:
@@ -479,11 +468,13 @@ void UMisterNegativeFSM::RandomAttackCheak_2Page()
 		break;
 	case 5:
 		SetState(EMisterNegativeState::DemonAttack1_idle);
-		me->Demon->SetRelativeLocation(FVector(-1, -1.9f, -8.6f));
+		me->Demon->SetRelativeLocation(FVector(-1, -1.9f, -7));
+		me->Demon->SetRelativeRotation(FRotator(0, 0, 10));
 		break;
 	case 6:
 		SetState(EMisterNegativeState::DemonAttack2_idle);
-		me->Demon->SetRelativeLocation(FVector(0, -1.9f, -2));
+		me->Demon->SetRelativeLocation(FVector(0, -1.9f, -6));
+		me->Demon->SetRelativeRotation(FRotator(0, 0, -10));
 		break;
 	}
 }
@@ -529,7 +520,7 @@ void UMisterNegativeFSM::SetState(EMisterNegativeState NewState)
 void UMisterNegativeFSM::EndState(EMisterNegativeState endState) 
 {
 	me->SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	me->demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	me->SetDemonCollision(false);
 	switch (endState)
 	{
 	case EMisterNegativeState::Idle: break;
@@ -560,7 +551,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::LightningAttack: SetState(EMisterNegativeState::Idle);
 		bisAttack = false;
 		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		stamina -= 20;
+		stamina -= 10;
 		break;
 
 	case EMisterNegativeState::stepAttack_Idle: SetState(EMisterNegativeState::stepAttack_Attack);
@@ -592,30 +583,34 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::DemonAttack1_idle:
 		break;
 	case EMisterNegativeState::DemonAttack1_Move:
+		DemonAnim->AnimState = EMisterNegativeState::DemonAttack1_Attack;
+		SetState(EMisterNegativeState::DemonAttack1_Attack);
 		
+		me->bisDemonAttack = true;
 		break;
 	case EMisterNegativeState::DemonAttack1_Attack:
 		stamina -= 50;
 		me->GetMesh()->SetRelativeLocation(demonMeshLocation);
-		me->SetDemonMeshVisible(false);
+		bisAttack = false;
 		DemonAnim->AnimState = EMisterNegativeState::Idle;
 		SetState(EMisterNegativeState::Idle);
+		me->SetDemonCollision(false);
 		break;
 
 	case EMisterNegativeState::DemonAttack2_idle:
 		break;
 	case EMisterNegativeState::DemonAttack2_Move:
-		me->SetDemonMeshVisible(true);
 		DemonAnim->AnimState = EMisterNegativeState::DemonAttack2_Attack;
 		SetState(EMisterNegativeState::DemonAttack2_Attack);
-		demonMeshLocation = me->GetMesh()->GetRelativeLocation();
 		me->bisDemonAttack = true;
+
 		break;
 	case EMisterNegativeState::DemonAttack2_Attack:
 		stamina -= 50;
 		me->GetMesh()->SetRelativeLocation(demonMeshLocation);
-		me->SetDemonMeshVisible(false);
+		bisAttack = false;
 		DemonAnim->AnimState = EMisterNegativeState::Idle;
+		me->SetDemonCollision(false);
 		SetState(EMisterNegativeState::Idle);
 		break;
 	}
@@ -623,7 +618,6 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 
 void UMisterNegativeFSM::StartState(EMisterNegativeState startState)
 {	
-	me->demonCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	// 시작 시점 반환
 	switch (State)
 	{
@@ -644,6 +638,8 @@ void UMisterNegativeFSM::StartState(EMisterNegativeState startState)
 	case EMisterNegativeState::Groggy_loop:
 		break;
 	case EMisterNegativeState::Groggy_end:
+		me->Explosion();
+		me->SetUiVisble(false);
 		break;
 
 	case EMisterNegativeState::Attack:
@@ -659,6 +655,7 @@ void UMisterNegativeFSM::StartState(EMisterNegativeState startState)
 		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EMisterNegativeState::stepAttack_Attack:
+		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EMisterNegativeState::SpinAttack_Attack:
 		me->SwordCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -673,16 +670,22 @@ void UMisterNegativeFSM::StartState(EMisterNegativeState startState)
 	case EMisterNegativeState::DemonAttack1_Move:
 		break;
 	case EMisterNegativeState::DemonAttack1_Attack:
-		me->demonCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		StartLoc = me->GetActorLocation(); // 시작위치
+		TargetLoc = Target->GetActorLocation(); // 타겟의 위치
+		Dir = TargetLoc - StartLoc; // 방향
+		Dir.Normalize(); // 방향 초기화
+		me->SetDemonCollision(true);
 		break;
 	case EMisterNegativeState::DemonAttack2_idle:
 		break;
 	case EMisterNegativeState::DemonAttack2_Move:
 		break;
 	case EMisterNegativeState::DemonAttack2_Attack:
-		me->demonCol->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		break;
-	default:
+		StartLoc = me->GetActorLocation(); // 시작위치
+		TargetLoc = Target->GetActorLocation(); // 타겟의 위치
+		Dir = TargetLoc - StartLoc; // 방향
+		Dir.Normalize(); // 방향 초기화
+		me->SetDemonCollision(true);
 		break;
 	}
 }
