@@ -96,7 +96,7 @@ void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)
 
 	if (Me->SpiderManAnim->DoubleJumpTargetIsBoss)
 	{
-		if (dist <= 400.f)
+		if (dist <= 380.f)
 		{
 			//타겟이 보스일때만
 

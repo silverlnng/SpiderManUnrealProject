@@ -58,16 +58,20 @@ public:
 	UFUNCTION()
 	void AnimNotify_MisterNextAnim();
 
+	UFUNCTION()
+	void JumpToAttackMontageSection(int32 NewSection);
+	UFUNCTION()
+	FName GetAttackMontageSectionName(int32 Section);
 
-	// 1. Ä«¸Þ¶ó ½¦ÀÌÅ© ½ÃÀÛ
+	// 1. Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½
 	UFUNCTION()
 	void AnimNotify_NextShake();
 	
-	// 2. ÆäÀÌµå ¾Æ¿ô ½ÃÀÛ
+	// 2. ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 	UFUNCTION()
 	void AnimNotify_NextFadeIn();
 	
-	// 3. ·¹º§ ÀÌµ¿
+	// 3. ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½
 	UFUNCTION()
 	void AnimNotify_NextLevel();
 };

@@ -271,10 +271,10 @@ public:
 	void AirAttackTriggerCheck();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
-	float AttackRange =50.f ;
+	float AttackRange =70.f ;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Attack)
-	float AttackRadius = 50.f;
+	float AttackRadius = 80.f;
 	
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);

@@ -11,6 +11,7 @@
 #include "PSH/DemonAnim.h"
 #include "Components/CapsuleComponent.h"
 #include "PSH/SpawnMonster.h"
+#include "PSH/SpawnMonsterFSM.h"
 
 
 // Sets default values for this component's properties
@@ -249,17 +250,20 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 		}
 		else   // 공격 중이 아님
 		{
-			me->LaunchCharacter(Dirction * LaunchPower, false, false); // 뒤로 넉백
+			//me->LaunchCharacter(Dirction * LaunchPower, false, false); // 뒤로 넉백
 			if (bisMaxPower) // 일반 상태 
 			{
 				hitcount++;
 			}
-			switch (MontageNum) // 애니메이션 재생
-			{
-			case 1: //  현재 테스트용 레프트펀치
-				MisterAnim->HitAnim();
-				break;
-			}
+			MisterAnim->HitAnim();
+			MisterAnim->JumpToAttackMontageSection(MontageNum);
+			//switch (MontageNum) // 애니메이션 재생
+			//{
+			//    case 1: //  현재 테스트용 레프트펀치
+			//	MisterAnim->HitAnim();
+				//me->LaunchCharacter(Dirction * LaunchPower, false, false);
+			//	break;
+			//}
 			SetState(EMisterNegativeState::Damage);
 		}
 		

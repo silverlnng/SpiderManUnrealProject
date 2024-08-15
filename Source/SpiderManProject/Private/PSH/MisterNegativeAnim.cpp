@@ -16,7 +16,23 @@ void UMisterNegativeAnim::NativeUpdateAnimation(float DeltaSeconds)
 
 void UMisterNegativeAnim::HitAnim()
 {
-	Montage_Play(RightHit);
+	if(!Montage_IsPlaying(RightHit))
+	{
+		Montage_Play(RightHit,1.f);
+	}
+	
+}
+
+void UMisterNegativeAnim::JumpToAttackMontageSection(int32 NewSection)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,GetAttackMontageSectionName(NewSection).ToString());
+	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), RightHit);
+}
+
+FName UMisterNegativeAnim::GetAttackMontageSectionName(int32 Section)
+{
+	// 순서를 매개변수로 받아서 실행시킬 세션이름으로 반환
+	return FName(*FString::Printf(TEXT("Damaged%d"), Section));
 }
 
 void UMisterNegativeAnim::DeadAnim()
@@ -70,6 +86,8 @@ void UMisterNegativeAnim::AnimNotify_MisterNextAnim()
 {
 	misterNegative->bisDemonAttack = false;
 }
+
+
 
 void UMisterNegativeAnim::AnimNotify_NextShake()
 {

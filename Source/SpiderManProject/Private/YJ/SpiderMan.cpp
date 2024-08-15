@@ -199,9 +199,9 @@ void ASpiderMan::Tick(float DeltaTime)
 	
 	camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
 
-	FString text = UKismetStringLibrary::Conv_BoolToString(bCanAirAttackStart);
+	/*FString text = UKismetStringLibrary::Conv_BoolToString(bCanAirAttackStart);
 	FString append = UKismetStringLibrary::Concat_StrStr(text,TEXT("bCanAirAttackStart"));
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, append);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, append);*/
 	
 
 }
@@ -1163,7 +1163,7 @@ void ASpiderMan::ComboAttackCheck()
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
 				//여기서 콤보공격 넘버 보내서 -조금씩 다른 애니메이션 실행되도록 하기
 				
-				NegativeFSM->Dameged(1,1,1000, MisterNegative->GetActorForwardVector()*-1);
+				NegativeFSM->Dameged(1,CurrentCombo,1000, MisterNegative->GetActorForwardVector()*-1);
 				//NegativeFSM->Dameged(1,1,1000, MisterNegative->GetActorForwardVector()*-1);
 
 				
