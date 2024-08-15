@@ -200,7 +200,7 @@ public:
 	class USpiderManAnimInstance* SpiderManAnim;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
-	float MaxHP=10.f;
+	float MaxHP=200.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setting")
 	float CurHP=MaxHP;
 
@@ -338,5 +338,12 @@ public:
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class UArrowComponent* ArrowComp;
+
+/////////////InGame WIdget/////////////
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSubclassOf<class USpiderInGameWidget> PlayerHPWidgetFactory;
+	UPROPERTY()
+	class USpiderInGameWidget* PlayerHPUI;
+	
 	
 };

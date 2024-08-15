@@ -145,6 +145,11 @@ void USpiderFSMComponent::TickSwing(const float& DeltaTime)
 	
 }
 
+void USpiderFSMComponent::TickSwingAttack(const float& DeltaTime)
+{
+	
+}
+
 void USpiderFSMComponent::TickDamage(const float& DeltaTime)
 {
 }

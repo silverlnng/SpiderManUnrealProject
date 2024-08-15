@@ -12,6 +12,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "CableComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "Engine/OverlapResult.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -29,6 +30,7 @@
 #include "PSH/MisterNegativeFSM.h"
 #include "PSH/SpawnMonster.h"
 #include "PSH/SpawnMonsterFSM.h"
+#include "YJ/SpiderInGameWidget.h"
 
 
 // Sets default values
@@ -138,6 +140,16 @@ void ASpiderMan::BeginPlay()
 	//GetWorldTimerManager().SetTimer(FindHookPoint_Auto,this,&ASpiderMan::FindHookPoint_Auto,0.5f,true,-1);
 
 	BossEnemy =Cast<AMisterNegative>(UGameplayStatics::GetActorOfClass(GetWorld(),AMisterNegative::StaticClass()));
+
+	CurHP=MaxHP;
+
+	PlayerHPUI = Cast<USpiderInGameWidget>(CreateWidget(GetWorld() , PlayerHPWidgetFactory));
+	if(PlayerHPUI)
+	{
+		PlayerHPUI->AddToViewport();
+		PlayerHPUI->SetHealthBar(1);
+		PlayerHPUI->SetVisibility(ESlateVisibility::Hidden);
+	}
 	
 }
 
@@ -579,9 +591,15 @@ void ASpiderMan::CompletedHook()
 	this->GetCapsuleComponent()->SetCapsuleHalfHeight(90);
 	this->GetCapsuleComponent()->SetCapsuleRadius(35);
 	this->GetMesh()->SetRelativeLocation(FVector(0, 0, -90.f));
+	GetWorldTimerManager().ClearTimer(addforceTimer);
+	
 	FSMComp->SetState(EState::IDLE);
 	FSMComp->IdleState();
-	GetWorldTimerManager().ClearTimer(addforceTimer);
+
+	// 보스와 일정거리 (700)이하이면 LERP로 날라가면서 이래로 찍는 공격하기
+	// hangingEnd 애니 안하고 + lerp 이동 +  공격 모션, 
+
+	
 	
 }
 
@@ -1045,14 +1063,15 @@ void ASpiderMan::Attack()
 
 void ASpiderMan::Damaged(float value)
 {
-	CurHP-=value;
+	CurHP-=value*5;
 	
 	//Damage 애니 실행
 	SpiderManAnim->PlayDamagedMontage();
 	// 콤보공격 멈추고 초기화
 	FSMComp->SetState(EState::IDLE);
 	AttackEndComboState();
-	
+	//PlayerHPUI->SetHealthBar(CurHP/MaxHP);
+	PlayerHPUI->hp_After = CurHP;
 	UE_LOG(LogTemp,Warning, TEXT("Spider Damaged, curHP : %f"), CurHP);
 }
 

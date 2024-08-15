@@ -13,6 +13,7 @@ enum class EState : uint8
 	DoubleJump  UMETA(DisplayName = "이동") ,
 	ATTACK  UMETA(DisplayName = "공격") ,
 	SWING  UMETA(DisplayName = "스윙") ,
+	SWINGATTACK  UMETA(DisplayName = "스윙어택"),
 	DAMAGE UMETA(DisplayName = "데미지") ,
 	DIE UMETA(DisplayName = "죽음")
 };
@@ -56,6 +57,8 @@ public:
 	void TickAttack(const float& DeltaTime);
 	UFUNCTION()
 	void TickSwing(const float& DeltaTime);
+	UFUNCTION()
+	void TickSwingAttack(const float& DeltaTime);
 	UFUNCTION()
 	void TickDamage(const float& DeltaTime);
 	UFUNCTION()
