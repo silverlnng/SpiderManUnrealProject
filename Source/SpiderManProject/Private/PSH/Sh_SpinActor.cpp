@@ -4,6 +4,7 @@
 #include "PSH/Sh_SpinActor.h"
 #include "Components/BoxComponent.h"
 #include "YJ/SpiderMan.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ASh_SpinActor::ASh_SpinActor()
@@ -59,6 +60,7 @@ void ASh_SpinActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCompo
 	{
 		player->LaunchCharacter(GetActorForwardVector()*1000, false, false);
 		player->Damaged(1);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, SweepResult.ImpactPoint);
 		Destroy();
 	}
 }

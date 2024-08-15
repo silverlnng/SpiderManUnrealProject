@@ -126,7 +126,6 @@ void AMisterNegative::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UE_LOG(LogTemp,Warning,TEXT("dissolveAnimValue : %f"), dissolveAnimValue);
 	if (bisDissolve) // 사라지게
 	{
 		dissolveAnimValue += DeltaTime / 4;

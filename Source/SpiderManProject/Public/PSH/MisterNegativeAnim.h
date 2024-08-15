@@ -32,9 +32,30 @@ public:
 	class UAnimMontage* Dead;
 
 	UPROPERTY(EditDefaultsOnly)
-	class UAnimMontage * RightHit;
+	class UAnimMontage * M_hitAnim;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage * M_RightHit;
+	
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage * M_LeftHit;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage * M_FrontHit;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage * M_HeadRightHit;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UAnimMontage * M_HeadLefttHit;
 	
 	void HitAnim();
+	
+	void RightHitAnim();
+	void LeftHitAnim();
+	void FrontHitAnim();
+	void HeadRightHitAnim();
+	void HeadLefttHitAnim();
 
 	void DeadAnim();
 	void RealDeadAnim();

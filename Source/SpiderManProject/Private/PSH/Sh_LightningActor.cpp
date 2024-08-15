@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "../../../../Plugins/FX/Niagara/Source/Niagara/Classes/NiagaraSystem.h"
 #include "../../../../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ASh_LightningActor::ASh_LightningActor()
@@ -62,6 +63,7 @@ void ASh_LightningActor::OnComponentBeginOverlap(UPrimitiveComponent* Overlapped
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
 		Destroy();
 		player->Damaged(1);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, SweepResult.ImpactPoint);
 	}
 }
 

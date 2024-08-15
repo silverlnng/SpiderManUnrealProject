@@ -16,17 +16,42 @@ void UMisterNegativeAnim::NativeUpdateAnimation(float DeltaSeconds)
 
 void UMisterNegativeAnim::HitAnim()
 {
-	if(!Montage_IsPlaying(RightHit))
+	if(!Montage_IsPlaying(M_RightHit))
 	{
-		Montage_Play(RightHit,1.f);
+		Montage_Play(M_RightHit,1.f);
 	}
 	
+}
+
+void UMisterNegativeAnim::RightHitAnim()
+{
+	Montage_Play(M_RightHit,1.f);
+}
+
+void UMisterNegativeAnim::LeftHitAnim()
+{
+	Montage_Play(M_LeftHit, 1.f);
+}
+
+void UMisterNegativeAnim::FrontHitAnim()
+{
+	Montage_Play(M_FrontHit, 1.f);
+}	
+
+void UMisterNegativeAnim::HeadRightHitAnim()
+{
+	Montage_Play(M_HeadRightHit, 1.f);
+}
+
+void UMisterNegativeAnim::HeadLefttHitAnim()
+{
+	Montage_Play(M_HeadLefttHit, 1.f);
 }
 
 void UMisterNegativeAnim::JumpToAttackMontageSection(int32 NewSection)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,GetAttackMontageSectionName(NewSection).ToString());
-	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), RightHit);
+	Montage_JumpToSection(GetAttackMontageSectionName(NewSection), M_RightHit);
 }
 
 FName UMisterNegativeAnim::GetAttackMontageSectionName(int32 Section)

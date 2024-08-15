@@ -7,6 +7,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ASh_ChargingActor::ASh_ChargingActor()
@@ -65,8 +66,9 @@ void ASh_ChargingActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	if (player != nullptr)
 	{
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
-		Destroy();
 		player->Damaged(1);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, SweepResult.ImpactPoint);
+		Destroy();
 	}
 }
 

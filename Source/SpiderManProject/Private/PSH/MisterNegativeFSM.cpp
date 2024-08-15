@@ -253,7 +253,19 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 			switch (MontageNum) // 애니메이션 재생
 			{
 			case 1: //  현재 테스트용 레프트펀치
-				MisterAnim->HitAnim();
+				MisterAnim->RightHitAnim();
+				break;
+			case 2: //  라이트펀치
+				MisterAnim->LeftHitAnim();
+				break;
+			case 3: //  헤드 레프트펀치
+				MisterAnim->HeadRightHitAnim();
+				break;
+			case 4: //  헤드 라이트펀치
+				MisterAnim->HeadLefttHitAnim();
+				break;
+			case 5: //  정면 펀치
+				MisterAnim->FrontHitAnim();
 				break;
 			}
 			if (!bisGroggy) // 그로기 상태에서 진입
@@ -421,9 +433,6 @@ void UMisterNegativeFSM::RandomAttackCheak_1Page()
 		SetState(EMisterNegativeState::LightningAttack);
 		break;
 	case 2:
-		SetState(EMisterNegativeState::stepAttack_Idle);
-		break;
-	case 3:
 		SetState(EMisterNegativeState::stepAttack_Idle);
 		break;
 	}

@@ -31,6 +31,9 @@ public:
 	class UStaticMeshComponent * mesh;
 
 	UPROPERTY(EditDefaultsOnly)
+	class UParticleSystem * hitEffect;
+
+	UPROPERTY(EditDefaultsOnly)
 	class UNiagaraComponent * Naiagara;
 
 		UFUNCTION()
