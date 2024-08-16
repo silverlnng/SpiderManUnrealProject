@@ -904,7 +904,7 @@ void ASpiderMan::MyDrawDebugLine()
 void ASpiderMan::Jump()
 {
 	Super::Jump();
-	if(GetCharacterMovement()->IsFalling())
+	if(GetCharacterMovement()->IsFalling()&&!hooked)
 	{
 		DoubleJump();
 	}
@@ -1109,7 +1109,7 @@ void ASpiderMan::ComboAttack()
 		// 스윙공격을
 		CompletedHook();
 		//여기서 hooked false되면 hanging end 애니실행
-		LaunchCharacter(GetActorUpVector()*1000.f*-1,false,false);
+		LaunchCharacter(GetActorUpVector()*5000.f*-1,false,false);
 		HookAttack=true;
 		
 	}
