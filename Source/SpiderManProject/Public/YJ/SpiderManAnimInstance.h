@@ -50,6 +50,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	bool bIshooking;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	bool bhookingAttack;
+
+	UFUNCTION()
+	void AnimNotify_HookAttackEnd();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EAnimState AnimState = EAnimState::IDLEAnim;
 

@@ -64,7 +64,7 @@ void USpiderFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void USpiderFSMComponent::TickIdle(const float& DeltaTime)
 {
-	
+	Me->CableActor->CableComp->SetVisibility(false);
 }
 
 void USpiderFSMComponent::TickDoubleJump(const float& DeltaTime)

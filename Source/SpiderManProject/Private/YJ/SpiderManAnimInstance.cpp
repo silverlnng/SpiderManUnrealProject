@@ -42,12 +42,19 @@ void USpiderManAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsDodging = Me->bIsDodging;
 
 	bIshooking = Me->hooked;
+
+	bhookingAttack =Me->HookAttack;
 }
 
 void USpiderManAnimInstance::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 	Me = Cast<ASpiderMan>(TryGetPawnOwner());
+}
+
+void USpiderManAnimInstance::AnimNotify_HookAttackEnd()
+{
+	Me->HookAttack=false;
 }
 
 void USpiderManAnimInstance::SetAnimState(EAnimState nextState)

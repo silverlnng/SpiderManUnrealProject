@@ -84,6 +84,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
 	FVector hookPoint;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setting")
+	bool HookAttack;
 	
 	UFUNCTION(BlueprintCallable)
 	void FindHookPoint_pushShift();

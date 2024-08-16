@@ -456,7 +456,7 @@ void ASpiderMan::FindHookPoint_pushShift()
 			
 			FVector camForce = UKismetMathLibrary::GetForwardVector(CameraManager->GetCameraRotation());
 			
-			EndPointActor->meshComp->AddForce(camForce * 100, NAME_None, true);
+			EndPointActor->meshComp->AddForce(camForce * 300, NAME_None, true);
 			
 		}), 0.4f, false);
 
@@ -903,6 +903,10 @@ void ASpiderMan::Jump()
 	{
 		DoubleJump();
 	}
+	if(hooked)
+	{
+		EndPointActor->meshComp->AddForce(camForce * 14000.f, NAME_None, true);
+	}
 }
 
 void ASpiderMan::StopJumping()
@@ -1092,43 +1096,57 @@ void ASpiderMan::Damaged(float value)
 
 void ASpiderMan::ComboAttack()
 {
-	// 스윙공격 중 들어온 입력이라면
-		// 스윙공격을 
-	// air 콤보를 해야한다면 air 콤보 공격을 진행하도록
-	if (bCanAirAttackStart==false)
+	
+
+	if(hooked) 
 	{
-		if (IsAttacking) // 공격이 진행중에 들어온 입력이라면  
+		// 스윙공격 중 들어온 입력이라면 스윙끊고
+		// 스윙공격을
+		CompletedHook();
+		//여기서 hooked false되면 hanging end 애니실행
+		LaunchCharacter(GetActorUpVector()*1000.f*-1,false,false);
+		HookAttack=true;
+		
+	}
+	else
+	{
+		// air 콤보를 해야한다면 air 콤보 공격을 진행하도록
+		if (bCanAirAttackStart==false)
 		{
-			if (CanNextCombo)
+			if (IsAttacking) // 공격이 진행중에 들어온 입력이라면  
 			{
-				IsComboInputOn = true;
+				if (CanNextCombo)
+				{
+					IsComboInputOn = true;
+				}
+			}
+			else
+			{
+				AttackStartComboState();
+				SpiderManAnim->PlayAttackMontage();
+				SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
+				IsAttacking = true;
 			}
 		}
-		else
+		else // 에어콤보 가능
 		{
-			AttackStartComboState();
-			SpiderManAnim->PlayAttackMontage();
-			SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
-			IsAttacking = true;
-		}
-	}
-	else // 에어콤보 가능
-	{
-		if (IsAirAttacking) // 공격이 진행중에 들어온 입력이라면  
-		{
-			if (CanNextCombo)
+			if (IsAirAttacking) // 공격이 진행중에 들어온 입력이라면  
 			{
-				IsComboInputOn = true;
+				if (CanNextCombo)
+				{
+					IsComboInputOn = true;
+				}
+			}
+			else
+			{
+				AttackStartComboState();
+				SpiderManAnim->PlayAirAttackMontage();
+				SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
+				IsAirAttacking = true;
 			}
 		}
-		else
-		{
-			AttackStartComboState();
-			SpiderManAnim->PlayAirAttackMontage();
-			SpiderManAnim->JumpToAttackMontageSection(CurrentCombo);
-			IsAirAttacking = true;
-		}
 	}
+	
 }
 
 void ASpiderMan::AirComboAttack()
@@ -1195,6 +1213,9 @@ void ASpiderMan::ComboAttackCheck()
 				//여기서 콤보공격 넘버 보내서 -조금씩 다른 애니메이션 실행되도록 하기
 				
 				NegativeFSM->Dameged(1,CurrentCombo,1000, MisterNegative->GetActorForwardVector()*-1);
+				
+				FString Message = FString::Printf(TEXT("hitcount: %d"), CurrentCombo);
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,Message);
 				//NegativeFSM->Dameged(1,1,1000, MisterNegative->GetActorForwardVector()*-1);
 				UGameplayStatics::PlaySound2D(GetWorld(),AttackHitSound);
 				
