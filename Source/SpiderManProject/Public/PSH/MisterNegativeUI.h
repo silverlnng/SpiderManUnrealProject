@@ -20,11 +20,15 @@ public:
 
 	UPROPERTY(meta=(BindWidget))
 	class UButton * MainButton;
+	UPROPERTY(EditAnywhere, meta = (BindWidgetAnim),Transient,Category = StandBy)
+	class UWidgetAnimation * MissionClear;
 
 	UPROPERTY(meta=(BindWidget))
 	class UButton * RePlayButton;
 
 	
+	UFUNCTION()
+	void PlayerAnim();
 	UFUNCTION()
 	void OnMainWidget();
 	UFUNCTION()

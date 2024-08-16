@@ -32,6 +32,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent * Dust;
 	
+		UPROPERTY(EditDefaultsOnly)
+	class USoundBase * HitSound;
+
 	UPROPERTY(EditDefaultsOnly)
 	class UParticleSystem * hitEffect;
 

@@ -53,7 +53,7 @@ void UMisterNegativeFSM::BeginPlay()
 	}
 
 	curHp = maxHp; // 최대체력
-	stamina = 100; // 최대 스테미나 설정
+	stamina = MaxStamina; // 최대 스테미나 설정
 	bisGroggy = false;
 	bisAttack = false;
 	bisMaxPower = true;
@@ -119,11 +119,11 @@ void UMisterNegativeFSM::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 
 	// 스테이트 변화 확인을 위한 디버깅
-	const FString myState = UEnum::GetValueAsString(State);
-	DrawDebugString(GetWorld(), me->GetActorLocation(), myState, nullptr, FColor::Red, 0, true);
-
-	const FString myAnimState = UEnum::GetValueAsString(MisterAnim->AnimState);
-	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation() + FVector(0, 0, 50), myAnimState, nullptr, FColor::Yellow, 0, true);
+// 	const FString myState = UEnum::GetValueAsString(State);
+// 	DrawDebugString(GetWorld(), me->GetActorLocation(), myState, nullptr, FColor::Red, 0, true);
+// 
+// 	const FString myAnimState = UEnum::GetValueAsString(MisterAnim->AnimState);
+// 	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation() + FVector(0, 0, 50), myAnimState, nullptr, FColor::Yellow, 0, true);
 	
 }
 
@@ -221,6 +221,9 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 			me->SetUiVisble(false);
 			MisterAnim->RealDeadAnim();
 			DeadSpawnMonster();
+			me->SetVisible(false);
+			Target->GetMesh()->SetVisibility(false);
+			me->EndinSequence();
 		}
 		else // 1페이지에서 0이되었다면
 		{
@@ -283,7 +286,7 @@ void UMisterNegativeFSM::DieState() // 죽음
 	if (bisNextStage)
 	{
 		curTime += GetWorld()->DeltaRealTimeSeconds;
-		if (curTime >= 5)
+		if (curTime >= 6)
 		{
 			me->Ending();
 			curTime = 0;
@@ -337,7 +340,8 @@ void UMisterNegativeFSM::stepAttack_IdleState()
 
 void UMisterNegativeFSM::StepAttackState_AttackState()
 {
-	GoForMove(GetWorld()->DeltaTimeSeconds * 0.7f , State);
+	AttackTime = 1.25f;
+	GoForMove(GetWorld()->DeltaTimeSeconds , State);
 }
 
 
@@ -496,8 +500,9 @@ void UMisterNegativeFSM::GoForMove(float Time, EMisterNegativeState BeforState)
 
 	me->SetActorLocation(CurLoc); // 앞으로이동
 
-	if (Alpha >= 1)
+	if (Alpha >= AttackTime)
 	{
+		AttackTime = 1;
 		Alpha = 0;
 		EndState(BeforState);
 	}
@@ -704,7 +709,7 @@ void UMisterNegativeFSM::DeadSpawnMonster()
 {
 	for (int i = 0; i < Monsters.Num(); i++)
 	{
-		Monsters[i]->FSM->Die();
+		Monsters[i]->Destroy();
 	}
 }
 

@@ -257,6 +257,13 @@ void AMisterNegative::MonsterSpawn()
 	SpawnMonster->MonsterSpawn();
 }
 
+void AMisterNegative::SetVisible(bool chek)
+{
+	Sword->SetVisibility(chek);
+	Demon->SetVisibility(chek);
+	GetMesh()->SetVisibility(chek);
+}
+
 void AMisterNegative::Ending()
 {
 	Gmb->SetNegativeUI();
@@ -287,7 +294,6 @@ void AMisterNegative::DemonRComponentBeginOverlap(UPrimitiveComponent* Overlappe
 
 	if (player != nullptr)
 	{
-		SetDemonCollision(false);
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
 		player->Damaged(1);
@@ -300,7 +306,6 @@ void AMisterNegative::DemonLComponentBeginOverlap(UPrimitiveComponent* Overlappe
 
 	if (player != nullptr)
 	{
-		SetDemonCollision(false);
 		
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
