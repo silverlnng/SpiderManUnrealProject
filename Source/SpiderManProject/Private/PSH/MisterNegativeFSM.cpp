@@ -232,6 +232,7 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 		}
 		else // 1페이지에서 0이되었다면
 		{
+			me->GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			me->SetUiVisble(false);
 			MisterAnim->DeadAnim();
 		}
@@ -253,9 +254,13 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 		}
 		else   // 공격 중이 아님
 		{
+			StartLoc = me->GetActorLocation(); // 시작위치
+			TargetLoc = Target->GetActorLocation(); // 타겟의 위치
+			Dir = TargetLoc - StartLoc; // 방향
+			Dir.Normalize(); // 방향 초기화
 			MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir); // 상대를향해 회전
 			me->SetActorRotation(MeRotation);
-			me->LaunchCharacter(Dirction * LaunchPower, false, false); // 뒤로 넉백
+			
 
 			if (bisMaxPower) // 일반 상태 
 			{
@@ -279,12 +284,17 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 			case 4: //  정면 펀치
 				MisterAnim->FrontHitAnim();
 				break;
+			default:
+				MisterAnim->FrontHitAnim();
+				LaunchPower = 1000;
+				Dirction = me->GetActorForwardVector() * -1;
+			break;
 			}
 			if (!bisGroggy) // 그로기 상태가 아닐때 진입
 			{
 				SetState(EMisterNegativeState::Damage);
 			}
-			
+			me->LaunchCharacter(Dirction * LaunchPower, false, false); // 뒤로 넉백
 		}
 		
 	}
