@@ -23,6 +23,8 @@ public:
 	class UProgressBar* PB_HP;
 	UPROPERTY(meta=(BindWidget))
 	class UTextBlock* Text_HP;
+	UPROPERTY(meta=(BindWidget))
+	class UTextBlock* Text_ComboNum;
 
 	UFUNCTION()
 	void SetHealthBar(float val);
