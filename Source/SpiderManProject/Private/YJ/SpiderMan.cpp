@@ -156,12 +156,17 @@ void ASpiderMan::BeginPlay()
 		FString str =  FString::Printf(TEXT("%d"), IntNumb);
 		PlayerHPUI->Text_HP->SetText(FText::FromString(str));
 		PlayerHPUI->SetVisibility(ESlateVisibility::Hidden);
+
+		ComboTotal=0;
+		FString strCombo =  FString::Printf(TEXT("%d"), ComboTotal);
+		PlayerHPUI->Text_ComboNum->SetText(FText::FromString(strCombo));
+		
 	}
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle,([this]()
 	{
 		PlayerHPUI->SetVisibility(ESlateVisibility::Visible);
-	}),5.0f,false);
+	}),8.5f,false);
 }
 
 
@@ -175,7 +180,7 @@ void ASpiderMan::Tick(float DeltaTime)
 	{
 		ToBossEnemyDist = FVector::Dist(GetActorLocation(),BossEnemy->GetActorLocation());
 		FString distString = FString::Printf(TEXT("%f"),ToBossEnemyDist);
-		DrawDebugString(GetWorld(),GetOwner()->GetActorLocation(),distString, nullptr,FColor::Yellow,0,true);	
+		//DrawDebugString(GetWorld(),GetOwner()->GetActorLocation(),distString, nullptr,FColor::Yellow,0,true);	
 	}
 	
 	FVector Forward = GetActorForwardVector();
@@ -1203,25 +1208,43 @@ void ASpiderMan::ComboAttackCheck()
 	if (bResult) {
 		for (const FHitResult& Result : HitResults)
 		{
+			
+
+			// ComboTotal ui 표시하기
+			
 			AActor* Actor = Result.GetActor();
 			ASpawnMonster* SpawnMonster = Cast<ASpawnMonster>(Actor);
 			AMisterNegative* MisterNegative = Cast<AMisterNegative>(Actor);
 			if(MisterNegative)
 			{
+				ComboTotal+=1;
+				FString str =  FString::Printf(TEXT("%d"), ComboTotal);
+				PlayerHPUI->Text_ComboNum->SetText(FText::FromString(str));
 				
 				auto NegativeFSM = MisterNegative->GetComponentByClass<UMisterNegativeFSM>();
 				//여기서 콤보공격 넘버 보내서 -조금씩 다른 애니메이션 실행되도록 하기
+				if (CurrentCombo == 4)
+				{
+					NegativeFSM->Dameged(1, CurrentCombo, 1000, MisterNegative->GetActorForwardVector() * -1);
+				}
+				else
+				{
+					NegativeFSM->Dameged(1,CurrentCombo,1, MisterNegative->GetActorForwardVector()*-1);
+				}
 				
-				NegativeFSM->Dameged(1,CurrentCombo,1000, MisterNegative->GetActorForwardVector()*-1);
-				
-				FString Message = FString::Printf(TEXT("hitcount: %d"), CurrentCombo);
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,Message);
+
+				/*FString Message = FString::Printf(TEXT("hitcount: %d"), CurrentCombo);
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,Message);*/
 				//NegativeFSM->Dameged(1,1,1000, MisterNegative->GetActorForwardVector()*-1);
 				UGameplayStatics::PlaySound2D(GetWorld(),AttackHitSound);
 				
 			}
 			if(SpawnMonster)
 			{
+				ComboTotal+=1;
+				FString str =  FString::Printf(TEXT("%d"), ComboTotal);
+				PlayerHPUI->Text_ComboNum->SetText(FText::FromString(str));
+				
 				UGameplayStatics::PlaySound2D(GetWorld(),AttackHitSound);
 				auto SpawnMonsterFSM = SpawnMonster->GetComponentByClass<USpawnMonsterFSM>();
 

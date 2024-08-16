@@ -264,6 +264,9 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "ComboAttack")
 	int32 MaxCombo;
 
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "ComboAttack")
+	int32 ComboTotal;
+
 	UFUNCTION()
 	void ComboAttack();
 
