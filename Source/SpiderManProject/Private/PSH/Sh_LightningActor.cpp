@@ -63,7 +63,7 @@ void ASh_LightningActor::OnComponentBeginOverlap(UPrimitiveComponent* Overlapped
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
 		player->Damaged(1);
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, SweepResult.ImpactPoint);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, player->GetActorLocation());
 		Destroy();
 	}
 }

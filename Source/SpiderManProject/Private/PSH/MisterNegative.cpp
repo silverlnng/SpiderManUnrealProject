@@ -269,6 +269,11 @@ void AMisterNegative::Ending()
 	Gmb->SetNegativeUI();
 }
 
+void AMisterNegative::Die()
+{
+	bisdie = true;
+}
+
 void AMisterNegative::SetUiVisble(bool chek)
 {
 	SturnUi->SetVisibility(chek);
@@ -284,6 +289,7 @@ void AMisterNegative::SwordComponentBeginOverlap(UPrimitiveComponent* Overlapped
 		SwordCol->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect,SweepResult.ImpactPoint);
 		player->Damaged(1);
 	}
 }
@@ -294,8 +300,9 @@ void AMisterNegative::DemonRComponentBeginOverlap(UPrimitiveComponent* Overlappe
 
 	if (player != nullptr)
 	{
-		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		player->LaunchCharacter(GetActorForwardVector() * 3000, false, false);
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, player->GetActorLocation());
 		player->Damaged(1);
 	}
 }
@@ -307,7 +314,8 @@ void AMisterNegative::DemonLComponentBeginOverlap(UPrimitiveComponent* Overlappe
 	if (player != nullptr)
 	{
 		
-		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		player->LaunchCharacter(GetActorForwardVector() * 3000, false, false);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, player->GetActorLocation());
 		UGameplayStatics::PlaySound2D(GetWorld(), HitSound);
 		player->Damaged(1);
 	}

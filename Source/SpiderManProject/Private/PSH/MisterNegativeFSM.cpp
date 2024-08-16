@@ -119,11 +119,11 @@ void UMisterNegativeFSM::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 
 	// 스테이트 변화 확인을 위한 디버깅
-// 	const FString myState = UEnum::GetValueAsString(State);
-// 	DrawDebugString(GetWorld(), me->GetActorLocation(), myState, nullptr, FColor::Red, 0, true);
-// 
-// 	const FString myAnimState = UEnum::GetValueAsString(MisterAnim->AnimState);
-// 	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation() + FVector(0, 0, 50), myAnimState, nullptr, FColor::Yellow, 0, true);
+	const FString myState = UEnum::GetValueAsString(State);
+	DrawDebugString(GetWorld(), me->GetActorLocation(), myState, nullptr, FColor::Red, 0, true);
+
+	const FString myAnimState = UEnum::GetValueAsString(MisterAnim->AnimState);
+	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation() + FVector(0, 0, 50), myAnimState, nullptr, FColor::Yellow, 0, true);
 	
 }
 
@@ -220,6 +220,7 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 		{
 			me->SetUiVisble(false);
 			MisterAnim->RealDeadAnim();
+			me->Die();
 			DeadSpawnMonster();
 			me->SetVisible(false);
 			Target->GetMesh()->SetVisibility(false);
@@ -248,11 +249,15 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 		}
 		else   // 공격 중이 아님
 		{
+			MeRotation = UKismetMathLibrary::MakeRotFromZX(me->GetActorUpVector(), Dir); // 상대를향해 회전
+			me->SetActorRotation(MeRotation);
 			me->LaunchCharacter(Dirction * LaunchPower, false, false); // 뒤로 넉백
+
 			if (bisMaxPower) // 일반 상태 
 			{
 				hitcount++;
 			}
+
 			switch (MontageNum) // 애니메이션 재생
 			{
 			case 1: //  현재 테스트용 레프트펀치
@@ -261,17 +266,17 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 			case 2: //  라이트펀치
 				MisterAnim->LeftHitAnim();
 				break;
-			case 3: //  헤드 레프트펀치
-				MisterAnim->HeadRightHitAnim();
+// 			case 3: //  헤드 레프트펀치
+// 				MisterAnim->HeadRightHitAnim();
 				break;
-			case 4: //  헤드 라이트펀치
+			case 3: //  헤드 라이트펀치
 				MisterAnim->HeadLefttHitAnim();
 				break;
-			case 5: //  정면 펀치
+			case 4: //  정면 펀치
 				MisterAnim->FrontHitAnim();
 				break;
 			}
-			if (!bisGroggy) // 그로기 상태에서 진입
+			if (!bisGroggy) // 그로기 상태가 아닐때 진입
 			{
 				SetState(EMisterNegativeState::Damage);
 			}
@@ -312,6 +317,8 @@ void UMisterNegativeFSM::Groggy_loopState()
 	curTime += GetWorld()->DeltaTimeSeconds;
 	if (curTime >= GroggyTime)
 	{
+		me->Explosion();
+		me->SetUiVisble(false);
 		SetState(EMisterNegativeState::Groggy_end);
 		curTime = 0;
 	}
@@ -319,9 +326,15 @@ void UMisterNegativeFSM::Groggy_loopState()
 
 void UMisterNegativeFSM::Groggy_EndState()
 {
-	SetLocation(worldCenter);
-	bisGroggy = false;
-	bisMaxPower = true;
+	curTime += GetWorld()->DeltaTimeSeconds;
+	if (curTime >= 1)
+	{
+		bisGroggy = false;
+		bisMaxPower = true;
+		SetState(EMisterNegativeState::Move);
+		SetLocation(worldCenter);
+		curTime = 0;
+	}
 }
 
 void UMisterNegativeFSM::MoveState() // 중앙으로 이동
@@ -555,8 +568,7 @@ void UMisterNegativeFSM::EndState(EMisterNegativeState endState)
 	case EMisterNegativeState::Groggy_loop:
 		break;
 	case EMisterNegativeState::Groggy_end:
-		SetState(EMisterNegativeState::Move);
-		bisGroggy = false;
+		
 		break;
 
 	case EMisterNegativeState::Attack:
@@ -652,8 +664,7 @@ void UMisterNegativeFSM::StartState(EMisterNegativeState startState)
 	case EMisterNegativeState::Groggy_loop:
 		break;
 	case EMisterNegativeState::Groggy_end:
-		me->Explosion();
-		me->SetUiVisble(false);
+		
 		break;
 
 	case EMisterNegativeState::Attack:

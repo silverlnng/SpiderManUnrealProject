@@ -27,9 +27,14 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bisdie = false;
+
 	UPROPERTY(EditAnywhere)
 	class UMisterNegativeFSM* MisterFSM;
 	
+	UPROPERTY(EditDefaultsOnly)
+	class UParticleSystem * hitEffect;
 
 	void SpawnLightning(); // LightningAttack Spawn
 	void SpawnSpin(); // SpinAttack Spawn
@@ -97,6 +102,8 @@ public:
 	void SetVisible(bool chek);
 
 	void Ending();
+
+	void Die();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void EndinSequence();
