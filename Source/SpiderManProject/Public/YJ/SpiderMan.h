@@ -360,4 +360,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USoundBase * AttackSound;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundBase * DamagedSound;
 };

@@ -1085,7 +1085,7 @@ void ASpiderMan::Attack()
 void ASpiderMan::Damaged(float value)
 {
 	CurHP-=value*5;
-	
+	UGameplayStatics::PlaySound2D(GetWorld(),DamagedSound);
 	//Damage 애니 실행
 	SpiderManAnim->PlayDamagedMontage();
 	// 콤보공격 멈추고 초기화
