@@ -11,6 +11,7 @@
 #include "PSH/DemonAnim.h"
 #include "Components/CapsuleComponent.h"
 #include "PSH/SpawnMonster.h"
+#include "YJ/SpiderInGameWidget.h"
 
 
 // Sets default values for this component's properties
@@ -119,12 +120,12 @@ void UMisterNegativeFSM::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 
 	// 스테이트 변화 확인을 위한 디버깅
-	const FString myState = UEnum::GetValueAsString(State);
-	DrawDebugString(GetWorld(), me->GetActorLocation(), myState, nullptr, FColor::Red, 0, true);
-
-	const FString myAnimState = UEnum::GetValueAsString(MisterAnim->AnimState);
-	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation() + FVector(0, 0, 50), myAnimState, nullptr, FColor::Yellow, 0, true);
-	
+// 	const FString myState = UEnum::GetValueAsString(State);
+// 	DrawDebugString(GetWorld(), me->GetActorLocation(), myState, nullptr, FColor::Red, 0, true);
+// 
+// 	const FString myAnimState = UEnum::GetValueAsString(MisterAnim->AnimState);
+// 	DrawDebugString(GetWorld(), GetOwner()->GetActorLocation() + FVector(0, 0, 50), myAnimState, nullptr, FColor::Yellow, 0, true);
+// 	
 }
 
 void UMisterNegativeFSM::idleState()
@@ -218,12 +219,15 @@ void UMisterNegativeFSM::Dameged(float damge, int MontageNum , float LaunchPower
 		curTime = 0; // 시간과 관련된 모든것을 위해 초기화
 		if (bisNextStage) // 2페이지에서 0이되었다면
 		{
+			me->SetActorLocation(FVector(5000,5000,5000));
 			me->SetUiVisble(false);
 			MisterAnim->RealDeadAnim();
 			me->Die();
 			DeadSpawnMonster();
 			me->SetVisible(false);
 			Target->GetMesh()->SetVisibility(false);
+			Target->PlayerHPUI->SetVisibility(ESlateVisibility::Hidden);
+			//Target->Destroy();
 			me->EndinSequence();
 		}
 		else // 1페이지에서 0이되었다면
@@ -291,7 +295,7 @@ void UMisterNegativeFSM::DieState() // 죽음
 	if (bisNextStage)
 	{
 		curTime += GetWorld()->DeltaRealTimeSeconds;
-		if (curTime >= 6)
+		if (curTime >= 8.3f)
 		{
 			me->Ending();
 			curTime = 0;
@@ -477,7 +481,7 @@ void UMisterNegativeFSM::RandomAttackCheak_1To2Page()
 
 void UMisterNegativeFSM::RandomAttackCheak_2Page()
 {
-	int RandemNum = FMath::RandRange(5, 6);
+	int RandemNum = FMath::RandRange(1, 6);
 	switch (RandemNum)
 	{
 	case 1:
