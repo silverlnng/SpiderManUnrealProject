@@ -52,6 +52,8 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AActor>  Lightning;
 
+	UPROPERTY(EditDefaultsOnly)
+	class UParticleSystem * hitEffect;
 
 	void SpawnLightning(); // LightningAttack Spawn
 

@@ -67,7 +67,7 @@ void ASh_ChargingActor::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	{
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
 		player->Damaged(1);
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, SweepResult.ImpactPoint);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, player->GetActorLocation());
 		UGameplayStatics::PlaySound2D(GetWorld(),HitSound);
 		Destroy();
 	}

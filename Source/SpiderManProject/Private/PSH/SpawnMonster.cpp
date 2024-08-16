@@ -179,6 +179,7 @@ void ASpawnMonster::SwordComponentBeginOverlap(UPrimitiveComponent* OverlappedCo
 	{
 		EndAttack();
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, player->GetActorLocation());
 		player->Damaged(1);
 	}
 }
@@ -191,6 +192,7 @@ void ASpawnMonster::LeftComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 	{
 		EndAttack();
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, player->GetActorLocation());
 		player->Damaged(1);
 	}
 }
@@ -203,6 +205,7 @@ void ASpawnMonster::RightComponentBeginOverlap(UPrimitiveComponent* OverlappedCo
 	{
 		EndAttack();
 		player->LaunchCharacter(GetActorForwardVector() * 1000, false, false);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hitEffect, player->GetActorLocation());
 		player->Damaged(1);
 	}
 }
